@@ -1,0 +1,295 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}%jsta
+\usepackage[english]{babel}%test
+\usepackage{float}
+
+\usepackage{natbib}
+\bibliographystyle{apalike}
+\bibpunct[; ]{(}{)}{,}{a}{}{;}
+
+\usepackage{Sweave}
+\usepackage{pifont,mdframed}%test
+
+\newenvironment{warning}
+{\par\begin{mdframed}[linewidth=2pt,linecolor=red]
+\begin{list}{}{\leftmargin=1cm
+  \labelwidth=\leftmargin}\item[\Large\ding{43}]}
+{\end{list}\end{mdframed}\par}
+
+\usepackage{geometry}
+\geometry{left=1.25in,right=1.25in,top=1.25in,bottom=1.25in}
+\usepackage{rotating}
+\usepackage{fancyhdr}
+\usepackage[bookmarks,colorlinks,breaklinks,citecolor=red]{hyperref}
+
+\usepackage{dirtree}%jsta
+\usepackage{hyphenat}%jsta
+
+%\usepackage{float}
+\usepackage{graphicx,subfig}
+% \usepackage{placeins}
+\setlength\headheight{26pt}
+
+\fancypagestyle{plain}{\fancyhf{}\fancyhead[R]{\includegraphics[width=6.0in,keepaspectratio=true]{sfwmd_bar8half_wordorexcel.png}}}
+
+\author{Joseph Stachelek}
+\title{Dataflow Output Standard Operating Procedure(SOP)}
+ 
+\begin{document}
+\input{DataflowR-concordance}
+\maketitle
+\tableofcontents
+ 
+\newpage
+\section{Introduction}
+
+This SOP details a workflow and introduces an \texttt{R} package to clean, load, interpolate, and plot streaming Dataflow output and associated discrete grab samples. The steps neccessary to perform a number of more involved data analyses are also included.
+
+\section{Programs and Applications used in this SOP}
+
+\begin{itemize}
+  \item A spreadsheet program (MS Excel or similar)
+  \item R (must have the \texttt{DataflowR} package and its dependencies installed) 
+  \item RStudio (optional; for more easily accessing documentation)
+  \item ArcGIS (optional; alternatively use QGIS, Surfer, etc, for more easily adjusting final symbology)
+\end{itemize}
+
+\section{Installing \texttt{DataflowR}}
+
+The \texttt{R} package \texttt{DataflowR} is distributed via a \texttt{.tar.gz} (analagous to \texttt{.zip}) package archive file. This package contains the source code for package functions as well as archived datasets for the SFWMD Florida Bay Dataflow Monitoring Program. In RStudio, it can be installed by navigating to \texttt{Tools} -> \texttt{Install Packages...} -> \texttt{Install from:} -> \texttt{Package Archive File}.\\ 
+
+In most cases, \texttt{DataflowR} will be installed in the default user library in a folder named for your version of R. On Windows this is probably:\\ \texttt{C:/Users/}\verb|<your_username>|\texttt{/Documents/R/win-library/}\verb|<your_R_version>|\texttt{/DataflowR}.
+
+The directory should have the following file structure:
+
+\dirtree{%
+.1 /.
+.2 doc.
+.2 extdata.
+.2 help.
+.2 html.
+.2 Meta.
+.2 R.
+}
+\newpage
+\subsection{Data}
+
+All data is stored under \texttt{extdata} in the following subdirectories:\\
+
+\dirtree{%
+.1 /.
+.2 extdata.
+.3 DF\_BaseFile.
+.3 DF\_FullDataSets.
+.3 DF\_Subsets.
+.3 DF\_Surfaces.
+.3 DF\_Validation.
+}
+\vspace{15pt}
+\begin{warning}
+\textcolor{red}{IMPORTANT!!} before continuing, copy the contents of \texttt{extdata} to a local folder such as: \verb|C:\Documents\Data\Dataflow|.\\ Next, update the file \texttt{localpath} to point to the location of this new folder.
+For example, the structure of \verb|C:\Documents\Data\Dataflow| would look like:
+
+\dirtree{%
+.1 /.
+.2 Dataflow.
+.3 DF\_BaseFile.
+.3 DF\_FullDataSets.
+.3 DF\_Subsets.
+.3 DF\_Surfaces.
+.3 DF\_Validation.
+}
+
+\end{warning}
+
+Dataflow surveys in the archived data respository include the following:
+
+\begin{center}
+\begin{tabular}{l*{10} {c} r}
+\hline
+Year & 15 & 14 & 13 & 12 & 11 & 10 & 09 & 08 & 07 & 06\\ \hline
+J &  &  &  &  &  &  &  &  &  & \\
+F & x & x &  &  &  &  &  &  &  & \\
+M &  &  &  &  &  &  &  &  &  & \\
+A &  & x &  &  &  &  &  &  &  & \\
+M & x &  & x &  &  &  &  &  &  & \\
+J &  &  &  &  &  &  &  &  &  & \\
+J &  & x &  &  &  &  &  &  &  & \\
+A &  &  & x &  &  &  &  &  &  & \\
+S &  &  &  &  &  &  &  &  &  & \\
+O &  & x &  &  &  &  &  &  &  & \\
+N &  &  & x &  &  &  &  &  &  & \\
+D &  &  &  & x &  &  &  &  &  & \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\section{Cleaning, loading, interpolating, and plotting streaming data}
+\subsection{Clean incoming Dataflow and C6 files}
+
+Incoming streaming data should be placed in \verb|DF_FullDataSets|\texttt{/Raw/InstrumentOutput} in a folder named for the survey date in yyyymm format (e.g. Feb-2015 is 201502). Likewise, Dataflow (\texttt{".txt"} or \texttt{".TXT"}) and C6 (\texttt{".csv"} or \texttt{".CSV"})  files should start with the survey date in yyyymmdd format. For example, the raw data files for February 2015 would be placed under:
+
+
+\dirtree{%
+.1 /.
+.2 Dataflow.
+.3 DF\_FullDataSets.
+.4 Raw.
+.5 InstrumentOutput.
+.6 201502.
+.7 201502\_DF021115.txt.
+.7 ....
+.7 201502\_C6\_11FEB.csv.
+.7 ....
+}
+\begin{warning}
+When working in a non-Windows environment, \texttt{.csv} files created under Windows may need to be opened and resaved as \texttt{text}\verb|\csv| in order to avoid illegal "nul" characters.
+\end{warning}
+
+\vspace{15pt}
+Cleaning is accomplished via the \nohyphens{\texttt{streamclean}} function. The example below shows how to specify inputs to clean the data for the February 2015 survey. For this example we set the \texttt{tofile} parameter to \texttt{FALSE} but setting it to \texttt{TRUE} will save the cleaned output to \verb|DF_FullDataSets| as a \texttt{.csv} file. The \texttt{streamclean} function will gather all the Dataflow records and merge them with the C6 data, remove leading and trailing records of all zeros, format GPS coordinates, check that conductivity to salinity calculations are correct (recalculate if neccesary), and classify records based on fathom and CERP basin designations.
+
+\begin{Schunk}
+\begin{Sinput}
+> dt<-streamclean(yearmon=201502,mmin=7,c6pres=TRUE,tofile=FALSE,sep=",")
+\end{Sinput}
+\end{Schunk}
+\subsection{QA cleaned streaming data}
+
+The \texttt{streamclean} function does not perform detailed QA of individual parameter values or detect systematic bias. Systematic bias might occur because of sensor failure. In these cases there may be data but it is "junk data". The \texttt{streamqa} function creates a series of diagnostic plots of the data. The user enters an interactive QA "session" to detect systematic biases and eliminate unrealsitic data spikes.
+
+\begin{Schunk}
+\begin{Sinput}
+> streamqa(yearmon=201502)
+\end{Sinput}
+\end{Schunk}
+
+
+\subsection{Loading previously cleaned streaming data}
+
+The \texttt{streamget} function will retrieve previously cleaned data. The function looks for full data sets in the \verb|DF_FullDataSets| folder that match the specified survey date. An example for the February 2015 survey is shown below.
+
+
+\begin{Schunk}
+\begin{Sinput}
+> dt<-streamget(yearmon=201502)
+\end{Sinput}
+\end{Schunk}
+
+\subsection{Interpolating cleaned data files}
+
+The \texttt{streaminterp} function will interpolate a dataset that has been loaded into memory from the \texttt{streamclean} or \texttt{streamget} functions. Interpolations are performed using functions in the \texttt{ipdw} \texttt{R} package \citep{ipdw}. Variables to be interpolated must be specified as inputs to the \texttt{paramlist} paramter. If you have loaded your dataset to memory under the name \texttt{dt}, use \texttt{names(dt)} to see the available parameters. Enter one or more parameters as arguments to a character list. For example, to interpolate salinity only (as below) use \texttt{c("sal")}. Additional parameters can be appended. For example, to interpolate salinity and temperature use \texttt{c("sal","temp")}. Interpolation should take about 20 minutes plus about 2 minutes for each entry in \texttt{paramlist}. Raster surface output will be written to a subfolder of \verb|DF_Surfaces| named for the year and month of the survey in question.\\
+
+\texttt{streaminterp} will first attempt to split the full data set into training and validation datasets. If these already exist in the \verb|DF_Subsets| and \verb|DF_Validation| folders, a warning will be printed and the pre-existing datsets will be used. Next, \texttt{streaminterp} will attempt to create a dedicated folder to hold all the interpolated surfaces for the given survey. If this folder already exists, \texttt{streaminterp} will print a warning but the function should proceed as normal (the warning can be disregarded).\\
+
+More details regarding the interpolation procedure can be found in \cite{stachelek2015application}.
+
+\begin{Schunk}
+\begin{Sinput}
+> streaminterp(dt,paramlist=c("sal"),yearmon)
+\end{Sinput}
+\end{Schunk}
+
+\subsection{Plotting interpolated surfaces}
+
+A quick visual inspection of interpolated outputs can be accomplished using the \texttt{surfplot} function. The \texttt{rnge} paramter takes either a single survey date or a list of two survey dates to specify a date range for plotting. More detailed publication quality maps should be produced using a dedicated GIS program such as ArcGIS or QGIS.
+
+\begin{Schunk}
+\begin{Sinput}
+> surfplot(rnge=c(201502),params=c("sal"))
+\end{Sinput}
+\end{Schunk}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics{figure0}
+\end{center}
+\label{fig:zero}
+\end{figure}
+%\FloatBarrier
+
+\section{Handling discrete grab sample data}
+\subsection{Cleaning grab sample records}
+Incoming grab sample \texttt{.csv} data files should be placed in the \verb|DF_GrabSamples/Raw| folder and their file names should have the survey date in yyyymm format preappended. These files can be cleaned using the \texttt{grabclean} function. The \texttt{grabclean} function formats column names, removes columns/rows of missing data, and calculates minute averages of the streaming data that correspond to the grab sample date/times. Output is saved to the \verb|DF_GrabSamples| folder when \texttt{tofile} is set to \texttt{TRUE}. Suspect data records should be identified manually in the \texttt{flags} column. In this version of the SOP, there is only one flag \texttt{s}. This becomes important in Section 6.2 because suspect data records can create problems converting between extracted and fluoresced chlorophyll.
+
+\begin{Schunk}
+\begin{Sinput}
+> grabclean(yearmon=201410,tofile=FALSE)
+\end{Sinput}
+\end{Schunk}
+
+\subsection{Loading previously cleaned grab data}
+
+The \texttt{rnge} paramter takes either a single survey date or a list of two survey dates to specify a date range for retrieving cleaned grab data.
+
+\begin{Schunk}
+\begin{Sinput}
+> grabs<-grabget(rnge=c(201402,201410))
+\end{Sinput}
+\end{Schunk}
+
+\subsection{Plotting grab sample data}
+
+Several plot types are defined in the \texttt{grabplot} function including "permit-style" vertical bar plots ("permitbarplot"), and. \texttt{grabplot} calls \texttt{grabget} internally.
+
+\begin{Schunk}
+\begin{Sinput}
+> grabplot(rnge=201410,params=c("chla"),plottype="permitbarplot")
+\end{Sinput}
+\end{Schunk}
+%\vspace{15pt}
+
+ \begin{figure}[h!]
+ \begin{center}
+ \includegraphics[width=3.5in,keepaspectratio=true]{figure1}
+ \end{center}
+ \label{fig:one}
+ \end{figure}
+%\clearpage
+%\FloatBarrier
+
+\section{Data Analysis}
+\subsection{Calculating a difference-from-average surface}
+The \texttt{avmap} function takes a survey date as input and searches the \verb|DF_Surfaces| folder for interpolated surfaces of the same parameter within a specified number of months for each year. The number of months (tolerance) on either side of the input month is set using the \texttt{tolerance} parameter. The found surfaces often have different extents. The \texttt{percentcov} parameter controls the percent of all identified surveys required before a pixel is included in difference-from-average computations. Output surfaces are written to the current working directory unless the \texttt{tofile} parameter is set to \texttt{FALSE}.
+
+\begin{Schunk}
+\begin{Sinput}
+> avmap(yearmon=201502,params="sal",tofile=TRUE,percentcov=0.6,tolerance=1)
+\end{Sinput}
+\end{Schunk}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics{figure2}
+\end{center}
+\label{fig:two}
+\end{figure}
+%\FloatBarrier
+
+\subsection{Fit grab sample and streaming averages}
+\subsubsection{Calculate coefficients}
+
+In order to generate maps of chlorophyll concentration, streaming fluorescence values (chlorophyll, algal pigments, cdom) must be statistically "fit" (regressed) against lab-derived extracted chlorophyll values. The \texttt{chlcoef} function searches the \verb|DF_GrabSamples| folder for a cleaned grab dataset that matches the specified \texttt{yearmon} parameter value. First, the function generates a correlation matrix and identifies streaming variables that have at least a 0.4 correlation with extracted chlorophyll. The resulting variables are entered into a linear regression. If the R-squared value of the regression is less than 0.7, the variables are entered into a second degree polynomial regression. The regression (either the linear or the second degree polynomial) is subjected to a backward stepwise AIC model selection. The output of this step is usually a regression with a reduced number of parameters (citeMASS). The final regression is checked for multicolinearity by calculating variance inflation factors (Helsel and Hirsh 2002).
+
+
+
+
+
+\begin{Schunk}
+\begin{Sinput}
+> chlcoef(yearmon=201502,remove.flags=TRUE)
+\end{Sinput}
+\end{Schunk}
+
+\subsubsection{Generate corrected surfaces}
+
+
+
+\medskip
+ 
+ %\setlength{\bibsep}{0pt}
+\bibliography{bib}
+ 
+\end{document}
