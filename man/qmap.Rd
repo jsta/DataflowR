@@ -4,12 +4,14 @@
 \alias{qmap}
 \title{Publication quality maps with QGIS}
 \usage{
-qmap(rnge = c(201402, 201404), params = c("c6chl", "sal"))
+qmap(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir)
 }
 \arguments{
 \item{rnge}{numeric string of no more than two dates in yyyymm format}
 
 \item{params}{character. string of parameter fields to plot}
+
+\item{fdir}{character file path to local data directory}
 }
 \value{
 output plots to the QGIS_plotting folder
@@ -17,8 +19,11 @@ output plots to the QGIS_plotting folder
 \description{
 not finished yet
 }
+\details{
+probably need to implement this as a seperate package
+}
 \examples{
-qmap(rnge=c(201502),params=c("sal"))
+\dontrun{qmap(rnge=c(201502),params=c("sal"))}
 }
 \author{
 Joseph Stachelek

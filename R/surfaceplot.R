@@ -4,21 +4,30 @@
 #'@author Joseph Stachelek
 #'@param rnge numeric string of no more than two dates in yyyymm format
 #'@param params character. string of parameter fields to plot
+#'@param fdir character file path to local data directory
 #'@return output plots to plot window
-#'@import rasterVis
-#'@import grid
-#'@import rgdal
+#'@importFrom rgdal readOGR
+#'@importFrom rasterVis levelplot
+#'@importFrom latticeExtra layer
+#'@importFrom sp spplot
+#'@importFrom raster raster stack reclassify calc writeRaster
 #'@export
-#'@examples surfplot(rnge=c(201502),params=c("sal"))
+#'@examples \dontrun{
+#'surfplot(rnge=c(201502),params=c("sal"),fdir=fdir)}
 
-surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal")){
+surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir){
   
-  library(rasterVis)
-  library(grid)
-  suppressMessages(library(rgdal))
+  #@import grid
+  #@import rgdal
+  #@import rasterVis
+  #@import latticeExtra
+    
+  #library(rasterVis)
+  #library(grid)
+  #suppressMessages(library(rgdal))
   #library(quickmapr)
         
-  fbcoast<-readOGR(dsn=file.path(fdir,"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE)
+  fbcoast<-rgdal::readOGR(dsn=file.path(fdir,"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE)
   if(length(rnge)==1){
     rnge<-c(rnge,rnge)
   }
@@ -52,7 +61,7 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal")){
   for(i in 1:length(rlist)){
     my.at<-unlist(eval(parse(text=as.character(brks[which(plist[i]==brks[,1]),2]))))
     
-    print(levelplot(raster(rlist[i]),ylim=c(2772256,2798000),xlim=c(518000.2,566000),par.settings=PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+layer({SpatialPolygonsRescale(layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ layer(sp.polygons(readOGR(dsn=file.path(fdir,"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE),fill="green",alpha=0.6)))
+    print(rasterVis::levelplot(raster::raster(rlist[i]),ylim=c(2772256,2798000),xlim=c(518000.2,566000),par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn=file.path(fdir,"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE),fill="green",alpha=0.6)))
     }
 }
 
@@ -62,11 +71,17 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal")){
 #'@param params variable name
 #'@param tofile logical save output to disk?
 #'@param percentcov numeric account for the different raster extents by setting the percent of all surveys required before a pixel is included in difference from average computations
-#'@param tolerance numeric number of monts on either side of yearmon to include in the set of surfaces averaged . defaults to 1. 
+#'@param tolerance numeric number of monts on either side of yearmon to include in the set of surfaces averaged . defaults to 1.
+#'@param fdir character file path to local data directory 
 #'@description takes a survey date as input and searches the DF_Surfaces folder for maps of the same parameter within the range of 1-2 months from yearmon for each year. These surfaces are averaged and compared to the surface from yearmon. 
 #'@export
-#'@examples avmap(yearmon=201505,params="sal",tofile=FALSE,percentcov=0.6,tolerance=1)
-avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance=1){
+#'@importFrom raster raster stack reclassify calc writeRaster
+#'@examples \dontrun{
+#'avmap(yearmon=201505,params="sal",tofile=FALSE,percentcov=0.6,tolerance=1,fdir=fdir)}
+
+avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance=1,fdir){
+  
+  #@import raster
   
   flist.full<-list.files(file.path(fdir,"DF_Surfaces"),pattern="*.grd",recursive=T,include.dirs=T,full.names=T)
   flist<-flist.full[basename(flist.full)==paste(toupper(params),".grd",sep="")|basename(flist.full)==paste(tolower(params),".grd",sep="")]
@@ -74,7 +89,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
   sdates<-data.frame(matrix(unlist(strsplit(dirname(flist),"/")),nrow=length(flist),byrow=T))
   sdates<-substring(sdates[,ncol(sdates)],1,6)
   
-  cursurf<-raster(flist[which(sdates==yearmon)])
+  cursurf<-raster::raster(flist[which(sdates==yearmon)])
   flist<-flist[-which(sdates==yearmon)]
   sdates<-sdates[-which(sdates==yearmon)]
     
@@ -89,9 +104,9 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
   sdates<-data.frame(matrix(unlist(strsplit(dirname(flist),"/")),nrow=length(flist),byrow=T))
   sdates<-substring(sdates[,ncol(sdates)],1,6)
   
-  rstack<-stack(flist)
-  rstack<-reclassify(rstack,c(-Inf,0,NA))
-  rmean<-calc(rstack,fun=mean,na.rm=T)
+  rstack<-raster::stack(flist)
+  rstack<-raster::reclassify(rstack,c(-Inf,0,NA))
+  rmean<-raster::calc(rstack,fun=mean,na.rm=T)
   rlen<-sum(!is.na(rstack))
   #browser()
   rmean[rlen<(percentcov*length(flist))]<-NA
@@ -100,9 +115,9 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
   plot(cursurf-rmean,main="Difference from Average")
   
   if(tofile==TRUE){
-  writeRaster(rmean,"meansurf.tif",format="GTiff",overwrite=T)
-  writeRaster(cursurf,"cursurf.tif",format="GTiff",overwrite=T)
-  writeRaster(cursurf-rmean,"diffsurf.tif",format="GTiff",overwrite=T)
+  raster::writeRaster(rmean,"meansurf.tif",format="GTiff",overwrite=T)
+  raster::writeRaster(cursurf,"cursurf.tif",format="GTiff",overwrite=T)
+  raster::writeRaster(cursurf-rmean,"diffsurf.tif",format="GTiff",overwrite=T)
   }
 }
 
@@ -112,11 +127,13 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@author Joseph Stachelek
 #'@param rnge numeric string of no more than two dates in yyyymm format
 #'@param params character. string of parameter fields to plot
+#'@param fdir character file path to local data directory
 #'@return output plots to the QGIS_plotting folder
+#'@details probably need to implement this as a seperate package
 #'@export
-#'@examples qmap(rnge=c(201502),params=c("sal"))
+#'@examples \dontrun{qmap(rnge=c(201502),params=c("sal"))}
 
-qmap<-function(rnge=c(201402,201404),params=c("c6chl","sal")){
+qmap<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir){
   
   #detect operating system####
   as.character(Sys.info()["sysname"])

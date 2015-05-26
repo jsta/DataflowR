@@ -4,9 +4,19 @@
 \alias{streamparse}
 \title{Parse old cleaned streaming files}
 \usage{
-streamparse(yearmon)
+streamparse(yearmon, tofile = FALSE, fdir)
+}
+\arguments{
+\item{yearmon}{numeric yyyymm date}
+
+\item{tofile}{logical save to file?}
+
+\item{fdir}{character file path to local data directory}
 }
 \description{
 Parse old cleaned streaming files
+}
+\examples{
+\dontrun{dt<-streamparse(yearmon=201004)}
 }
 

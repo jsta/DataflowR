@@ -7,10 +7,17 @@
 grabplot(rnge = c(201407, 201410), params = c("sal", "chla"),
   plottype = "permitbarplot")
 }
+\arguments{
+\item{rnge}{list of length two specifying date range in yyyymm format}
+
+\item{params}{character list of parameters to plot}
+
+\item{plottype}{character choice of plot type}
+}
 \description{
 plotting grab data
 }
 \examples{
-grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")
+\dontrun{grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")}
 }
 

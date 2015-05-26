@@ -1,14 +1,16 @@
 #'@name chlcoef
 #'@title calculation of extracted versus fluoresced chlorophyll coefficients
 #'@param yearmon numeric date of survey
+#'@param remove.flags logical trim dataset based on flags?
 #'@details this function should be interactive
 #'@export
-#'@examples chlcoef(yearmon=201305,remove.flags=TRUE)
-#'
+#'@importFrom MASS stepAIC
+#'@importFrom car vif
+
 chlcoef<-function(yearmon,remove.flags=FALSE){
 
-suppressMessages(library(MASS))
-library(car)
+#suppressMessages(library(MASS))
+#library(car)
 
 dt<-grabget(yearmon)
 
@@ -39,7 +41,7 @@ if(summary(fit)$r.squared<0.6){
   stop("bad fit. r-squared not high enough.")
 }
 
-saic<-stepAIC(fit)#pick reduced eq according to maximized AIC (remove terms with a the smallest (largest negative score))
+saic<-MASS::stepAIC(fit)#pick reduced eq according to maximized AIC (remove terms with a the smallest (largest negative score))
 rmlist<-as.character(saic$anova$Step)
 rmlist<-gsub("-","",rmlist)
 rmlist<-gsub(" ","",rmlist)

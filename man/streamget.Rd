@@ -4,13 +4,19 @@
 \alias{streamget}
 \title{Retrieve previously cleaned full streaming datasets}
 \usage{
-streamget(yearmon)
+streamget(yearmon, fdir)
+}
+\arguments{
+\item{yearmon}{numeric date in yyyymm format}
+
+\item{fdir}{character file path to local data directory}
 }
 \description{
 Retrieve previously cleaned full streaming datasets
 }
 \examples{
+\dontrun{
 yearmon<-201308
-dt<-streamget(yearmon)
+dt<-streamget(yearmon)}
 }
 

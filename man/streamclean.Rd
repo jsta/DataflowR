@@ -5,7 +5,7 @@
 \title{Cleaning raw streaming Dataflow output}
 \usage{
 streamclean(yearmon, mmin, c6mmin = NA, c6pres = TRUE, tofile = FALSE,
-  sep = ",")
+  sep = ",", fdir)
 }
 \arguments{
 \item{yearmon}{numeric designation of survey date formatted as yyyymm}
@@ -19,14 +19,17 @@ streamclean(yearmon, mmin, c6mmin = NA, c6pres = TRUE, tofile = FALSE,
 \item{tofile}{logical save cleaned output to DF_FullDataSets?}
 
 \item{sep}{character optional predesignation of item seperation character in raw data files}
+
+\item{fdir}{character file path to local data directory}
 }
 \description{
 Cleaning raw streaming Dataflow output
 }
 \details{
-Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon
+Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. Bad DO columns must sometimes be removed manually. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon
 }
 \examples{
-dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE)
+\dontrun{
+dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE,fdir=fdir)}
 }
 

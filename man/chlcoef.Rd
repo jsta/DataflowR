@@ -8,14 +8,13 @@ chlcoef(yearmon, remove.flags = FALSE)
 }
 \arguments{
 \item{yearmon}{numeric date of survey}
+
+\item{remove.flags}{logical trim dataset based on flags?}
 }
 \description{
 calculation of extracted versus fluoresced chlorophyll coefficients
 }
 \details{
 this function should be interactive
-}
-\examples{
-chlcoef(yearmon=201305,remove.flags=TRUE)
 }
 

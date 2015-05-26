@@ -4,13 +4,19 @@
 \alias{grabget}
 \title{aggregate grab data}
 \usage{
-grabget(rnge)
+grabget(rnge, fdir)
+}
+\arguments{
+\item{rnge}{list of length two specifying date range in yyyymm format}
+
+\item{fdir}{character file path to local data directory}
 }
 \description{
 aggregate grab data
 }
 \examples{
+\dontrun{
 grabs<-grabget(rnge=c(201402,201410))
-grabs2<-grabget(rnge=c(201505))
+grabs2<-grabget(rnge=c(201505))}
 }
 

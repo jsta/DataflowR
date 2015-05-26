@@ -1,14 +1,13 @@
 #'@name grabget
 #'@title aggregate grab data
 #'@export
-#'@examples 
+#'@param rnge list of length two specifying date range in yyyymm format
+#'@param fdir character file path to local data directory
+#'@examples \dontrun{ 
 #'grabs<-grabget(rnge=c(201402,201410))
-#'grabs2<-grabget(rnge=c(201505))
-#grabagg.R - Aggregating Cleaned Grab Files
+#'grabs2<-grabget(rnge=c(201505))}
 
-#name translation lookup table
-
-grabget<-function(rnge){
+grabget<-function(rnge,fdir){
   
   ##i=2
   ##rnge=c(201402,201410)

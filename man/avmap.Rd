@@ -5,7 +5,7 @@
 \title{create a difference map compared to average}
 \usage{
 avmap(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 0.6,
-  tolerance = 1)
+  tolerance = 1, fdir)
 }
 \arguments{
 \item{yearmon}{survey of interest to compare against average}
@@ -17,11 +17,14 @@ avmap(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 0.6,
 \item{percentcov}{numeric account for the different raster extents by setting the percent of all surveys required before a pixel is included in difference from average computations}
 
 \item{tolerance}{numeric number of monts on either side of yearmon to include in the set of surfaces averaged . defaults to 1.}
+
+\item{fdir}{character file path to local data directory}
 }
 \description{
 takes a survey date as input and searches the DF_Surfaces folder for maps of the same parameter within the range of 1-2 months from yearmon for each year. These surfaces are averaged and compared to the surface from yearmon.
 }
 \examples{
-avmap(yearmon=201505,params="sal",tofile=FALSE,percentcov=0.6,tolerance=1)
+\dontrun{
+avmap(yearmon=201505,params="sal",tofile=FALSE,percentcov=0.6,tolerance=1,fdir=fdir)}
 }
 

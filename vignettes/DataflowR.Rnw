@@ -35,7 +35,9 @@
 
 \author{Joseph Stachelek}
 \title{Dataflow Output Standard Operating Procedure(SOP)}
- 
+
+%\VignetteIndexEntry{Dataflow Output Standard Operating Procedure(SOP)}
+
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 \maketitle

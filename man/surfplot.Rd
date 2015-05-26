@@ -4,12 +4,14 @@
 \alias{surfplot}
 \title{Plotting Interpolated Surfaces}
 \usage{
-surfplot(rnge = c(201402, 201404), params = c("c6chl", "sal"))
+surfplot(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir)
 }
 \arguments{
 \item{rnge}{numeric string of no more than two dates in yyyymm format}
 
 \item{params}{character. string of parameter fields to plot}
+
+\item{fdir}{character file path to local data directory}
 }
 \value{
 output plots to plot window
@@ -18,7 +20,8 @@ output plots to plot window
 accounts for corner case parameter spellings, variable specific contour breaks are (need to be) defined
 }
 \examples{
-surfplot(rnge=c(201502),params=c("sal"))
+\dontrun{
+surfplot(rnge=c(201502),params=c("sal"),fdir=fdir)}
 }
 \author{
 Joseph Stachelek

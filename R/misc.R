@@ -2,9 +2,19 @@
 #'@title load path to local Dataflow directory
 #'@export
 fdir_asgn<-function(){
-fdir<<-matrix(read.delim(system.file("localpath",package="DataflowR"),header=FALSE,stringsAsFactors=FALSE))[[1]]
+fdir<<-matrix(utils::read.delim(system.file("localpath",package="DataflowR"),header=FALSE,stringsAsFactors=FALSE))[[1]][1]
+dir.create(fdir)
 }
 
+#'@name Mode
+#'@title Mode
+#'@export
+#'@param x numeric array
+Mode<-function (x) 
+{
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
 
 #'@name cond2sal
 #'@title Conductivity to salinity conversion
@@ -12,9 +22,9 @@ fdir<<-matrix(read.delim(system.file("localpath",package="DataflowR"),header=FAL
 #'@param c numeric conducitivity in uS (measurements in mS need to multiplied by 1000)
 #'@param t numeric celcius temperature
 #'@param P numeric optional pressure (defaults to 0)
-#'@examples csal<-cond2sal(c=dt$cond*1000,t=dt$temp)
+#'@examples \dontrun{csal<-cond2sal(c=dt$cond*1000,t=dt$temp)
 #'plot(csal,dt$sal)
-#'abline(a=0,b=1,col="red",lwd=2)
+#'abline(a=0,b=1,col="red",lwd=2)}
 #'@details algorithm based off an excel implementation by N. Iricanin
 #'@seealso \code{\link[wq]{ec2pss}}
 

@@ -6,12 +6,20 @@
 #'@param c6pres logical was C6 data collected?
 #'@param tofile logical save cleaned output to DF_FullDataSets?
 #'@param sep character optional predesignation of item seperation character in raw data files
+#'@param fdir character file path to local data directory
 #'@export
-#'@details Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. Bad DO columns must sometimes be removed manually. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon 
-#'@examples dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE)
+#'@importFrom rgdal readOGR
+#'@importFrom zoo zoo na.approx
+#'@importFrom sp coordinates CRS spTransform
+#'@details Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. Bad DO columns must sometimes be removed manually. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon
+#'@examples \dontrun{
+#'dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE,fdir=fdir)}
 
-streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=","){
-  library(zoo)
+streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fdir){
+  
+  #@import rgdal
+  #@import sp
+    
   options(warn=-1)  
   fdir_fd<-file.path(fdir,"DF_FullDataSets","Raw","InstrumentOutput")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
@@ -239,7 +247,7 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=","){
               c6$sec<-as.numeric(format(c6$datec,'%S'))
               c6freq<-c6$sec[2]-c6$sec[1]
               c6$datec<-as.POSIXct(c6$datec)
-              c6zoo<-zoo(c6,c6$datec)
+              c6zoo<-zoo::zoo(c6,c6$datec)
               
               #if true generate second-wise c6 zoo object
               if(dtfreq!=c6freq){
@@ -249,7 +257,7 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=","){
                 seqexpand<-merge(seqexpand,c6zoo)
                 seqexpand<-seqexpand[min(which(!is.na(seqexpand[,"brighteners"]))):max(which(!is.na(seqexpand[,"brighteners"]))),3:ncol(seqexpand)]
                 idx<-colSums(!is.na(seqexpand))>1
-                alignset<-na.approx(seqexpand[,idx])
+                alignset<-zoo::na.approx(seqexpand[,idx])
               
               
               #align based on temp(not implemented yet)
@@ -259,7 +267,7 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=","){
               #c6save<-c6
               
               #merge c6 and df based on time stamp
-              c6<-data.frame(alignset,index(alignset),row.names=NULL)
+              c6<-data.frame(alignset,zoo::index(alignset),row.names=NULL)
               names(c6)[ncol(c6)]<-"datetime"
               dt<-merge(dt,c6,by="datetime",all.x=T)
               datetime<-dt[,"datetime"]
@@ -291,28 +299,26 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=","){
     print(paste(basename(c6list[i]),"processed",sep=" "))
               
     #create basin designations here####
-    suppressMessages(library(rgdal))    
-    library(ipdw)
-    
+        
     #define projections
     projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
     latlonproj<-"+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-    fathombasins<-readOGR(file.path(fdir,"DF_Basefile/fathom_basins_proj.shp"),layer="fathom_basins_proj",verbose=FALSE)
-    cerpbasins<-readOGR(file.path(fdir,"DF_Basefile/fbfs_zones.shp"),layer="fbfs_zones",verbose=FALSE)
-    selectiongrid<-readOGR(file.path(fdir,"DF_Basefile/testgrid3.shp"),layer="testgrid3",verbose=FALSE)
+    fathombasins<-rgdal::readOGR(file.path(fdir,"DF_Basefile/fathom_basins_proj.shp"),layer="fathom_basins_proj",verbose=FALSE)
+    cerpbasins<-rgdal::readOGR(file.path(fdir,"DF_Basefile/fbfs_zones.shp"),layer="fbfs_zones",verbose=FALSE)
+    selectiongrid<-rgdal::readOGR(file.path(fdir,"DF_Basefile/testgrid3.shp"),layer="testgrid3",verbose=FALSE)
     
     #spatial join####
     dt<-dt[!is.na(dt$lat_dd)&!is.na(dt$lon_dd),]
     xy<-cbind(dt$lon_dd,dt$lat_dd)
     xy<-data.frame(xy)
-    coordinates(dt)<-~lon_dd+lat_dd#will throw error if latlon has NA
-    proj4string(dt)<-CRS(latlonproj)
-    dt<-spTransform(dt,CRS(projstr))
+    sp::coordinates(dt)<-~lon_dd+lat_dd#will throw error if latlon has NA
+    sp::proj4string(dt)<-sp::CRS(latlonproj)
+    dt<-sp::spTransform(dt,sp::CRS(projstr))
     fulldataset<-dt
     
-    fulldataset.over<-over(fulldataset,selectiongrid)
-    fulldataset.over2<-over(fulldataset,fathombasins[,1:2])
-    fulldataset.over3<-over(fulldataset,cerpbasins[,2])
+    fulldataset.over<-sp::over(fulldataset,selectiongrid)
+    fulldataset.over2<-sp::over(fulldataset,fathombasins[,1:2])
+    fulldataset.over3<-sp::over(fulldataset,cerpbasins[,2])
     fulldataset.over<-cbind(data.frame(fulldataset),data.frame(fulldataset.over),data.frame(fulldataset.over2),data.frame(fulldataset.over3))
     fulldataset.over$lon_dd<-xy[,1]
     fulldataset.over$lat_dd<-xy[,2]
@@ -339,12 +345,14 @@ dt
 
 #'@name streamget
 #'@title Retrieve previously cleaned full streaming datasets
+#'@param yearmon numeric date in yyyymm format
+#'@param fdir character file path to local data directory
 #'@export
-#'@examples
+#'@examples \dontrun{
 #'yearmon<-201308
-#'dt<-streamget(yearmon)
+#'dt<-streamget(yearmon)}
 
-streamget<-function(yearmon){
+streamget<-function(yearmon,fdir){
   fdir_fd<-file.path(fdir,"DF_FullDataSets")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   flist<-flist[substring(basename(flist),1,6)==yearmon]
@@ -360,8 +368,8 @@ streamget<-function(yearmon){
 #'@details loop through parameters giving the opportunity to trim measurement ends, set entire variables to NA, remove variables above/below a threshold
 #'@return a matrix of the same size/shape of the fulldataset, with entries specifying where to set to NA, saved to DF_FullDataSets/Raw/IntrumentOutput
 #'@export
-#'@examples
-#'dt<-streamqa(yearmon=201410)
+#'@examples \dontrun{
+#'dt<-streamqa(yearmon=201410)}
 
 streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=FALSE){
   #yearmon=201410
@@ -444,23 +452,86 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=FALSE){
 
 #'@name streamparse
 #'@title Parse old cleaned streaming files
-#'@examples streamparse(yearmon=201209)
-streamparse<-function(yearmon){
+#'@param yearmon numeric yyyymm date
+#'@param tofile logical save to file?
+#'@param fdir character file path to local data directory
+#'@export
+#'@examples \dontrun{dt<-streamparse(yearmon=201004)}
+
+streamparse<-function(yearmon,tofile=FALSE,fdir){
   fdir_fd<-file.path(fdir,"DF_FullDataSets","Raw")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   flist<-flist[substring(basename(flist),1,6)==yearmon]
   
   dt<-read.csv(flist)
   names(dt)<-tolower(names(dt))
-  namestemp<-names(streamget(201505))[-1]
+  namestemp<-tolower(names(streamget(201505))[-1])
   
   #remove bad coord columns
-  
-  
+  coordnames<-c("lat_dd","long_dd","lon_dd")
+  for(i in 1:length(coordnames)){
+    #i<-1
+    cname<-which(!is.na(match(names(dt),coordnames[i])))
+     if(length(cname)!=0){
+      if(abs(mean(dt[,coordnames[i]]))>100){
+        dt<-dt[,-cname]
+      }
+    }
+  }
+    
   #create translation key
+  namesalias<-read.table(text="sec,sec.x
+cnd,cond
+                         light,trans",sep=",")
   
-  #create NA columns in for non-matching columns
+  for(n in 1:length(names(dt))){
+  #n<-7
+    if(any(names(dt)[n]==as.character(namesalias[,1]))){
+      names(dt)[n]<-as.character(namesalias[which(names(dt)[n]==namesalias[,1]),2])
+    }
+  }
+  
+  #remove non-matching columns
+  dt<-dt[,-which(!is.na(match(names(dt),names(dt)[is.na(match(names(dt),namestemp))])))]
+  
+  #create extra columns if necessary
+  dt[,namestemp[is.na(match(namestemp,names(dt)))]]<-NA
+  
+  #calculate datetime stamp
+  #create POSIXct datetime column
+  if(mean(nchar(as.character(dt$date)))>6){
+    hr<-substring(dt$time,1,nchar(dt$time)-2)
+    min<-substring(dt$time,nchar(dt$time)-1,nchar(dt$time))
+    
+    dt$datetime<-as.POSIXct(strptime(paste(as.character(dt$date)," ",hr,":",min,":",dt$sec.x,sep=""),format="%m/%d/%Y %H:%M:%S"))
+    
+  }else{
+  
+  yr<-substring(dt$date,nchar(dt$date)-1,nchar(dt$date))
+  day<-substring(dt$date,nchar(dt$date)-3,nchar(dt$date)-2)
+  mon<-substring(dt$date,1,nchar(dt$date)-4)
+  hr<-substring(dt$time,1,nchar(dt$time)-2)
+  min<-substring(dt$time,nchar(dt$time)-1,nchar(dt$time))
+  
+  if(mean(nchar(mon))==1){mon<-paste("0",mon,sep="")}
+  dt$datetime<-paste(yr,"-",mon,"-",day,"-",hr,"-",min,"-",dt$sec.x,sep="")
+  rm(min)
+  dt$datetime<-as.POSIXct(strptime(dt$datetime,format="%y-%m-%d-%H-%M-%S"))
+  }
   
   #sort columns to match namestemp
+  dt<-dt[,match(namestemp,names(dt))]
+  
+  if(tofile==TRUE){
+    #add check to verify yearmon before overwriting
+    dtname<-file.path(fdir,.Platform$file.sep,"DF_FullDataSets",.Platform$file.sep,substring(basename(flist[1]),1,6),"j.csv",fsep="")
+    if(!file.exists(dtname)){
+      write.csv(dt,dtname)
+    }else{
+      stop("overwrite file?")
+    }
+  }
+  
+  dt
   
 }

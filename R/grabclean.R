@@ -3,10 +3,11 @@
 #'@description if column names do not match up make sure there is only one "date" column
 #'@param yearmon numeric survey date in yyyymm format
 #'@param tofile logical save output to file
+#'@param fdir character file path to local data directory
 #'@export
-#'@examples res<-grabclean(yearmon=201402,tofile=TRUE)
+#'@examples \dontrun{res<-grabclean(yearmon=201402,tofile=TRUE)}
 #'
-grabclean<-function(yearmon,tofile=FALSE){
+grabclean<-function(yearmon,tofile=FALSE,fdir){
   
   fdir_fd<-file.path(fdir,"DF_FullDataSets")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)

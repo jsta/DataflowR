@@ -3,22 +3,30 @@
 #'@param dt input data frame
 #'@param paramlist list of parameters (dt column names) to interpolate
 #'@param yearmon a file path used to extract basename
+#'@param fdir character file path to local data directory
 #'@export
-#'@examples
+#'@importFrom raster raster writeRaster
+#'@importFrom gdata resample
+#'@importFrom sp SpatialPointsDataFrame coordinates CRS spTransform proj4string
+#'@importFrom ipdw ipdwInterp pathdistGen
+#'@examples \dontrun{
 #'dt<-streamget(yearmon=201502)
-#'streaminterp(dt,paramlist=c("sal"),yearmon=201502)
-#'
-streaminterp<-function(dt,paramlist,yearmon){
+#'streaminterp(dt,paramlist=c("sal"),yearmon=201502)}
+
+streaminterp<-function(dt,paramlist,yearmon,fdir){
+    
+  #@import ipdw
+  #@import rgdal
     
   #load libraries
-  library(ipdw)
-  suppressMessages(library(rgdal))
-  library(gdata)
+  #library(ipdw)
+  #suppressMessages(library(rgdal))
+  #library(gdata)
   #define projections
   projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
   latlonproj<-"+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
   
-  costras<-raster(file.path(fdir,"DF_Basefile","barrier60large2.tif"))
+  costras<-raster::raster(file.path(fdir,"DF_Basefile","barrier60large2.tif"))
       
   #clean paramlist and dt names####
   #might need to add translation key for corner case names
@@ -57,12 +65,12 @@ validate<-fulldataset.over[!(row.names(fulldataset.over) %in% row.names(training
 
 #validate<-validate[!is.na(validate$LAT_DD)&!is.na(validate$LON_DD),]
 xy<-cbind(validate$lon_dd,validate$lat_dd)
-validate<-SpatialPointsDataFrame(xy,validate)
+validate<-sp::SpatialPointsDataFrame(xy,validate)
 
 #training<-training[!is.na(training$LAT_DD)&!is.na(training$LON_DD),]
 training<-training[!is.na(training$lat_dd),]
 xy<-cbind(training$lon_dd,training$lat_dd)
-training<-SpatialPointsDataFrame(xy,training)
+training<-sp::SpatialPointsDataFrame(xy,training)
   
 write.csv(training,tname)
 write.csv(validate,vname)
@@ -70,26 +78,26 @@ write.csv(validate,vname)
 }else{
   warning("using previously defined subset")
   training<-read.csv(tname,sep=",")
-  coordinates(training)<-c("lon_dd","lat_dd")
+  sp::coordinates(training)<-c("lon_dd","lat_dd")
 }
-proj4string(training)<-CRS(latlonproj)
-training<-spTransform(training,CRS(projstr))
+sp::proj4string(training)<-sp::CRS(latlonproj)
+training<-sp::spTransform(training,sp::CRS(projstr))
 
 #start interpolation####
 #a<-Sys.time()
-rstack<-pathdistGen(training,costras,3750,yearmon=yearmon)
+rstack<-ipdw::pathdistGen(training,costras,3750,yearmon=yearmon)
 #rstack<-rstack[[1]]
 #a-Sys.time()
 #b<-Sys.time()
 dir.create(file.path(fdir,"/DF_Surfaces/",yearmon))
 for(j in 1:length(paramlist)){
-  finalras<-ipdwInterp(training,rstack,paramlist[j],overlapped=TRUE,yearmon=yearmon)
-  rf<-writeRaster(finalras,filename=file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".grd",sep="")),overwrite=T)
-  rf<-writeRaster(finalras,filename=file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".tif",sep="")),overwrite=T,format="GTiff")
+  finalras<-ipdw::ipdwInterp(training,rstack,paramlist[j],overlapped=TRUE,yearmon=yearmon)
+  rf<-raster::writeRaster(finalras,filename=file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".grd",sep="")),overwrite=T)
+  rf<-raster::writeRaster(finalras,filename=file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".tif",sep="")),overwrite=T,format="GTiff")
 }
 #b-Sys.time()
 for(i in 1:length(paramlist)){
-  test<-raster(file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".tif",sep="")))
+  test<-raster::raster(file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".tif",sep="")))
   plot(test)
 }
 

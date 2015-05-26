@@ -2,15 +2,11 @@ Package: DataflowR
 Title: Cleaning and handling of Dataflow output
 Description: Functions are provided to clean, aggregate, and plot Dataflow output.
 Version: 0.1
-Date: 2015-03-27
+Date: 2015-05-24
 Author: Joseph Stachelek <jstachel@sfwmd.gov>
 Maintainer: Joseph Stachelek <jstachel@sfwmd.gov>
-Depends:
-    R (>= 3.0.2),gdistance,sp,zoo,ipdw
 Imports:
-    raster
-Suggests:
-    geoR,gstat,gdata,spatstat
+      MASS,car,gdata,ipdw,latticeExtra,raster,rasterVis,rgdal,sp,zoo
 License: GPL (>= 2)
 LazyData: true
 KeepSource: true

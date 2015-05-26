@@ -20,9 +20,9 @@ Conductivity to salinity conversion
 algorithm based off an excel implementation by N. Iricanin
 }
 \examples{
-csal<-cond2sal(c=dt$cond*1000,t=dt$temp)
+\dontrun{csal<-cond2sal(c=dt$cond*1000,t=dt$temp)
 plot(csal,dt$sal)
-abline(a=0,b=1,col="red",lwd=2)
+abline(a=0,b=1,col="red",lwd=2)}
 }
 \seealso{
 \code{\link[wq]{ec2pss}}

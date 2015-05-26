@@ -4,7 +4,7 @@
 \alias{streaminterp}
 \title{interpolation of streaming data}
 \usage{
-streaminterp(dt, paramlist, yearmon)
+streaminterp(dt, paramlist, yearmon, fdir)
 }
 \arguments{
 \item{dt}{input data frame}
@@ -12,12 +12,15 @@ streaminterp(dt, paramlist, yearmon)
 \item{paramlist}{list of parameters (dt column names) to interpolate}
 
 \item{yearmon}{a file path used to extract basename}
+
+\item{fdir}{character file path to local data directory}
 }
 \description{
 interpolation of streaming data
 }
 \examples{
+\dontrun{
 dt<-streamget(yearmon=201502)
-streaminterp(dt,paramlist=c("sal"),yearmon=201502)
+streaminterp(dt,paramlist=c("sal"),yearmon=201502)}
 }
 

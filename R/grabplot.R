@@ -1,7 +1,10 @@
 #'@name grabplot
 #'@title plotting grab data
 #'@export
-#'@examples grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")
+#'@param rnge list of length two specifying date range in yyyymm format
+#'@param params character list of parameters to plot
+#'@param plottype character choice of plot type 
+#'@examples \dontrun{grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")}
 
 #grabplot.R - Plotting Grab Data
 

@@ -25,6 +25,7 @@ Retrieve previously cleaned full streaming datasets
 loop through parameters giving the opportunity to trim measurement ends, set entire variables to NA, remove variables above/below a threshold
 }
 \examples{
-dt<-streamqa(yearmon=201410)
+\dontrun{
+dt<-streamqa(yearmon=201410)}
 }
 
