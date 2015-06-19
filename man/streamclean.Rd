@@ -5,7 +5,7 @@
 \title{Cleaning raw streaming Dataflow output}
 \usage{
 streamclean(yearmon, mmin, c6mmin = NA, c6pres = TRUE, tofile = FALSE,
-  sep = ",", fdir)
+  sep = ",", fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric designation of survey date formatted as yyyymm}
@@ -30,6 +30,6 @@ Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 
 }
 \examples{
 \dontrun{
-dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE,fdir=fdir)}
+dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE)}
 }
 

@@ -6,8 +6,6 @@
 #'@param plottype character choice of plot type 
 #'@examples \dontrun{grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")}
 
-#grabplot.R - Plotting Grab Data
-
 grabplot<-function(rnge=c(201407,201410),params=c("sal","chla"),plottype="permitbarplot"){#a file with all msrmnts does not yet exist
   
   dt<-grabget(rnge)

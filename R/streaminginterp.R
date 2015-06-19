@@ -11,17 +11,10 @@
 #'@importFrom ipdw ipdwInterp pathdistGen
 #'@examples \dontrun{
 #'dt<-streamget(yearmon=201502)
-#'streaminterp(dt,paramlist=c("sal"),yearmon=201502)}
+#'streaminterp(dt,paramlist=c("sal"),yearmon=201502,fdir=fdir)}
 
 streaminterp<-function(dt,paramlist,yearmon,fdir){
     
-  #@import ipdw
-  #@import rgdal
-    
-  #load libraries
-  #library(ipdw)
-  #suppressMessages(library(rgdal))
-  #library(gdata)
   #define projections
   projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
   latlonproj<-"+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"

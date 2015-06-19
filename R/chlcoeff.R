@@ -2,20 +2,21 @@
 #'@title calculation of extracted versus fluoresced chlorophyll coefficients
 #'@param yearmon numeric date of survey
 #'@param remove.flags logical trim dataset based on flags?
+#'@param overwrite logical overwrite previous coefficients?
 #'@details this function should be interactive
 #'@export
 #'@importFrom MASS stepAIC
 #'@importFrom car vif
+#'@examples
+#'chlcoef(201308)
 
-chlcoef<-function(yearmon,remove.flags=FALSE){
-
-#suppressMessages(library(MASS))
-#library(car)
-
+chlcoef<-function(yearmon,remove.flags=FALSE,overwrite=FALSE,fdir=getOption("fdir"),polypcut=0.6,corcut=0.7){
+#yearmon=200804
+#corcut=0.5 
 dt<-grabget(yearmon)
 
 if(remove.flags==TRUE){
-  dt<-dt[dt$flags!="s",]
+  dt<-dt[-which(dt$flags=="s"),]
 }
 
 #remove all or partial incomplete cases?
@@ -24,23 +25,42 @@ if(remove.flags==TRUE){
 
 #choose variables
 varlist<-c("chla","cdom","chlaiv","phycoe","c6chl","phycoc","c6cdom")
-varlist<-varlist[sapply(varlist,function(x) any(!is.na(dt[,x])))]
+varlist[sapply(varlist,function(x) sum(!is.na(dt[,x]))>1)]
 
+if(length(varlist)>2){
 cormat<-cor(dt[,varlist],use="complete")[-1,1]
-varlist<-names(cormat[abs(cormat)>0.4])
-lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
-fit<-lm(lmeq,data=dt)
-
-if(summary(fit)$adj.r.squared<0.7){#poly fit
-  lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=T)",collapse="+")))
-  fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),c("chla",varlist)])
-  poly=TRUE
+varlist<-names(cormat[abs(cormat) > corcut])
 }
 
-if(summary(fit)$r.squared<0.6){
+if(!length(varlist)>0){stop("linear correlations too low")}
+lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
+fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),])
+
+if(length(varlist)>1){
+dt<-dt[apply(dt[,match(varlist,names(dt))],1,function(x) !all(is.na(x))),]
+}else{
+dt[,match(varlist,names(dt))]<-dt[,match(varlist,names(dt))][!is.na(dt[,match(varlist,names(dt))])]
+}
+
+message("Initial correlation matrix")
+print(cormat)
+message("MLR with all variables...")
+print(summary(fit))
+
+polyp<-FALSE
+if((summary(fit)$adj.r.squared) < polypcut){#poly fit
+  lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=T)",collapse="+")))
+  fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),c("chla",varlist)])
+  polyp=TRUE
+}
+
+if(summary(fit)$r.squared<0.1){
   stop("bad fit. r-squared not high enough.")
 }
 
+
+if(length(varlist)>1){
+  message("Reducing full equation by backwards AIC variable selection...")
 saic<-MASS::stepAIC(fit)#pick reduced eq according to maximized AIC (remove terms with a the smallest (largest negative score))
 rmlist<-as.character(saic$anova$Step)
 rmlist<-gsub("-","",rmlist)
@@ -50,24 +70,55 @@ rmlist<-gsub("poly\\(","",rmlist)
 rmlist<-gsub(",2,raw=T\\)","",rmlist)
 
 varlist<-varlist[is.na(match(varlist,rmlist))]
+}
+
+if(polyp==TRUE){
+  lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=T)",collapse="+")))
+  fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),c("chla",varlist)])
+}else{
 lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
 fit<-lm(lmeq,data=dt)
+}
 
+message("Final AIC reduced fit")
+print(summary(fit))
+
+message("Checking VIF...")
 #examine VIF; If GVIF > 5:10, then remove colinear terms, Helsel and Hirsh 2002
-if(length(fit$coefficients)>2){
+if(length(fit$coefficients)>2 & (polyp!=TRUE & length(fit$coefficients>3))){
 viftest<-car::vif(fit)
-if(length(which(viftest>10))>0){
-  rmlist<-names(viftest)[which(viftest>5)]
-  varlist<-varlist[is.na(match(varlist,rmlist))]
-  lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
-  if(poly==TRUE){
-    lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=T)",collapse="+")))
-    }
-  fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),c("chla",varlist)])
+if(polyp==TRUE){
+  viftest<-car::vif(fit)[,3]^2
 }
+  while(max(viftest)>10 & length(varlist)>2){
+    rmlist<-names(which.max(viftest))
+    if(polyp==TRUE){
+      rmlist<-strsplit(rmlist,",")[[1]][1]
+      rmlist<-strsplit(rmlist,"\\(")[[1]][2]
+    }
+    varlist<-varlist[is.na(match(varlist,rmlist))]
+    lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
+    if(polyp==TRUE){
+      lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=T)",collapse="+")))
+    }
+    fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),c("chla",varlist)])
+    viftest<-car::vif(fit)
+    if(polyp==TRUE){
+      viftest<-car::vif(fit)[,3]^2
+    }
+  }
 }
 
-plot(fitted(fit),dt$chla[complete.cases(dt[,varlist])])
+if(summary(fit)$adj.r.squared==1){
+  message("Overfit reducing to simple linear eq.")
+  lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
+  fit<-lm(lmeq,data=dt)  
+  polyp=FALSE
+}
+
+message("Final statistical fit")
+print(summary(fit))
+plot(fitted(fit),dt$chla[complete.cases(dt[,varlist])],ylab="Ext. chl",main="1 to 1 line")
 abline(0,1)
 
 # #optimize for low values (<1)?####
@@ -100,6 +151,18 @@ names(outtemp)<-vartemplate
 
 outcoef<-fit$coefficients
 names(outcoef)[1]<-"intercept"
+if(polyp==TRUE){
+  cname<-names(outcoef)[2:length(outcoef)]
+  cname<-unlist(strsplit(cname,"\\("))
+  cname<-unlist(strsplit(cname,"\\)"))
+  cname<-cname[-seq(from=1,to=length(cname)-2,3)]
+  cname<-matrix(cname,ncol=2,byrow=T)
+  vname<-unlist(strsplit(cname[,1],","))
+  cname[,1]<-vname[seq(from=1,to=length(vname),3)]
+  cname[cname[,2]==1,2]<-""
+  names(outcoef)[2:length(outcoef)]<-paste(cname[,1],cname[,2],sep="")
+}
+
 outtemp[match(names(outcoef),names(outtemp))]<-outcoef
 outtemp[,"yearmon"]<-yearmon
 outtemp[,"date"]<-Mode(dt[,"date"])
@@ -128,8 +191,8 @@ model<-data.frame(matrix(unlist(model),nrow=2))#new
 
 outtemp[,"model"]<-paste("Chla = ",gsub(" ","+",gsub(",","",toString(apply(model,2,function(x) paste(x[1],x[2],sep="*"))))),"+",intercept,sep="")
 
-if(any(outtemp[,"yearmon"]==coeflist[,"yearmon"],na.rm=T)){
-  stop("replace previously recorded fit?")
+if(any(outtemp[,"yearmon"]==coeflist[,"yearmon"],na.rm=T)&overwrite==FALSE){
+  stop("Fit already exists for this survey. Open file and delete in order to replace.")
 }else{
   coeflist<-rbind(coeflist,outtemp)
   write.csv(coeflist,file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"))

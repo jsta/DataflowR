@@ -4,7 +4,7 @@
 \alias{grabclean}
 \title{cleaning grab data}
 \usage{
-grabclean(yearmon, tofile = FALSE, fdir)
+grabclean(yearmon, tofile = FALSE, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric survey date in yyyymm format}
@@ -17,6 +17,6 @@ grabclean(yearmon, tofile = FALSE, fdir)
 if column names do not match up make sure there is only one "date" column
 }
 \examples{
-\dontrun{res<-grabclean(yearmon=201402,tofile=TRUE)}
+\dontrun{res<-grabclean(yearmon=201402,tofile=TRUE,fdir=fdir)}
 }
 

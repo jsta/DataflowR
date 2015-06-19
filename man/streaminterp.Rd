@@ -21,6 +21,6 @@ interpolation of streaming data
 \examples{
 \dontrun{
 dt<-streamget(yearmon=201502)
-streaminterp(dt,paramlist=c("sal"),yearmon=201502)}
+streaminterp(dt,paramlist=c("sal"),yearmon=201502,fdir=fdir)}
 }
 

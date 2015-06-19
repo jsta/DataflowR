@@ -4,17 +4,23 @@
 \alias{chlcoef}
 \title{calculation of extracted versus fluoresced chlorophyll coefficients}
 \usage{
-chlcoef(yearmon, remove.flags = FALSE)
+chlcoef(yearmon, remove.flags = FALSE, overwrite = FALSE,
+  fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7)
 }
 \arguments{
 \item{yearmon}{numeric date of survey}
 
 \item{remove.flags}{logical trim dataset based on flags?}
+
+\item{overwrite}{logical overwrite previous coefficients?}
 }
 \description{
 calculation of extracted versus fluoresced chlorophyll coefficients
 }
 \details{
 this function should be interactive
+}
+\examples{
+chlcoef(201308)
 }
 

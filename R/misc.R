@@ -1,10 +1,10 @@
-#'@name fdir_asgn
-#'@title load path to local Dataflow directory
-#'@export
-fdir_asgn<-function(){
-fdir<<-matrix(utils::read.delim(system.file("localpath",package="DataflowR"),header=FALSE,stringsAsFactors=FALSE))[[1]][1]
-dir.create(fdir)
-}
+# @name fdir_asgn
+# @title load path to local Dataflow directory
+# @export
+# fdir_asgn<-function(){
+# ldir<<-matrix(utils::read.delim(system.file("localpath",package="DataflowR"),header=FALSE,stringsAsFactors=FALSE))[[1]][1]
+# dir.create(ldir)
+# }
 
 #'@name Mode
 #'@title Mode

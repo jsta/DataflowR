@@ -5,10 +5,10 @@
 #'@param tofile logical save output to file
 #'@param fdir character file path to local data directory
 #'@export
-#'@examples \dontrun{res<-grabclean(yearmon=201402,tofile=TRUE)}
+#'@examples \dontrun{res<-grabclean(yearmon=201402,tofile=TRUE,fdir=fdir)}
 #'
-grabclean<-function(yearmon,tofile=FALSE,fdir){
-  
+grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
+  #yearmon<-200804
   fdir_fd<-file.path(fdir,"DF_FullDataSets")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   dt<-read.csv(flist[substring(basename(flist),1,6)==yearmon])
@@ -19,13 +19,15 @@ grabclean<-function(yearmon,tofile=FALSE,fdir){
   #get col names####
   nms1<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)[1,1:23]
   nms1<-apply(nms1,2,as.character)#LABID thru PP
+  #if(any(nchar(nms1)>10)){nms1<-nms1[-which(nchar(nms1)>10)]}
   nms2<-read.csv(sumpath,sep=",",skip=3,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
   #nms2<-nms2[1,25:28]
   nms2<-nms2[1,24:30]
   nms2<-apply(nms2,2,as.character)#Nitrogen
   nms3<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
   #nms3<-nms3[1,29:38]
-  nms3<-nms3[1,32:38]
+  #nms3<-nms3[1,32:38]
+  nms3<-nms3[1,31:37]
   nms3<-apply(nms3,2,as.character)#P and N
   nms4<-read.csv(sumpath,sep=",",skip=1,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
   if(ncol(nms4)>38){#is there C6 data?
@@ -41,6 +43,7 @@ grabclean<-function(yearmon,tofile=FALSE,fdir){
   nms.full<-gsub(" ","",nms.full)
   nms.full<-gsub("\\(","",nms.full)
   nms.full<-gsub(")","",nms.full)
+  nms.full<-nms.full[!is.na(nms.full)]
   
   #clean grabs####
   grabs<-read.csv(sumpath,sep=",",skip=5,header=F,stringsAsFactors=F,na.strings="",strip.white=T)
@@ -48,6 +51,7 @@ grabclean<-function(yearmon,tofile=FALSE,fdir){
   names(grabs)<-nms.full
   grabs<-grabs[,colSums(is.na(grabs))<nrow(grabs)]#remove columns of all NA
   grabs[,4]<-gsub("/","",grabs[,4])
+  grabs[,4]<-gsub("-","",grabs[,4])
   
   grabs<-grabs[,!is.na(names(grabs))]
   
@@ -68,9 +72,54 @@ grabclean<-function(yearmon,tofile=FALSE,fdir){
   }
   stations<-data.frame(apply(stations,2,function(x) as.numeric(as.character(x))))
   
+  #date options, 
+  #stationsave<-stations
+  #stations<-stations[1:5,]
+  #stations$date<-c(11503,61103,8603,81203,80603)
+  #stations<-stations[1,]
+  
+  sixchardate<-function(x){
+    yr<-sapply(x,function(x) substring(x,nchar(x)-1,nchar(x)))
+    mon<-substring(x,1,2)
+    if(mean(as.numeric(mon))>12){
+      mon<-paste("0",substring(x,1,1),sep="")
+      day<-sapply(x,function(x) 
+        if(substring(x,2,3)>31){
+          paste("0",substring(x,2,2),sep="")
+        }else{
+          substring(x,2,3)
+        })
+      
+    }else{
+      day<-paste("0",substring(x,3,3),sep="")
+    }
+    paste(mon,day,yr,sep="")
+  }  
+  
+  dlen<-mean(nchar(stations$date))
+  if(dlen!=6){
+  stations$date<-sixchardate(stations$date)
+  }
+  
+  dlen<-mean(nchar(as.character(dt$date)))
+  if(dlen!=6){
+    print("1")
+    if(!identical(as.character(dt$date),gsub("/","",dt$date))){
+      print("2")
+      dt$date<-gsub("/","",dt$date)
+      if(dlen>8){
+        print("3")
+        dt$date<-paste(substring(as.character(dt$date),1,4),substring(as.character(dt$date),7,8),sep="")
+      }
+    }else{
+      print("4")
+  dt$date<-sixchardate(dt$date)
+  }
+  }
+  
   #clear any streaming data already entered
-  if(ncol(grabs)>24){
-  grabs<-grabs[,1:25]
+  if(ncol(grabs)>40){
+  grabs<-grabs[,1:40]
   }
   
   #get averages that correspond to grab samples####
@@ -80,9 +129,10 @@ grabclean<-function(yearmon,tofile=FALSE,fdir){
   dt<-dt[,-(1:(which(names(dt)=="date")-1))]#remove beginning junk columns
   }
   names(dt)[names(dt)=="chla"]<-"chlaiv"
+  dt$time<-as.numeric(dt$time)
   
   stream<-merge(stations,dt)#cuts dt down to match "stations"
-  stream$date<-as.numeric(stream$date)
+  #stream$date<-as.numeric(stream$date)
   
   #check to make sure streaming data exists for each grab
   nostream<-data.frame(matrix(NA,nrow=1,ncol=ncol(grabs)))
@@ -90,7 +140,9 @@ grabclean<-function(yearmon,tofile=FALSE,fdir){
   cnt<-0
     
   stationsave<-stations
+  grabsave<-grabs
   #stations<-stationsave
+  #grabs<-grabsave
   
   #change to create a list of lines to remove rather than updating within loop
   rmlist<-list()

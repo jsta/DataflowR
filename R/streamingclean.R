@@ -13,13 +13,10 @@
 #'@importFrom sp coordinates CRS spTransform
 #'@details Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. Bad DO columns must sometimes be removed manually. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon
 #'@examples \dontrun{
-#'dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE,fdir=fdir)}
+#'dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE)}
 
-streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fdir){
+streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fdir=getOption("fdir")){
   
-  #@import rgdal
-  #@import sp
-    
   options(warn=-1)  
   fdir_fd<-file.path(fdir,"DF_FullDataSets","Raw","InstrumentOutput")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
@@ -352,7 +349,7 @@ dt
 #'yearmon<-201308
 #'dt<-streamget(yearmon)}
 
-streamget<-function(yearmon,fdir){
+streamget<-function(yearmon,fdir=getOption("fdir")){
   fdir_fd<-file.path(fdir,"DF_FullDataSets")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   flist<-flist[substring(basename(flist),1,6)==yearmon]
@@ -363,17 +360,19 @@ streamget<-function(yearmon,fdir){
 #'@title Retrieve previously cleaned full streaming datasets
 #'@param yearmon numeric date in yyyymm format
 #'@param setthresh logical set parameter thresholds
-#'@param trimends logical look to trim ends of data stream?
+#'@param trimends logical look to trim ends of data stream? NOT IMPLEMENTED YET
 #'@param paired logical examine relationships between paried parameters?
 #'@details loop through parameters giving the opportunity to trim measurement ends, set entire variables to NA, remove variables above/below a threshold
 #'@return a matrix of the same size/shape of the fulldataset, with entries specifying where to set to NA, saved to DF_FullDataSets/Raw/IntrumentOutput
 #'@export
 #'@examples \dontrun{
 #'dt<-streamqa(yearmon=201410)}
-
-streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=FALSE){
-  #yearmon=201410
+#'
+streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=TRUE,fdir=getOption("fdir")){
+  #yearmon=200906
   dt<-streamget(yearmon)
+  
+  dt<-dt[with(dt,order(date,time)),]
   
   if(setthresh==TRUE){
   dtqa<-data.frame(matrix(NA,nrow=nrow(dt),ncol=ncol(dt)))
@@ -382,6 +381,9 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=FALSE){
   #explore and set parameter threshold limits
   par(mfrow=c(1,1))
   for(i in c("chla","temp","cond","sal","trans","cdom","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","c6temp")){
+    #i<-"temp"
+    if(!any(is.na(dt[,i]))){
+      
     #i<-"c6chla"
     plot(dt[,i],ylab=i)
     
@@ -402,6 +404,7 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=FALSE){
     dt[,i][dt[,i]<thresh[1]]<-NA
     dtqa[,i][dt[,i]>thresh[2]]<-"r"
     dt[,i][dt[,i]>thresh[2]]<-NA
+  }
   }
   }
   }
@@ -436,17 +439,28 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=FALSE){
     dt[,"c6chla"]<-NA
     dtqa[,"c6chla"]<-"r"
   }
+  plot(dt[,"cdom"],xaxt="n",xlab="")
+  plot(dt[,"c6cdom"],xaxt="n",xlab="")
+  plot(dt[,"cdom"],dt[,"c6cdom"])
+  abline(lm(dt[,"c6cdom"]~dt[,"cdom"]),col="red")
+  qalogical<-readline(message("Press 'Enter' to continue, '1' to set top panel to NA, '2' to set middle panel to NA: ",appendLF=FALSE))
+  if(qalogical==1|qalogical=='1'){
+    dt[,"cdom"]<-NA
+    dtqa[,"cdom"]<-"r"
+  }
+  if(qalogical==2|qalogical=='2'){
+    dt[,"c6cdom"]<-NA
+    dtqa[,"c6cdom"]<-"r"
+  }
   
   }
   
-  if(trimends==TRUE){
+  if(trimends==TRUE){#NOT IMPLEMENTED YET
   trim<-function(dt){}
   }
   
-  fdir_fd<-file.path(fdir,"DF_FullDataSets","Raw","InstrumentOutput")
-  fdir_fd<-list.dirs(fdir_fd)[substring(basename(list.dirs(fdir_fd)),1,6)==yearmon]
-  
-  write.csv(dtqa,file.path(fdir_fd,paste(yearmon,"_dtqa",sep="")))
+  fdir_fd<-file.path(fdir,"DF_FullDataSets")
+  write.csv(dtqa,file.path(fdir_fd,paste(yearmon,"qa",".csv",sep="")))
   
 }
 
@@ -456,9 +470,10 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=FALSE){
 #'@param tofile logical save to file?
 #'@param fdir character file path to local data directory
 #'@export
-#'@examples \dontrun{dt<-streamparse(yearmon=201004)}
+#'@examples \dontrun{dt<-streamparse(yearmon=201002)}
 
-streamparse<-function(yearmon,tofile=FALSE,fdir){
+streamparse<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
+  #yearmon<-201002
   fdir_fd<-file.path(fdir,"DF_FullDataSets","Raw")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   flist<-flist[substring(basename(flist),1,6)==yearmon]
@@ -482,10 +497,11 @@ streamparse<-function(yearmon,tofile=FALSE,fdir){
   #create translation key
   namesalias<-read.table(text="sec,sec.x
 cnd,cond
-                         light,trans",sep=",")
+light,trans
+fluor,chla",sep=",")
   
   for(n in 1:length(names(dt))){
-  #n<-7
+  #n<-6
     if(any(names(dt)[n]==as.character(namesalias[,1]))){
       names(dt)[n]<-as.character(namesalias[which(names(dt)[n]==namesalias[,1]),2])
     }
@@ -514,8 +530,16 @@ cnd,cond
   min<-substring(dt$time,nchar(dt$time)-1,nchar(dt$time))
   
   if(mean(nchar(mon))==1){mon<-paste("0",mon,sep="")}
+  if(!any(!is.na(dt$sec.x))){
+    mmin<-Mode(rle(dt$time)$lengths)
+    mminseq<-seq(from=0,to=60-60/mmin,by=60/mmin)
+    mmin1<-rle(dt$time)$lengths[1]
+    mmin1seq<-mminseq[(length(mminseq)-mmin1+1):length(mminseq)]
+    dt$sec.x<-c(mmin1seq,rep_len(mminseq,length.out=nrow(dt)-mmin1))
+  }
+  
   dt$datetime<-paste(yr,"-",mon,"-",day,"-",hr,"-",min,"-",dt$sec.x,sep="")
-  rm(min)
+  #rm(min)
   dt$datetime<-as.POSIXct(strptime(dt$datetime,format="%y-%m-%d-%H-%M-%S"))
   }
   

@@ -4,14 +4,15 @@
 \alias{streamqa}
 \title{Retrieve previously cleaned full streaming datasets}
 \usage{
-streamqa(yearmon, setthresh = TRUE, trimends = TRUE, paired = FALSE)
+streamqa(yearmon, setthresh = TRUE, trimends = TRUE, paired = TRUE,
+  fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric date in yyyymm format}
 
 \item{setthresh}{logical set parameter thresholds}
 
-\item{trimends}{logical look to trim ends of data stream?}
+\item{trimends}{logical look to trim ends of data stream? NOT IMPLEMENTED YET}
 
 \item{paired}{logical examine relationships between paried parameters?}
 }

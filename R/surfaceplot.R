@@ -13,21 +13,13 @@
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@export
 #'@examples \dontrun{
-#'surfplot(rnge=c(201502),params=c("sal"),fdir=fdir)}
+#'surfplot(rnge=c(201502),params=c("sal"))}
 
-surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir){
+surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption("fdir")){
+  print(fdir)
+  #fdir<-"/home/jose/Documents/Science/Data/Dataflow"
+  fbcoast<-rgdal::readOGR(dsn=file.path(fdir,"DF_Basefile","FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=TRUE)
   
-  #@import grid
-  #@import rgdal
-  #@import rasterVis
-  #@import latticeExtra
-    
-  #library(rasterVis)
-  #library(grid)
-  #suppressMessages(library(rgdal))
-  #library(quickmapr)
-        
-  fbcoast<-rgdal::readOGR(dsn=file.path(fdir,"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE)
   if(length(rnge)==1){
     rnge<-c(rnge,rnge)
   }

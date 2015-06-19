@@ -4,7 +4,8 @@
 \alias{surfplot}
 \title{Plotting Interpolated Surfaces}
 \usage{
-surfplot(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir)
+surfplot(rnge = c(201402, 201404), params = c("c6chl", "sal"),
+  fdir = getOption("fdir"))
 }
 \arguments{
 \item{rnge}{numeric string of no more than two dates in yyyymm format}
@@ -21,7 +22,7 @@ accounts for corner case parameter spellings, variable specific contour breaks a
 }
 \examples{
 \dontrun{
-surfplot(rnge=c(201502),params=c("sal"),fdir=fdir)}
+surfplot(rnge=c(201502),params=c("sal"))}
 }
 \author{
 Joseph Stachelek

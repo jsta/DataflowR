@@ -4,7 +4,7 @@
 \alias{streamparse}
 \title{Parse old cleaned streaming files}
 \usage{
-streamparse(yearmon, tofile = FALSE, fdir)
+streamparse(yearmon, tofile = FALSE, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric yyyymm date}
@@ -17,6 +17,6 @@ streamparse(yearmon, tofile = FALSE, fdir)
 Parse old cleaned streaming files
 }
 \examples{
-\dontrun{dt<-streamparse(yearmon=201004)}
+\dontrun{dt<-streamparse(yearmon=201002)}
 }
 

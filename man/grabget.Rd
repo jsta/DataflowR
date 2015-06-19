@@ -4,10 +4,12 @@
 \alias{grabget}
 \title{aggregate grab data}
 \usage{
-grabget(rnge, fdir)
+grabget(rnge, remove.flags = FALSE, fdir = getOption("fdir"))
 }
 \arguments{
 \item{rnge}{list of length two specifying date range in yyyymm format}
+
+\item{remove.flags}{logical trim dataset based on flags?}
 
 \item{fdir}{character file path to local data directory}
 }
@@ -17,6 +19,6 @@ aggregate grab data
 \examples{
 \dontrun{
 grabs<-grabget(rnge=c(201402,201410))
-grabs2<-grabget(rnge=c(201505))}
+grabs2<-grabget(rnge=c(201505),fdir=fdir)}
 }
 

@@ -1,5 +1,10 @@
 \begin{thebibliography}{}
 
+\bibitem[Helsel and Hirsch, 2002]{hh2002}
+Helsel, D. and Hirsch, R. (2002).
+\newblock Statistical methods in water resources: {US} {G}eological {S}urvey
+  {T}echniques of {W}ater {R}esources {I}nvestigations, book 4, chap.
+
 \bibitem[Stachelek, 2014]{ipdw}
 Stachelek, J. (2014).
 \newblock {\em ipdw: spatial interpolation by Inverse Path Distance Weighting.}
@@ -11,5 +16,11 @@ Stachelek, J. and Madden, C.~J. (2015).
   spatial mapping of coastal water quality patterns.
 \newblock {\em International Journal of Geographical Information Science},
   pages 1--11.
+
+\bibitem[Venables and Ripley, 2002]{mass}
+Venables, W.~N. and Ripley, B.~D. (2002).
+\newblock {\em Modern Applied Statistics with S}.
+\newblock Springer, New York, fourth edition.
+\newblock ISBN 0-387-95457-0.
 
 \end{thebibliography}

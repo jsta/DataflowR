@@ -2,13 +2,14 @@
 #'@title aggregate grab data
 #'@export
 #'@param rnge list of length two specifying date range in yyyymm format
+#'@param remove.flags logical trim dataset based on flags?
 #'@param fdir character file path to local data directory
 #'@examples \dontrun{ 
 #'grabs<-grabget(rnge=c(201402,201410))
-#'grabs2<-grabget(rnge=c(201505))}
+#'grabs2<-grabget(rnge=c(201505),fdir=fdir)}
 
-grabget<-function(rnge,fdir){
-  
+grabget<-function(rnge,remove.flags=FALSE,fdir=getOption("fdir")){
+  #rnge<-200910
   ##i=2
   ##rnge=c(201402,201410)
   if(length(rnge)==1){
@@ -21,6 +22,7 @@ grabget<-function(rnge,fdir){
   
   dtlist<-list()
   for(i in 1:length(agglist)){
+    #i<-1
     dt<-read.csv(agglist[i],header=T)[,-1]
     names(dt)<-tolower(names(dt))
     #names(dt)
@@ -33,6 +35,13 @@ grabget<-function(rnge,fdir){
       #  maxname<-which.max(lapply(which(names(dt)==dupname[p]),function(x) sum(!is.na(dt[,x]))))
       #  dt<-dt[,-which(names(dt)==dupname[p])[maxname]]
       #}
+    }
+    if(remove.flags==TRUE){
+      if(any(names(dt)=="flags")){
+        if(length(which(dt$flags=="s"))>0){
+      dt<-dt[-which(dt$flags=="s"),]
+        }
+      }
     }
     
     dtlist[[i]]<-dt

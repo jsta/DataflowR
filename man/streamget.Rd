@@ -4,7 +4,7 @@
 \alias{streamget}
 \title{Retrieve previously cleaned full streaming datasets}
 \usage{
-streamget(yearmon, fdir)
+streamget(yearmon, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric date in yyyymm format}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2014.7.7)  22 MAY 2015 08:54
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2014.7.7)  18 JUN 2015 16:34
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1049,26 +1049,26 @@ Package caption Info: rotating package is loaded.
 (./DataflowR.aux)
 \openout1 = `DataflowR.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 39.
-LaTeX Font Info:    Try loading font information for TS1+cmr on input line 39.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 41.
+LaTeX Font Info:    Try loading font information for TS1+cmr on input line 41.
  (/usr/share/texlive/texmf-dist/tex/latex/base/ts1cmr.fd
 File: ts1cmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
 
 (/usr/share/texlive/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -1134,7 +1134,7 @@ e
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring ON on input line 39.
+Package hyperref Info: Link coloring ON on input line 41.
 (/usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2012/10/27 v2.43 Cross-referencing by name of section
 
@@ -1143,9 +1143,9 @@ Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 )
 \c@section@level=\count165
 )
-LaTeX Info: Redefining \ref on input line 39.
-LaTeX Info: Redefining \pageref on input line 39.
-LaTeX Info: Redefining \nameref on input line 39.
+LaTeX Info: Redefining \ref on input line 41.
+LaTeX Info: Redefining \pageref on input line 41.
+LaTeX Info: Redefining \nameref on input line 41.
 
 (./DataflowR.out) (./DataflowR.out)
 \@outlinefile=\write4
@@ -1156,9 +1156,9 @@ Package caption Info: subfig package v1.3 is loaded.
 Package caption Info: End \AtBeginDocument code.
  (./DataflowR-concordance.tex)
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14.4> on input line 42.
+(Font)              <14.4> on input line 44.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 42.
+(Font)              <7> on input line 44.
 
 (./DataflowR.toc
 LaTeX Font Info:    Try loading font information for T1+aett on input line 4.
@@ -1179,124 +1179,130 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 \tf@toc=\write5
 \openout5 = `DataflowR.toc'.
 
- <sfwmd_bar8half_wordorexcel.png, id=100, 614.295pt x 23.1264pt>
+ <sfwmd_bar8half_wordorexcel.png, id=105, 614.295pt x 23.1264pt>
 File: sfwmd_bar8half_wordorexcel.png Graphic file (type png)
 
 <use sfwmd_bar8half_wordorexcel.png>
-Package pdftex.def Info: sfwmd_bar8half_wordorexcel.png used on input line 44.
+Package pdftex.def Info: sfwmd_bar8half_wordorexcel.png used on input line 46.
 (pdftex.def)             Requested size: 433.62pt x 16.32457pt.
  [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./sfwmd_bar8half_wordorexc
 el.png (PNG copy)>]
-LaTeX Font Info:    Try loading font information for TS1+aer on input line 52.
+LaTeX Font Info:    Try loading font information for TS1+aer on input line 54.
 
 (/usr/share/R/share/texmf/tex/latex/ts1aer.fd
 File: ts1aer.fd 
 )
 LaTeX Font Info:    Font shape `TS1/aer/m/n' in size <12> not available
-(Font)              Font shape `TS1/cmr/m/n' tried instead on input line 52.
+(Font)              Font shape `TS1/cmr/m/n' tried instead on input line 54.
 
-Underfull \hbox (badness 10000) in paragraph at lines 60--61
+Underfull \hbox (badness 10000) in paragraph at lines 70--71
 
  []
 
 
-Overfull \hbox (32.22845pt too wide) in paragraph at lines 62--63
-\T1/aett/m/n/12 C:/Users/[]<your_username>/Documents/R/win-library/[]<your_R_ve
-rsion>/DataflowR\T1/aer/m/n/12 . 
+Overfull \hbox (49.85327pt too wide) in paragraph at lines 72--73
+[]\T1/aett/m/n/12 C:/Users/[]<your_username>/Documents/R/win-library/[]<your_R_
+version>/DataflowR\T1/aer/m/n/12 . 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 72--73
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 88--89
+
  []
 
 [2]
-Underfull \hbox (badness 10000) in paragraph at lines 78--79
-
+Overfull \hbox (8.48924pt too wide) in paragraph at lines 101--103
+\T1/aer/m/n/12 this new folder. For ex-am-ple, the struc-ture of []\T1/aett/m/n
+/12 C:\Documents\Data\Dataflow
  []
 
 
-Overfull \hbox (28.45274pt too wide) in paragraph at lines 102--102
+Overfull \hbox (28.45274pt too wide) in paragraph at lines 112--112
 [][] 
  []
 
 
-Overfull \hbox (41.64305pt too wide) in paragraph at lines 129--129
-[]\T1/aer/bx/n/17.28 Cleaning, load-ing, in-ter-po-lat-ing, and plot-ting strea
-m-
- []
-
-
-Overfull \hbox (14.78125pt too wide) in paragraph at lines 132--133
+Overfull \hbox (14.78125pt too wide) in paragraph at lines 142--143
 \T1/aer/m/n/12 Incoming stream-ing data should be placed in []\T1/aett/m/n/12 D
 F_FullDataSets/Raw/InstrumentOutput
  []
 
 [3] [4]
-Underfull \hbox (badness 10000) in paragraph at lines 183--184
+Underfull \hbox (badness 10000) in paragraph at lines 194--195
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 185--186
+Underfull \hbox (badness 10000) in paragraph at lines 196--197
 
  []
 
-[5] <figure0.png, id=138, 421.575pt x 224.84pt>
+[5] <figure0.png, id=141, 421.575pt x 224.84pt>
 File: figure0.png Graphic file (type png)
  <use figure0.png>
-Package pdftex.def Info: figure0.png used on input line 207.
+Package pdftex.def Info: figure0.png used on input line 218.
 (pdftex.def)             Requested size: 346.89732pt x 185.01497pt.
- [6 <./figure0.png (PNG copy)>] <figure1.png, id=144, 252.945pt x 212.795pt>
+ [6 <./figure0.png (PNG copy)>] <figure1.png, id=149, 252.945pt x 212.795pt>
 File: figure1.png Graphic file (type png)
 
 <use figure1.png>
-Package pdftex.def Info: figure1.png used on input line 246.
+Package pdftex.def Info: figure1.png used on input line 259.
 (pdftex.def)             Requested size: 252.94499pt x 212.7977pt.
- <figure2.png, id=145, 358.33875pt x 289.08pt>
-File: figure2.png Graphic file (type png)
-
-<use figure2.png>
-Package pdftex.def Info: figure2.png used on input line 265.
-(pdftex.def)             Requested size: 346.89732pt x 279.86911pt.
  [7 <./figure1.png>]
-Overfull \hbox (17.4212pt too wide) in paragraph at lines 274--275
+<figure2.png, id=158, 358.33875pt x 289.08pt>
+File: figure2.png Graphic file (type png)
+ <use figure2.png>
+Package pdftex.def Info: figure2.png used on input line 278.
+(pdftex.def)             Requested size: 346.89732pt x 279.86911pt.
+
+Overfull \hbox (17.4212pt too wide) in paragraph at lines 287--288
 \T1/aer/m/n/12 derived ex-tracted chloro-phyll val-ues. The \T1/aett/m/n/12 chl
 coef \T1/aer/m/n/12 func-tion searches the []\T1/aett/m/n/12 DF_GrabSamples
  []
 
-(./DataflowR.bbl [8 <./figure2.png (PNG copy)>])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 295.
+[8 <./figure2.png (PNG copy)>] (./DataflowR.bbl)
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 315.
  [9]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 295.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 315.
  (./DataflowR.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 295.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 295.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 315.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 315.
 Package rerunfilecheck Info: File `DataflowR.out' has not changed.
-(rerunfilecheck)             Checksum: E422BB31341A247F8E980E5FE6B049CE;1448.
+(rerunfilecheck)             Checksum: 3631693B468FE6F296E2797B0A1D9D8A;1537.
 
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  ) 
 Here is how much of TeX's memory you used:
- 15764 strings out of 495028
- 269806 string characters out of 6181498
- 360947 words of memory out of 5000000
- 18627 multiletter control sequences out of 15000+600000
- 32354 words of font info for 73 fonts, out of 8000000 for 9000
+ 15778 strings out of 495028
+ 269970 string characters out of 6181498
+ 362022 words of memory out of 5000000
+ 18635 multiletter control sequences out of 15000+600000
+ 34504 words of font info for 76 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 45i,15n,43p,10423b,435s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 45i,15n,43p,10423b,407s stack positions out of 5000i,500n,10000p,200000b,80000s
  </home/jose/.texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1200.600pk></usr/shar
 e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texl
 ive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dis
 t/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmsltt10.pfb></usr/share/texlive/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmti12.pfb></usr/share/texlive/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmtt12.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/zapfd
-ing/uzdr.pfb>
-Output written on DataflowR.pdf (9 pages, 217678 bytes).
+/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmsltt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmti12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsf
+onts/cm/cmtt12.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/zapfding/uzdr
+.pfb>
+Output written on DataflowR.pdf (9 pages, 230440 bytes).
 PDF statistics:
- 205 PDF objects out of 1000 (max. 8388607)
- 177 compressed objects within 2 object streams
- 36 named destinations out of 1000 (max. 500000)
- 177 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 223 PDF objects out of 1000 (max. 8388607)
+ 194 compressed objects within 2 object streams
+ 39 named destinations out of 1000 (max. 500000)
+ 185 words of extra memory for PDF output out of 10000 (max. 10000000)
 
