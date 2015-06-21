@@ -13,7 +13,8 @@
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@export
 #'@examples \dontrun{
-#'surfplot(rnge=c(201502),params=c("sal"))}
+#'surfplot(rnge=c(201502),params=c("sal"))
+#'}
 
 surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption("fdir")){
   print(fdir)
@@ -53,7 +54,7 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
   for(i in 1:length(rlist)){
     my.at<-unlist(eval(parse(text=as.character(brks[which(plist[i]==brks[,1]),2]))))
     
-    print(rasterVis::levelplot(raster::raster(rlist[i]),ylim=c(2772256,2798000),xlim=c(518000.2,566000),par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn=file.path(fdir,"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE),fill="green",alpha=0.6)))
+    print(rasterVis::levelplot(raster::raster(rlist[i]),ylim=c(2772256,2798000),xlim=c(518000.2,566000),par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE),fill="green",alpha=0.6)))
     }
 }
 
@@ -113,8 +114,8 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
   }
 }
 
-#'@name qmap
-#'@title Publication quality maps with QGIS
+#'@name grassmap
+#'@title Publication quality maps with GRASS
 #'@description not finished yet
 #'@author Joseph Stachelek
 #'@param rnge numeric string of no more than two dates in yyyymm format
@@ -125,12 +126,17 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@export
 #'@examples \dontrun{qmap(rnge=c(201502),params=c("sal"))}
 
-qmap<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir){
+grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full"){
+  
+#   library(DataflowR)
+#   params=c("sal")
+  rnge=c(201502,201505)
+#   fdir=getOption("fdir")
   
   #detect operating system####
-  as.character(Sys.info()["sysname"])
-  
-  #dynamically update python script with below info?####
+  if(as.character(Sys.info()["sysname"])!="Linux"){
+    stop("This function only works with Linux!")
+  }
   
   if(length(rnge)==1){
     rnge<-c(rnge,rnge)
@@ -139,33 +145,61 @@ qmap<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir){
                          chlorophyll.a c6chl
                          c6chla c6chl
                          ")
-    dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
-    
-    minrnge<-min(which(substring(basename(dirlist),1,6)>=rnge[1]))
-    maxrnge<-max(which(substring(basename(dirlist),1,6)<=rnge[2]))
-    rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.grd$")
-    plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
-    
-    for(n in 1:length(plist)){
-      if(any(plist[n]==namesalias[,1])){
-        plist[n]<-as.character(namesalias[which(plist[n]==namesalias[,1]),2])
-        #print(names(dt)[n])
-      }
+  dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
+  
+  minrnge<-min(which(substring(basename(dirlist),1,6)>=rnge[1]))
+  maxrnge<-max(which(substring(basename(dirlist),1,6)<=rnge[2]))
+  rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.tif$")
+  plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
+  
+  for(n in 1:length(plist)){
+    if(any(plist[n]==namesalias[,1])){
+      plist[n]<-as.character(namesalias[which(plist[n]==namesalias[,1]),2])
+      #print(names(dt)[n])
     }
-    
-    rlist<-rlist[which(!is.na(match(plist,params)))]
-    plist<-plist[which(!is.na(match(plist,params)))]
-    
-    for(i in 1:length(rlist)){
-    
   }
   
-  #run shell script####
-  shcmd<-matrix(read.delim(file.path(fdir,"QGIS_plotting","DFlow_QGIS_plotting_shellscript"),header=FALSE,stringsAsFactors=FALSE))[[1]]
+  rlist<-rlist[which(!is.na(match(plist,params)))]
+  plist<-plist[which(!is.na(match(plist,params)))]
   
-  system2(shcmd)
-        
-}
+  fathombasins<-rgdal::readOGR(file.path(fdir,"DF_Basefile/fathom_basins_proj.shp"),layer="fathom_basins_proj",verbose=FALSE)
+  fboutline<-rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE)
+  
+  for(i in 1:length(rlist)){
+    #i<-1 
+    #basin = "Manatee Bay"
+    if(basin!="full"){
+      tempras<-raster::raster(rlist[i])
+      tempras<-raster::crop(tempras,fathombasins[fathombasins$NAME==basin,])
+    }else{
+      tempras<-raster::raster(rlist[i])
+    }
+    #GRASS block####
+    loc<-rgrass7::initGRASS("/usr/lib/grass70",home=file.path(fdir,"QGIS_plotting"),gisDbase="GRASS_TEMP",override=TRUE)
+    
+    tempras<-as(tempras,"SpatialGridDataFrame")
+    tempras.g<-writeRAST(tempras,"tempras",flags=c("overwrite"))
+    execGRASS("g.region",raster="tempras")
+    execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile","salrules.file"))
+    
+    fboutline<-raster::crop(fboutline,raster::extent(raster::raster(tempras)))
+    tempvec.g<-writeVECT(fboutline,"tempvec",v.in.ogr_flags = c("o"))
+    execGRASS("g.region",vector="tempvec")
+    #test<-readVECT("tempvec")
+    execGRASS("v.colors",map = "tempvec",column = "cat", color = "grey")
+    
+    execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"grassplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".pdf",sep="")),flags="overwrite")
+    
+  }
+    
+    #QGIS block####
+    #tmpname<-file.path(fdir,"QGIS_plotting",(paste("t",substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".tif",sep="")))
+    #raster::writeRaster(tempras,tmpname,format="GTiff")
+#     paste("python","dflow_qgisplotting.py",tmpname)  
+#     paste("qgis",paste(".",substring(tmpname,11,nchar(tmpname)),sep="",collapse=" "),"--nologo","--project","/home/jose/Documents/Science/Data/Dataflow/DFlowInterpQGIS_python2.qgs","--code","Documents/Science/Data/Dataflow/Dflow_QGIS_plotting2.py")
+  }
+
+
 
 
 # #create florida inset
