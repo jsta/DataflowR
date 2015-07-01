@@ -8,6 +8,7 @@
 chlmap<-function(yearmon,fdir=getOption("fdir")){
   #yearmon<-201502
   
+  params<-c("chlaiv","chla")
   #find coefficients that match yearmon####
   coeflist<-read.csv(file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"),header=T,na.strings="NA")[,-1]
   names(coeflist)<-tolower(names(coeflist))

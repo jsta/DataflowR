@@ -13,7 +13,7 @@
 #'dt<-streamget(yearmon=201502)
 #'streaminterp(dt,paramlist=c("sal"),yearmon=201502,fdir=fdir)}
 
-streaminterp<-function(dt,paramlist,yearmon,fdir){
+streaminterp<-function(dt,paramlist,yearmon,fdir=getOption("fdir")){
     
   #define projections
   projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"

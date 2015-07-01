@@ -325,12 +325,13 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
   }
   
   dt<-do.call("rbind",reslist)
+  names(dt)<-tolower(names(dt))
 
   if(tofile==TRUE){
   #add check to verify yearmon before overwriting
     dtname<-file.path(fdir,.Platform$file.sep,"DF_FullDataSets",.Platform$file.sep,substring(basename(dflist[1]),1,6),"j.csv",fsep="")
     if(!file.exists(dtname)){
-      write.csv(dt,dtname)
+      write.csv(dt,dtname,row.names = FALSE)
     }else{
       stop("overwrite file?")
     }
@@ -344,16 +345,26 @@ dt
 #'@title Retrieve previously cleaned full streaming datasets
 #'@param yearmon numeric date in yyyymm format
 #'@param fdir character file path to local data directory
+#'@param qa logical strip flagged data?
 #'@export
 #'@examples \dontrun{
-#'yearmon<-201308
+#'yearmon<-201404
 #'dt<-streamget(yearmon)}
 
-streamget<-function(yearmon,fdir=getOption("fdir")){
+streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
   fdir_fd<-file.path(fdir,"DF_FullDataSets")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   flist<-flist[substring(basename(flist),1,6)==yearmon]
-  read.csv(flist)
+  dt<-read.csv(flist)
+  
+  if(qa==TRUE&&file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))){
+    qafile<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))
+    if(!identical(dim(qafile),dim(dt))){
+      stop("QA file dimensions do not match data dimensions")
+    }
+    dt[!is.na(qafile)]<-NA
+  }
+  dt
 }
 
 #'@name streamqa
@@ -368,21 +379,29 @@ streamget<-function(yearmon,fdir=getOption("fdir")){
 #'@examples \dontrun{
 #'dt<-streamqa(yearmon=201410)}
 #'
-streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=TRUE,fdir=getOption("fdir")){
-  #yearmon=200906
+streamqa<-function(yearmon,setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOption("fdir")){
+  #yearmon=200904
   dt<-streamget(yearmon)
   
   dt<-dt[with(dt,order(date,time)),]
   
   if(setthresh==TRUE){
+  if(file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))){
+   dtqa<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep=""))) 
+  }else{  
   dtqa<-data.frame(matrix(NA,nrow=nrow(dt),ncol=ncol(dt)))
   names(dtqa)<-names(dt)
+  }
   
   #explore and set parameter threshold limits
   par(mfrow=c(1,1))
-  for(i in c("chla","temp","cond","sal","trans","cdom","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","c6temp")){
-    #i<-"temp"
-    if(!any(is.na(dt[,i]))){
+  parset<-c("chla","temp","cond","sal","trans","cdom","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","c6temp")
+  
+  
+  for(i in parset){
+    #i<-"sal"
+  
+      if(any(!is.na(dt[,i]))){
       
     #i<-"c6chla"
     plot(dt[,i],ylab=i)
@@ -412,6 +431,8 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=TRUE,fdir=getOpti
   #explore paired parameter relationships
   if(paired==TRUE){
   par(mfrow=c(3,1),mar=c(0,4,0,0))
+  
+    if(any(!is.na(dt[,"temp"]))&any(!is.na(dt[,"c6temp"]))){
   plot(dt[,"temp"],xaxt="n",xlab="")
   plot(dt[,"c6temp"],xaxt="n",xlab="")
   plot(dt[,"temp"],dt[,"c6temp"])
@@ -425,7 +446,9 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=TRUE,fdir=getOpti
     dt[,"c6temp"]<-NA
     dtqa[,"c6temp"]<-"r"
   }
+    }
   
+    if(any(!is.na(dt[,"chla"]))&any(!is.na(dt[,"c6chla"]))){
   plot(dt[,"chla"],xaxt="n",xlab="")
   plot(dt[,"c6chla"],xaxt="n",xlab="")
   plot(dt[,"chla"],dt[,"c6chla"])
@@ -439,6 +462,9 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=TRUE,fdir=getOpti
     dt[,"c6chla"]<-NA
     dtqa[,"c6chla"]<-"r"
   }
+    }
+    
+    if(any(!is.na(dt[,"cdom"]))&any(!is.na(dt[,"c6cdom"]))){
   plot(dt[,"cdom"],xaxt="n",xlab="")
   plot(dt[,"c6cdom"],xaxt="n",xlab="")
   plot(dt[,"cdom"],dt[,"c6cdom"])
@@ -452,20 +478,23 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=TRUE,fdir=getOpti
     dt[,"c6cdom"]<-NA
     dtqa[,"c6cdom"]<-"r"
   }
+    }
   
   }
   
   if(trimends==TRUE){#NOT IMPLEMENTED YET
   trim<-function(dt){}
   }
-  
-  fdir_fd<-file.path(fdir,"DF_FullDataSets")
-  write.csv(dtqa,file.path(fdir_fd,paste(yearmon,"qa",".csv",sep="")))
+  message("QA finished. Printing to file...")
+  message(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa",".csv",sep="")))
+  fdir_fd<-file.path(fdir,"DF_FullDataSets","QA")
+  write.csv(dtqa,file.path(fdir_fd,paste(yearmon,"qa",".csv",sep="")),row.names = FALSE)
   
 }
 
 #'@name streamparse
 #'@title Parse old cleaned streaming files
+#'@description Includes checks to ensure that data columns are of type numeric. TODO: check that the fathom basins column is populated. 
 #'@param yearmon numeric yyyymm date
 #'@param tofile logical save to file?
 #'@param fdir character file path to local data directory
@@ -473,7 +502,7 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=TRUE,paired=TRUE,fdir=getOpti
 #'@examples \dontrun{dt<-streamparse(yearmon=201002)}
 
 streamparse<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
-  #yearmon<-201002
+  #yearmon<-200812
   fdir_fd<-file.path(fdir,"DF_FullDataSets","Raw")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   flist<-flist[substring(basename(flist),1,6)==yearmon]
@@ -546,16 +575,19 @@ fluor,chla",sep=",")
   #sort columns to match namestemp
   dt<-dt[,match(namestemp,names(dt))]
   
+  #ensure that data columns are numeric
+  parset<-c("chla","temp","cond","sal","trans","cdom","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","c6temp")
+  dt[,parset]<-suppressWarnings(apply(dt[,parset],2,function(x) as.numeric(x)))
+  
   if(tofile==TRUE){
     #add check to verify yearmon before overwriting
     dtname<-file.path(fdir,.Platform$file.sep,"DF_FullDataSets",.Platform$file.sep,substring(basename(flist[1]),1,6),"j.csv",fsep="")
     if(!file.exists(dtname)){
-      write.csv(dt,dtname)
+      write.csv(dt,dtname,row.names = FALSE)
     }else{
       stop("overwrite file?")
     }
+  }else{
+    dt
   }
-  
-  dt
-  
 }

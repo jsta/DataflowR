@@ -7,8 +7,10 @@
 #'@export
 #'@importFrom MASS stepAIC
 #'@importFrom car vif
-#'@examples
+#'@examples 
+#'\dontrun{
 #'chlcoef(201308)
+#'}
 
 chlcoef<-function(yearmon,remove.flags=FALSE,overwrite=FALSE,fdir=getOption("fdir"),polypcut=0.6,corcut=0.7){
 #yearmon=200804
