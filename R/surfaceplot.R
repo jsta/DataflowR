@@ -120,19 +120,24 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@author Joseph Stachelek
 #'@param rnge numeric string of no more than two dates in yyyymm format
 #'@param params character. string of parameter fields to plot
+#'@param panel logical. Combine output into a figure panel?
 #'@param fdir character file path to local data directory
+#'@param cleanup logical remove intermediate rasters and shapefiles?
+#'@param rotated logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured.
 #'@return output plots to the QGIS_plotting folder
 #'@details probably need to implement this as a seperate package
+#'@import rgrass7
 #'@export
-#'@examples \dontrun{qmap(rnge=c(201502),params=c("sal"))}
+#'@examples \dontrun{grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")}
 
-grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full"){
+grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full",panel=FALSE,cleanup=TRUE,rotated = TRUE){
   
-#   library(DataflowR)
+#     library(DataflowR)
 #   params=c("sal")
-  rnge=c(201502,201505)
-#   fdir=getOption("fdir")
-  
+#    rnge=c(201505)
+#     fdir=getOption("fdir")
+#     basin = "Manatee Bay"
+
   #detect operating system####
   if(as.character(Sys.info()["sysname"])!="Linux"){
     stop("This function only works with Linux!")
@@ -149,7 +154,7 @@ grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="
   
   minrnge<-min(which(substring(basename(dirlist),1,6)>=rnge[1]))
   maxrnge<-max(which(substring(basename(dirlist),1,6)<=rnge[2]))
-  rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.tif$")
+  rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.grd$")
   plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
   
   for(n in 1:length(plist)){
@@ -167,37 +172,94 @@ grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="
   
   for(i in 1:length(rlist)){
     #i<-1 
-    #basin = "Manatee Bay"
     if(basin!="full"){
       tempras<-raster::raster(rlist[i])
       tempras<-raster::crop(tempras,fathombasins[fathombasins$NAME==basin,])
     }else{
       tempras<-raster::raster(rlist[i])
     }
+    
+    rasname <- paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))))
+    raspath <- file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(rasname,".tif",sep=""))
+    outpath = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(rasname,"poly.shp",sep=""))
+    
+    raster::writeRaster(tempras,raspath,format="GTiff",overwrite=TRUE)
+    shellcmds = paste("gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
+    system(shellcmds)
+    outpoly<-rgdal::readOGR(dsn=outpath,layer=paste(rasname,"poly",sep=""),verbose=TRUE)
+    require("maptools")#cannot seem to execute below without call to library
+    outpoly<-maptools::unionSpatialPolygons(outpoly,IDs=rep(1,length(outpoly)))
+    outlines<-as(outpoly,'SpatialLines')
+    outlines<-SpatialLinesDataFrame(outlines,data=as.data.frame(1))
+    
     #GRASS block####
-    loc<-rgrass7::initGRASS("/usr/lib/grass70",home=file.path(fdir,"QGIS_plotting"),gisDbase="GRASS_TEMP",override=TRUE)
+    loc<-rgrass7::initGRASS("/usr/lib/grass70",home=file.path(fdir,"QGIS_plotting"),override=TRUE)
     
+    #raster
     tempras<-as(tempras,"SpatialGridDataFrame")
-    tempras.g<-writeRAST(tempras,"tempras",flags=c("overwrite"))
-    execGRASS("g.region",raster="tempras")
-    execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile","salrules.file"))
+    tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
+    rgrass7::execGRASS("g.region",raster="tempras")
+    rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile","salrules.file"))
     
+    rgrass7::execGRASS("r.grow",input="tempras",output="tempras2",radius=1.3,flags="overwrite")
+    
+    #Florida Bay outline
     fboutline<-raster::crop(fboutline,raster::extent(raster::raster(tempras)))
-    tempvec.g<-writeVECT(fboutline,"tempvec",v.in.ogr_flags = c("o"))
-    execGRASS("g.region",vector="tempvec")
-    #test<-readVECT("tempvec")
-    execGRASS("v.colors",map = "tempvec",column = "cat", color = "grey")
+    fbvec.g<-rgrass7::writeVECT(fboutline,"fbvec",v.in.ogr_flags = c("o"))
+    rgrass7::execGRASS("g.region",vector="fbvec")
+    rgrass7::execGRASS("v.colors",map = "fbvec",column = "cat", color = "grey")
     
-    execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"grassplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".pdf",sep="")),flags="overwrite")
+    #raster outline
+    outvec.g<-rgrass7::writeVECT(outlines,"outvec",v.in.ogr_flags = c("o"))
+    test<-rgrass7::readVECT("outvec")
+    rgrass7::execGRASS("g.region",vector="outvec")
     
+#     #compose plotting commands here####
+    fileConn<-file(file.path(fdir,"QGIS_plotting","grassplot.file"))
+    writeLines(c("raster tempras2",
+                 "vlines outvec",
+                 "        color black",
+                 "        style dashed",
+                 "        end",
+                 "vareas fbvec",
+                 "        masked y",
+                 "        end",
+                 paste("text 80% 8% ",rasname,sep=""),
+                 "        fontsize 35",
+                 "        background white",
+                 "        border black",
+                 "        end",
+                 "end"),fileConn)
+    close(fileConn)
+    
+    rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"grassplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".pdf",sep="")),flags="overwrite")
+  
+    if(cleanup==TRUE){
+      rmlist<-list.files(file.path(paste(fdir,"/QGIS_plotting",sep="")),pattern = paste(rasname,"*",sep=""),include.dirs = TRUE,full.names = TRUE)
+      rmlist<-rmlist[-grep("*.pdf",rmlist)]
+      file.remove(rmlist)
+    }    
   }
-    
-    #QGIS block####
-    #tmpname<-file.path(fdir,"QGIS_plotting",(paste("t",substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".tif",sep="")))
-    #raster::writeRaster(tempras,tmpname,format="GTiff")
-#     paste("python","dflow_qgisplotting.py",tmpname)  
-#     paste("qgis",paste(".",substring(tmpname,11,nchar(tmpname)),sep="",collapse=" "),"--nologo","--project","/home/jose/Documents/Science/Data/Dataflow/DFlowInterpQGIS_python2.qgs","--code","Documents/Science/Data/Dataflow/Dflow_QGIS_plotting2.py")
+  
+  #print legend####
+  legras<-raster::raster(tempras)
+  legras[]<-seq(from=5,to=43,by=0.1)
+  tempras<-as(legras,"SpatialGridDataFrame")
+  tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
+  rgrass7::execGRASS("r.support",map="tempras",units="Salinity")
+  rgrass7::execGRASS("g.region",raster="tempras")
+  rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile","salrules.file"))
+  
+  rgrass7::execGRASS("r.to.vect",input="tempras",output="outvec",type="area",flags="overwrite")
+  rgrass7::execGRASS("v.hull",input="outvec",output="outvec2",flags="overwrite")
+  
+  rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legendplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legend",paste("legend",".pdf",sep="")),flags="overwrite")
+
+  if(cleanup==TRUE){
+    rmlist<-list.files(file.path(paste(fdir,"/QGIS_plotting",sep="")),pattern = paste("out","*",sep=""),include.dirs = TRUE,full.names = TRUE)
+    file.remove(rmlist)
   }
+}
 
 
 
