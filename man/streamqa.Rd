@@ -4,7 +4,7 @@
 \alias{streamqa}
 \title{Retrieve previously cleaned full streaming datasets}
 \usage{
-streamqa(yearmon, setthresh = TRUE, trimends = TRUE, paired = TRUE,
+streamqa(yearmon, setthresh = TRUE, trimends = FALSE, paired = TRUE,
   fdir = getOption("fdir"))
 }
 \arguments{

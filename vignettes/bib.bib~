@@ -10,9 +10,28 @@
   title={Application of inverse path distance weighting for high-density spatial mapping of coastal water quality patterns},
   author={Stachelek, Joseph and Madden, Christopher J},
   journal={International Journal of Geographical Information Science},
-  number={ahead-of-print},
   pages={1--11},
   year={2015},
   publisher={Taylor \& Francis}
 }
 
+@Book{mass,
+    title = {Modern Applied Statistics with S},
+    author = {W. N. Venables and B. D. Ripley},
+    publisher = {Springer},
+    edition = {Fourth},
+    address = {New York},
+    year = {2002},
+    note = {ISBN 0-387-95457-0},
+    url = {http://www.stats.ox.ac.uk/pub/MASS4},
+  }
+  
+@article{hh2002,
+title={Statistical methods in water resources: {US} {G}eological {S}urvey {T}echniques of {W}ater {R}esources {I}nvestigations, book 4, chap },
+author={Helsel, DR and Hirsch, RM},
+year={2002},
+}
+
+@article{cosby2005fathom,
+	title={FATHOM enhancements and implementation to support development of minimum flows and levels for Florida Bay},author={Cosby, Bernard and Nuttle, WK and Marshall, F},journal={Environmental Consulting and Technology, Inc., South Florida Water Management District. West Palm Beach, Florida},year={2005}
+}  

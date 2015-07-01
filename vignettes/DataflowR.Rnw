@@ -43,7 +43,8 @@
 \maketitle
 \tableofcontents
  
-\newpage
+\vspace{15pt}
+%\newpage
 \section{Introduction}
 
 This SOP details a workflow and introduces an \texttt{R} package to clean, load, interpolate, and plot streaming Dataflow output and associated discrete grab samples. The steps neccessary to perform a number of more involved data analyses are also included.
@@ -62,7 +63,7 @@ This SOP details a workflow and introduces an \texttt{R} package to clean, load,
 The \texttt{R} package \texttt{DataflowR} is distributed via a \texttt{.tar.gz} (analagous to \texttt{.zip}) package archive file. This package contains the source code for package functions as well as the archived datasets for the SFWMD Florida Bay Dataflow Monitoring Program. In RStudio, it can be installed by navigating to \texttt{Tools} -> \texttt{Install Packages...} -> \texttt{Install from:} -> \texttt{Package Archive File}. Computers running the Windows operating system can only install binary \texttt{.zip} package archive files unless they have additional compiler software installed. The \texttt{DataflowR} binary package can be installed by running the following command from the \texttt{R} console:
 
 <<eval=FALSE>>=
-install.packages(path.to.zip,type="win.binary",repos=NULL)
+install.packages(path.to.zip,type="win.binary",repos=NULL,dependencies = TRUE)
 @
 
 where \texttt{path.to.zip} is replaced by the file path of the \texttt{.zip} file. In most cases, \texttt{DataflowR} will be installed in the default user library in a folder named for your version of R. On Windows this is probably:\vspace{5pt}\\
@@ -133,6 +134,13 @@ D &  &  &  & x &  &  &  & x &  & \\
 \end{tabular}
 \end{center}
 
+\subsection{GIS Software}
+Some portions of \nameref{sec:plottingsurf} (Section 4.5) requires dedicated GIS software such as QGIS, ArcGIS, or GRASS GIS. In the interest of creating a fully reproducible and streamlined workflow for plotting Dataflow output some functions (\texttt{grassmap}) requires GRASS GIS (GRASS). GRASS can be installed by navigating to \href{http://grass.osgeo.org}{http://grass.osgeo.org}.
+
+\vspace{15pt}
+\begin{warning}
+\texttt{DataflowR} assumes that the user is on a Linux machine and that GRASS is installed under \texttt{/usr/lib/grass70}. For more details see \citet{rgrass7}.
+\end{warning}
 
 \section{Handling streaming data}
 \subsection{Cleaning incoming Dataflow and C6 files}
@@ -166,16 +174,17 @@ dt<-streamclean(yearmon=201502,mmin=7,c6pres=TRUE,tofile=FALSE,sep=",")
 
 The \texttt{streamclean} function does not perform detailed QA of individual parameter values or detect systematic bias. Systematic bias might occur because of sensor drift or failure. In these cases there may be data but it is "junk data". The \texttt{streamqa} function creates a series of diagnostic plots of the data. The user enters an interactive QA "session" to detect systematic biases and eliminate unrealsitic data spikes. The first set of dialogs steps through each variable and gives the user the opportunity to define a valid data range (flagging values outside this range). Define a range higher (or lower) than all values to flag all records for that particular variable. The second set of dialogs compares parameters that are shared between the Dataflow and C6 instrumentation. The user is given the opportunity to flag the C6 or the Dataflow version of a shared parameter. 
 
-Cleaned data files are not modified directly. Instead, \texttt{streamqa} creates a matrix of the same size as the original data file and populates this matrix with flags. \texttt{streamqa} writes the output to the \verb|DF_FullDataSets| directory and names it as the date appended by "qa". Subsequent analyses can filter the full dataset based on these QA flags.
+Cleaned data files are not modified directly. Instead, \texttt{streamqa} creates a matrix of the same size as the original data file and populates this matrix with flags. \texttt{streamqa} writes the "qafile" output to the \verb|DF_FullDataSets/QA| directory and names it as the date appended by "qa". Subsequent analyses can filter the full dataset based on these QA flags.
 
 <<eval=FALSE>>=
 streamqa(yearmon=201502)
 @
 
+\texttt{streamqa} can be run more than once. On the first run, a new "qafile" will be produced. Subsequent runs will pull the data (filtered by the previous qa) and edit the existing qafile.
 
 \subsection{Loading previously cleaned streaming data}
 
-The \texttt{streamget} function will retrieve previously cleaned data. The function looks for full data sets in the \verb|DF_FullDataSets| folder that match the specified survey date. The optional parameter \texttt{qa} can be set to TRUE in order for \texttt{streamget} to filter the dataset by corresponding \texttt{streamqa} output. An example for the February 2015 survey is shown below.
+The \texttt{streamget} function will retrieve previously cleaned data. The function looks for full data sets in the \verb|DF_FullDataSets| folder that match the specified \texttt{yearmon} survey date. The optional parameter \texttt{qa} is set to TRUE by default in order for \texttt{streamget} to filter the dataset by corresponding \texttt{streamqa} output. An example for the February 2015 survey is shown below.
 
 <<eval=FALSE>>=
 dt<-streamget(yearmon=201502,qa=TRUE)
@@ -185,7 +194,7 @@ dt<-streamget(yearmon=201502,qa=TRUE)
 
 The \texttt{streaminterp} function will interpolate a dataset that has been loaded into memory from the \texttt{streamclean} or \texttt{streamget} functions. Interpolations are performed using functions in the \texttt{ipdw} \texttt{R} package \citep{ipdw}. Variables to be interpolated must be specified as inputs to the \texttt{paramlist} paramter. If you have loaded your dataset to memory under the name \texttt{dt}, use \texttt{names(dt)} to see the available parameters. Enter one or more parameters as arguments to a character list. For example, to interpolate salinity only (as below) use \texttt{c("sal")}. Additional parameters can be appended. For example, to interpolate salinity and temperature use \texttt{c("sal","temp")}. Interpolation should take about 20 minutes plus about 2 minutes for each entry in \texttt{paramlist}. Raster surface output will be written to a subfolder of \verb|DF_Surfaces| named for the year and month of the survey in question.\\
 
-\texttt{streaminterp} will first attempt to split the full data set into training and validation datasets. If these already exist in the \verb|DF_Subsets| and \verb|DF_Validation| folders, a warning will be printed and the pre-existing datsets will be used. Next, \texttt{streaminterp} will attempt to create a dedicated folder to hold all the interpolated surfaces for the given survey. If this folder already exists, \texttt{streaminterp} will print a warning but the function should proceed as normal (the warning can be disregarded).\\
+\texttt{streaminterp} will first attempt to split the full data set into training and validation datasets. If these already exist in the \verb|DF_Subsets| and \verb|DF_Validation| folders, a warning will be printed and the pre-existing datsets will be used. Next, \texttt{streaminterp} will attempt to create a dedicated folder under \verb|DF_Surfaces| to hold all the interpolated surfaces for the given survey. If this folder already exists, \texttt{streaminterp} will print a warning but the function should proceed as normal (the warning can be disregarded).\\
 
 More details regarding the interpolation procedure can be found in \cite{stachelek2015application}.
 
@@ -193,25 +202,40 @@ More details regarding the interpolation procedure can be found in \cite{stachel
 streaminterp(dt,paramlist=c("sal"),yearmon)
 @
 
-\subsection{Plotting interpolated surfaces}
+\subsection{\label{sec:plottingsurf}Plotting interpolated surfaces}
 
-A quick visual inspection of interpolated outputs can be accomplished using the \nohyphens{\texttt{surfplot}} function. The \texttt{rnge} parameter takes either a single survey date or a list of two survey dates to specify a date range for plotting. More detailed publication quality maps should be produced using a dedicated GIS program such as ArcGIS or QGIS.
+\subsubsection{Quick plot with R graphics}
+
+A quick visual inspection of interpolated outputs can be accomplished using the \nohyphens{\texttt{surfplot}} function. The \texttt{rnge} parameter takes either a single survey date or a list of two survey dates to specify a date range for plotting. More detailed publication quality maps should be produced using a dedicated GIS program such as ArcGIS,QGIS, or GRASS GIS.
 
 <<eval=FALSE>>=
 surfplot(rnge=c(201502),params=c("sal"))
 @
 
-\begin{figure}[h!]
-\begin{center}
-\includegraphics{figure0}
-\end{center}
-\label{fig:zero}
-\end{figure}
-%\FloatBarrier
+
+% \begin{figure}[h!]
+% \begin{center}
+% \includegraphics{figure0}
+% \end{center}
+% \label{fig:zero}
+% \end{figure}
+% %\FloatBarrier
+
+\subsubsection{Detailed plotting with GRASS GIS}
+
+The \texttt{grassmap} function creates detailed publication quality maps using GRASS GIS. Maps are output to the \verb|QGIS_plotting| folder. The following command creates a Bay-wide salinity map for May 2015.
+
+<<eval=FALSE>>=
+grassmap(params=c("sal"),rnge=201505)
+@
 
 \subsubsection{Producing timeseries for specific basins}
 
+The \texttt{basin} parameter of the \texttt{grassmap} function allows the user to limit (zoom-in) to a specific FATHOM basin. A listing of FATHOM basins can be found by inspecting \verb|DF_Basefile/fathom_basins_proj.shp| or by referencing \citet{cosby2005fathom}. The following command will create a series of zoomed-in salinity maps of Manatee Bay for each survey date between June 2006 and May 2015.   
 
+<<eval=FALSE>>=
+grassmap(params=c("sal"),rnge=c(200605,201505),basin = "Manatee Bay")
+@
 
 
 \section{Handling discrete grab sample data}
@@ -287,7 +311,7 @@ chlmap(yearmon=201502)
 
 
 \medskip
- 
+ \addcontentsline{toc}{section}{References}
  %\setlength{\bibsep}{0pt}
 \bibliography{bib}
  

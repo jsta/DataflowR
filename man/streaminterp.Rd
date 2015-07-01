@@ -4,7 +4,7 @@
 \alias{streaminterp}
 \title{interpolation of streaming data}
 \usage{
-streaminterp(dt, paramlist, yearmon, fdir)
+streaminterp(dt, paramlist, yearmon, fdir = getOption("fdir"))
 }
 \arguments{
 \item{dt}{input data frame}

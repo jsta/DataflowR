@@ -5,7 +5,7 @@
 \title{Publication quality maps with GRASS}
 \usage{
 grassmap(rnge = c(201502), params = c("sal"), fdir = getOption("fdir"),
-  basin = "full")
+  basin = "full", panel = FALSE, cleanup = TRUE, rotated = TRUE)
 }
 \arguments{
 \item{rnge}{numeric string of no more than two dates in yyyymm format}
@@ -13,6 +13,12 @@ grassmap(rnge = c(201502), params = c("sal"), fdir = getOption("fdir"),
 \item{params}{character. string of parameter fields to plot}
 
 \item{fdir}{character file path to local data directory}
+
+\item{panel}{logical. Combine output into a figure panel?}
+
+\item{cleanup}{logical remove intermediate rasters and shapefiles?}
+
+\item{rotated}{logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured.}
 }
 \value{
 output plots to the QGIS_plotting folder
@@ -24,7 +30,7 @@ not finished yet
 probably need to implement this as a seperate package
 }
 \examples{
-\dontrun{qmap(rnge=c(201502),params=c("sal"))}
+\dontrun{grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")}
 }
 \author{
 Joseph Stachelek

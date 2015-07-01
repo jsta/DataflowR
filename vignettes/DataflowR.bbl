@@ -1,5 +1,18 @@
 \begin{thebibliography}{}
 
+\bibitem[Bivand, 2015]{rgrass7}
+Bivand, R. (2015).
+\newblock {\em rgrass7: Interface Between GRASS 7 Geographical Information
+  System and R}.
+\newblock R package version 0.1-0.
+
+\bibitem[Cosby et~al., 2005]{cosby2005fathom}
+Cosby, B., Nuttle, W., and Marshall, F. (2005).
+\newblock Fathom enhancements and implementation to support development of
+  minimum flows and levels for florida bay.
+\newblock {\em Environmental Consulting and Technology, Inc., South Florida
+  Water Management District. West Palm Beach, Florida}.
+
 \bibitem[Helsel and Hirsch, 2002]{hh2002}
 Helsel, D. and Hirsch, R. (2002).
 \newblock Statistical methods in water resources: {US} {G}eological {S}urvey

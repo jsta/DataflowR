@@ -4,10 +4,12 @@
 \alias{streamget}
 \title{Retrieve previously cleaned full streaming datasets}
 \usage{
-streamget(yearmon, fdir = getOption("fdir"))
+streamget(yearmon, qa = TRUE, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric date in yyyymm format}
+
+\item{qa}{logical strip flagged data?}
 
 \item{fdir}{character file path to local data directory}
 }
@@ -16,7 +18,7 @@ Retrieve previously cleaned full streaming datasets
 }
 \examples{
 \dontrun{
-yearmon<-201308
+yearmon<-201404
 dt<-streamget(yearmon)}
 }
 

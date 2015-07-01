@@ -21,6 +21,8 @@ calculation of extracted versus fluoresced chlorophyll coefficients
 this function should be interactive
 }
 \examples{
+\dontrun{
 chlcoef(201308)
+}
 }
 
