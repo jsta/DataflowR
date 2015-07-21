@@ -13,12 +13,15 @@
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@export
 #'@examples \dontrun{
-#'surfplot(rnge=c(201502),params=c("sal"))
+#'surfplot(rnge=c(200707),params=c("cdom"))
 #'}
 
 surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption("fdir")){
   print(fdir)
   #fdir<-"/home/jose/Documents/Science/Data/Dataflow"
+  #rnge<-201410
+  #params<-"chlext"
+  
   fbcoast<-rgdal::readOGR(dsn=file.path(fdir,"DF_Basefile","FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=TRUE)
   
   if(length(rnge)==1){
@@ -32,13 +35,14 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
   brks<-read.table(text="
         sal list(seq(0,40,2))
         c6chl list(seq(0,300,50))
+        chlext list(seq(0,5,0.5),seq(10,30,5))
         ")
   
   dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
   
   minrnge<-min(which(substring(basename(dirlist),1,6)>=rnge[1]))
   maxrnge<-max(which(substring(basename(dirlist),1,6)<=rnge[2]))
-  rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.grd$")
+  rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.tif$")
   plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
   
   for(n in 1:length(plist)){
@@ -52,6 +56,7 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
   plist<-plist[which(!is.na(match(plist,params)))]
   
   for(i in 1:length(rlist)){
+    #i<-1
     my.at<-unlist(eval(parse(text=as.character(brks[which(plist[i]==brks[,1]),2]))))
     
     print(rasterVis::levelplot(raster::raster(rlist[i]),ylim=c(2772256,2798000),xlim=c(518000.2,566000),par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE),fill="green",alpha=0.6)))
@@ -128,13 +133,16 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@details probably need to implement this as a seperate package
 #'@import rgrass7
 #'@export
-#'@examples \dontrun{grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")}
+#'@examples \dontrun{
+#'grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
+#'grassmap(rnge=c(200707),params=c("sal"))
+#'}
 
 grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full",panel=FALSE,cleanup=TRUE,rotated = TRUE){
   
 #     library(DataflowR)
-#   params=c("sal")
-#    rnge=c(201505)
+#   params=c("chlext")
+#    rnge=c(200804,201502)
 #     fdir=getOption("fdir")
 #     basin = "Manatee Bay"
 
@@ -150,11 +158,15 @@ grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="
                          chlorophyll.a c6chl
                          c6chla c6chl
                          ")
-  dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
   
+  paramkey<-read.table(text="sal,salrules.file
+chlext,chlextrules.file",sep=",",stringsAsFactors=FALSE)
+  rulesfile<-paramkey[which(params==paramkey[,1]),2]
+  
+  dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
   minrnge<-min(which(substring(basename(dirlist),1,6)>=rnge[1]))
   maxrnge<-max(which(substring(basename(dirlist),1,6)<=rnge[2]))
-  rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.grd$")
+  rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.tif$")
   plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
   
   for(n in 1:length(plist)){
@@ -168,7 +180,7 @@ grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="
   plist<-plist[which(!is.na(match(plist,params)))]
   
   fathombasins<-rgdal::readOGR(file.path(fdir,"DF_Basefile/fathom_basins_proj.shp"),layer="fathom_basins_proj",verbose=FALSE)
-  fboutline<-rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE)
+  fboutline<-rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE)
   
   for(i in 1:length(rlist)){
     #i<-1 
@@ -187,7 +199,7 @@ grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="
     shellcmds = paste("gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
     system(shellcmds)
     outpoly<-rgdal::readOGR(dsn=outpath,layer=paste(rasname,"poly",sep=""),verbose=TRUE)
-    require("maptools")#cannot seem to execute below without call to library
+    require("maptools")#cannot seem to execute below without call to library (require)
     outpoly<-maptools::unionSpatialPolygons(outpoly,IDs=rep(1,length(outpoly)))
     outlines<-as(outpoly,'SpatialLines')
     outlines<-SpatialLinesDataFrame(outlines,data=as.data.frame(1))
@@ -199,7 +211,7 @@ grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="
     tempras<-as(tempras,"SpatialGridDataFrame")
     tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
     rgrass7::execGRASS("g.region",raster="tempras")
-    rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile","salrules.file"))
+    rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile",rulesfile))
     
     rgrass7::execGRASS("r.grow",input="tempras",output="tempras2",radius=1.3,flags="overwrite")
     
@@ -242,13 +254,25 @@ grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="
   }
   
   #print legend####
+  legendalias<-read.table(text="chlext,Chlorophyll (ug/L)
+sal,Salinity",sep=",",stringsAsFactors=FALSE)
+  
+  legendname<-legendalias[which(params==legendalias[,1]),2]
+  
+  if(params=="sal"){
+    legendunits<-seq(from=5,to=54,by=0.1)
+  }
+  if(params=="chlext"){
+    legendunits<-seq(from=0,to=28,by=0.1)
+  }
+  
   legras<-raster::raster(tempras)
-  legras[]<-seq(from=5,to=43,by=0.1)
+  legras[1:(length(legendunits)+1)]<-legendunits
   tempras<-as(legras,"SpatialGridDataFrame")
   tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
-  rgrass7::execGRASS("r.support",map="tempras",units="Salinity")
+  rgrass7::execGRASS("r.support",map="tempras",units=legendname)
   rgrass7::execGRASS("g.region",raster="tempras")
-  rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile","salrules.file"))
+  rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile",rulesfile))
   
   rgrass7::execGRASS("r.to.vect",input="tempras",output="outvec",type="area",flags="overwrite")
   rgrass7::execGRASS("v.hull",input="outvec",output="outvec2",flags="overwrite")
