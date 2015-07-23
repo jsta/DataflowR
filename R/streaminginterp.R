@@ -11,7 +11,7 @@
 #'@importFrom ipdw ipdwInterp pathdistGen
 #'@examples \dontrun{
 #'dt<-streamget(yearmon=201502)
-#'streaminterp(dt,paramlist=c("sal"),yearmon=201502,fdir=fdir)}
+#'streaminterp(dt,paramlist=c("sal"),yearmon=201502)}
 
 streaminterp<-function(dt,paramlist,yearmon,fdir=getOption("fdir")){
     
@@ -19,7 +19,7 @@ streaminterp<-function(dt,paramlist,yearmon,fdir=getOption("fdir")){
   projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
   latlonproj<-"+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
   
-  costras<-raster::raster(file.path(fdir,"DF_Basefile","barrier60large2.tif"))
+  costras<-raster::raster(file.path(fdir,"DF_Basefile","barrier60large2e.tif"))
       
   #clean paramlist and dt names####
   #might need to add translation key for corner case names
@@ -91,7 +91,7 @@ for(j in 1:length(paramlist)){
 #b-Sys.time()
 for(i in 1:length(paramlist)){
   test<-raster::raster(file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".tif",sep="")))
-  plot(test)
+  #plot(test)
 }
 
 }
