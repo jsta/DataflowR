@@ -8,35 +8,91 @@
 #'@examples \dontrun{res<-grabclean(yearmon=201402,tofile=TRUE,fdir=fdir)}
 #'
 grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
-  #yearmon<-200804
-  fdir_fd<-file.path(fdir,"DF_FullDataSets")
-  flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
-  dt<-read.csv(flist[substring(basename(flist),1,6)==yearmon])
-  fdir_fd<-file.path(fdir,"DF_GrabSamples","Raw")
-  flist<-list.files(fdir_fd,include.dirs=T,full.names=T,pattern=".csv")
-  sumpath<-suppressWarnings(flist[which(as.numeric(substring(basename(flist),1,6))==yearmon)])
   
-  #get col names####
-  nms1<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)[1,1:23]
-  nms1<-apply(nms1,2,as.character)#LABID thru PP
+  #FORMAT COLUMN NAMES##################################
+  formatcolnames<-function(sumpath){
+  datacol<-NA
+  nmsfull<-NA
+  startread<-1
+  endread<-23
+  
+  #READ LABID thru PP
+  nms1<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)[1,startread:endread]
+  nms1<-apply(nms1,2,as.character)
+  
+  while(nms1[length(nms1)]!="PP"){
+    endread<-endread-1
+    nms1<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)[1,startread:endread]
+    nms1<-apply(nms1,2,as.character)
+  }
+  datacol<-startread:endread
+  
+  #READ NITROGEN AND PHOSPHORUS COLUMNS (SERC NUTRIENTS)
+  startread<-endread+1
+  endread<-startread+8
   #if(any(nchar(nms1)>10)){nms1<-nms1[-which(nchar(nms1)>10)]}
   nms2<-read.csv(sumpath,sep=",",skip=3,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
   #nms2<-nms2[1,25:28]
-  nms2<-nms2[1,24:30]
-  nms2<-apply(nms2,2,as.character)#Nitrogen
+  nms2<-nms2[1,startread:endread]
+  nms2<-apply(nms2,2,as.character)
+  
+  while(nms2[length(nms2)]!="SRP(uM)"){
+    endread<-endread-1
+    nms2<-read.csv(sumpath,sep=",",skip=3,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
+    #nms2<-nms2[1,25:28]
+    nms2<-nms2[1,startread:endread]
+    nms2<-apply(nms2,2,as.character)
+  }
+  while(gsub(" ","",nms2[1])!="N+N(uM)"){
+    nms2<-nms2[-1]
+    startread<-startread+1
+  }
+  
+  datacol<-append(datacol,(startread:endread))
+  
+  #CNP DATA (DISTRICT LAB)
+  startread<-endread+1
+  endread<-startread+9
+  
   nms3<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
   #nms3<-nms3[1,29:38]
   #nms3<-nms3[1,32:38]
-  nms3<-nms3[1,31:37]
-  nms3<-apply(nms3,2,as.character)#P and N
+  nms3<-nms3[1,startread:endread]
+  nms3<-apply(nms3,2,as.character)
+  
+  while(nms3[length(nms3)]!="TDKN"){
+    endread<-endread-1
+    nms3<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
+    #nms2<-nms2[1,25:28]
+    nms3<-nms3[1,startread:endread]
+    nms3<-apply(nms3,2,as.character)
+  }
+  
+  if(is.na(nms3[1])){
+    nms3<-nms3[-1]
+    startread<-startread+1
+  }
+  while(nms3[1]!="TP"){
+    nms3<-nms3[-1]
+    startread<-startread+1
+  }
+  
+  datacol<-append(datacol,(startread:endread))
+  
+  #EXISTING STREAMING DATA
+  startread<-endread+1
+  
   nms4<-read.csv(sumpath,sep=",",skip=1,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
-  if(ncol(nms4)>38){#is there C6 data?
-    nms4<-nms4[1,39:ncol(nms4)]
+  if(ncol(nms4)>endread){#is there C6 data?
+    nms4<-nms4[1,startread:ncol(nms4)]
     nms4<-apply(nms4,2,as.character)
-    nms.full<-c(nms1,NA,nms2,nms3,nms4)
+    
+    nms.full<-c(nms1,nms2,nms3,nms4)
+    datacol<-append(datacol,(startread:(startread+length(nms4)-1)))
+    
   }else{
-    nms.full<-c(nms1,NA,nms2,nms3)
-    nms.full<-c(nms.full,rep(NA,(77-length(nms.full))))
+    nms.full<-c(nms1,nms2,nms3)
+    nms.full<-c(nms.full,rep(NA,(77-length(nms.full))))#need to fix this
   }
   
   nms.full<-tolower(nms.full)
@@ -45,38 +101,40 @@ grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   nms.full<-gsub(")","",nms.full)
   nms.full<-nms.full[!is.na(nms.full)]
   
-  #clean grabs####
-  grabs<-read.csv(sumpath,sep=",",skip=5,header=F,stringsAsFactors=F,na.strings="",strip.white=T)
-  grabs<-grabs[!is.na(grabs[,5]),]
-  names(grabs)<-nms.full
-  grabs<-grabs[,colSums(is.na(grabs))<nrow(grabs)]#remove columns of all NA
-  grabs[,4]<-gsub("/","",grabs[,4])
-  grabs[,4]<-gsub("-","",grabs[,4])
-  
-  grabs<-grabs[,!is.na(names(grabs))]
-  
-  narows<-as.numeric(which(apply(grabs,1,function(x)sum(is.na(x)))>50))
-  if(length(narows)>0){
-    grabs<-grabs[-unique(narows),]#remove na rows
+  list(nms.full,datacol)
   }
-  grabs<-grabs[!is.na(grabs[,8]),]  #eliminate EBs
   
-  if(nchar(as.character(grabs[1,5]))<5){
-    names(grabs)[4:5]<-c("date","time")#make sure to match parameter names for stations and dt
-    grabs[,4:5]<-apply(grabs[,4:5],2,as.numeric)
-    stations<-grabs[,4:5]
+  #CLEAN GRABS############################
+  cleangrabdata<-function(sumpath,nsmfull,datacol){
+  grabdata<-read.csv(sumpath,sep=",",skip=5,header=F,stringsAsFactors=F,na.strings="",strip.white=T)
+  grabdata<-grabdata[!is.na(grabdata[,5]),]#remove trailing blank rows
+  grabdata<-grabdata[,datacol]
+  names(grabdata)<-nmsfull
+  
+  #REMOVE EBS AND NA ROWS/COLUMNS
+  grabdata<-grabdata[,colSums(is.na(grabdata))<nrow(grabdata)]#remove columns of all NA
+  narows<-as.numeric(which(apply(grabdata,1,function(x)sum(is.na(x)))>50))
+  if(length(narows)>0){
+    grabdata<-grabdata[-unique(narows),]#remove NA rows
+  }
+  grabdata<-grabdata[!is.na(grabdata[,"chla"]),]  #eliminate EBs
+  
+  #FORMAT DATES
+  grabdata[,4]<-gsub("/","",grabdata[,4])
+  grabdata[,4]<-gsub("-","",grabdata[,4])
+  grabdata<-grabdata[,!is.na(names(grabdata))]
+  
+  #EXTRACT UNIQUE IDS (stations) AS DATE+TIME
+  if(nchar(as.character(grabdata[1,5]))<5){
+    names(grabdata)[4:5]<-c("date","time")#make sure to match parameter names for stations and dt
+    grabdata[,4:5]<-apply(grabdata[,4:5],2,as.numeric)
+    stations<-grabdata[,4:5]
   }else{
-    names(grabs)[5:6]<-c("date","time")#make sure to match parameter names for stations and dt
-    grabs[,5:6]<-apply(grabs[,5:6],2,as.numeric)
-    stations<-grabs[,5:6]
+    names(grabdata)[5:6]<-c("date","time")#make sure to match parameter names for stations and dt
+    grabdata[,5:6]<-apply(grabdata[,5:6],2,as.numeric)
+    stations<-grabdata[,5:6]
   }
   stations<-data.frame(apply(stations,2,function(x) as.numeric(as.character(x))))
-  
-  #date options, 
-  #stationsave<-stations
-  #stations<-stations[1:5,]
-  #stations$date<-c(11503,61103,8603,81203,80603)
-  #stations<-stations[1,]
   
   sixchardate<-function(x){
     yr<-sapply(x,function(x) substring(x,nchar(x)-1,nchar(x)))
@@ -101,106 +159,96 @@ grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   stations$date<-sixchardate(stations$date)
   }
   
-  dlen<-mean(nchar(as.character(dt$date)))
-  if(dlen!=6){
-    print("1")
-    if(!identical(as.character(dt$date),gsub("/","",dt$date))){
-      print("2")
-      dt$date<-gsub("/","",dt$date)
-      if(dlen>8){
-        print("3")
-        dt$date<-paste(substring(as.character(dt$date),1,4),substring(as.character(dt$date),7,8),sep="")
-      }
-    }else{
-      print("4")
-  dt$date<-sixchardate(dt$date)
-  }
-  }
+#   dlen<-mean(nchar(as.character(streamingdata$date)))
+#   if(dlen!=6){
+#     print("1")
+#     if(!identical(as.character(streamingdata$date),gsub("/","",streamingdata$date))){
+#       print("2")
+#       streamingdata$date<-gsub("/","",streamingdata$date)
+#       if(dlen>8){
+#         print("3")
+#         streamingdata$date<-paste(substring(as.character(streamingdata$date),1,4),substring(as.character(streamingdata$date),7,8),sep="")
+#       }
+#     }else{
+#       print("4")
+#       streamingdata$date<-sixchardate(streamingdata$date)
+#   }
+#   }
   
   #clear any streaming data already entered
-  if(ncol(grabs)>40){
-  grabs<-grabs[,1:40]
+  if(any(names(grabdata)=="chlaiv")){
+    grabdata<-grabdata[,1:(which(names(grabdata)=="chlaiv")-1)]
   }
   
-  #get averages that correspond to grab samples####
-  #stream<-merge(stations,dt,all.x=T)#cuts dt down to match "stations"
-  names(dt)<-tolower(names(dt))
-  if((which(names(dt)=="date")-1)>0){
-  dt<-dt[,-(1:(which(names(dt)=="date")-1))]#remove beginning junk columns
+  list(grabdata=grabdata,stations=stations)
   }
-  names(dt)[names(dt)=="chla"]<-"chlaiv"
-  dt$time<-as.numeric(dt$time)
   
-  stream<-merge(stations,dt)#cuts dt down to match "stations"
-  #stream$date<-as.numeric(stream$date)
-  
-  #check to make sure streaming data exists for each grab
-  nostream<-data.frame(matrix(NA,nrow=1,ncol=ncol(grabs)))
-  names(nostream)<-names(grabs)
-  cnt<-0
+  #CALCULATE STREAMING AVERAGES CORRESPONDING TO GRABS
+  mergegrabstreaming<-function(streamingdata,grabdata,stations){
     
-  stationsave<-stations
-  grabsave<-grabs
-  #stations<-stationsave
-  #grabs<-grabsave
+    names(streamingdata)[names(streamingdata)=="chla"]<-"chlaiv"
   
-  #change to create a list of lines to remove rather than updating within loop
-  rmlist<-list()
-  for(j in 1:nrow(stations)){
-    #print(j)
-    #j=14
-    #print(cbind(stations[j,1],stations[j,2]))
-    if(all(is.na(match(paste(stream$date,stream$time),paste(stations[j,1],stations[j,2]))))){
-      if(cnt==0){
-        nostream[1,]<-grabs[j,]
-        cnt=1
-      }else{
-        nostream<-rbind(nostream,grabs[j,])
-        #print(j)
+    stream<-merge(stations,streamingdata)#cuts dt down to match "stations"
+    if(nrow(stream)==0){#streamingdata has 5 character dates
+      stations$date<-substring(stations$date,2,mean(nchar(stations$date)))
+      stream<-merge(stations,streamingdata)
+    }
+    #stream$date<-as.numeric(stream$date)
+    
+    #check to make sure streaming data exists for each grab
+    nostream<-data.frame(matrix(NA,nrow=1,ncol=ncol(grabdata)))
+    names(nostream)<-names(grabdata)
+    cnt<-0
+  
+    #change to create a vector of lines to remove rather than updating within loop
+    rmlist<-list()
+    for(j in 1:nrow(stations)){
+      if(all(is.na(match(paste(stream$date,stream$time),paste(stations[j,1],stations[j,2]))))){
+        if(cnt==0){
+          nostream[1,]<-grabdata[j,]
+          cnt=1
+        }else{
+          nostream<-rbind(nostream,grabdata[j,])
+        }
+        rmlist[[j]]<-j
       }
-      rmlist[[j]]<-j
-      }
-  }
+    }
+  
   if(length(unlist(rmlist))>0){
-  stations<-stations[-unlist(rmlist),]
-  grabs<-grabs[-unlist(rmlist),]
+    stations<-stations[-unlist(rmlist),]
+    grabdata<-grabdata[-unlist(rmlist),]
   }
-  
-  
+
   #identical(stationsave,stations)#should be false
-  #nrow(grabs)==13#should be True
-  #nrow(stations)==13#should be True
-  
   #make sure nrow stations and nrow stream2 match
   stream$date<-as.numeric(stream$date)
-  stream<-merge(stations,dt)#cuts dt down to match "stations"
-  
-  
+  stream<-merge(stations,stream)
+
   stream2<-data.frame(matrix(NA,nrow=nrow(stations),ncol=ncol(stream)))
   for(m in 1:ncol(stream)){
     #m=1
     #length(unique(paste(stream$date,stream$time)))
     #length(round(aggregate(stream[,m],by=list(stream$date,stream$time),mean)[,3],2))
     if(class(stream[,m])=="numeric"){
-      stream2[,m]<-round(aggregate(stream[,m],by=list(stream$date,stream$time),mean)[,3],2)
+      stream2[,m]<-round(aggregate(stream[,m],by=list(stream$date,stream$time),mean)[,3],5)
     }else{
       stream2[,m]<-aggregate(stream[,m],by=list(stream$date,stream$time),Mode)[,3]
     }
   }
+  
   names(stream2)<-names(stream)
   
-    #stream2<-data.frame(aggregate(stream,by=list(stream$time),mean))#minute averages
   stream3<-stream2[order(stream2$date,stream2$time),]
   sname<-which(names(stream3)=="chlaiv")
   ename<-which(names(stream3)=="lat_dd")
   stream4<-cbind(stations,stream3[,c(sname:ename)])
-  grabsfull<-cbind(grabs,stream4)
+  grabsfull<-cbind(grabdata,stream4)
   
   #add back in grabs with missing streaming data
   if(any(!is.na(nostream[1,]))){
-  nostream<-nostream[!is.na(nostream[,4]),]
+    nostream<-nostream[!is.na(nostream[,4]),]
   if((ncol(grabsfull)-ncol(nostream))!=0){
-  padna<-data.frame(matrix(NA,nrow=nrow(nostream),ncol=(ncol(grabsfull)-ncol(nostream))))
+    padna<-data.frame(matrix(NA,nrow=nrow(nostream),ncol=(ncol(grabsfull)-ncol(nostream))))
   #if(any(match(names(nostream),names(grabsfull))[1:ncol(nostream)]!=1:ncol(nostream))){
   #  stop("problem with column names")
   #}
@@ -240,20 +288,39 @@ turbidity,c6turbidity",sep=",")
   grabsfull[,5:ncol(grabsfull)]<-suppressWarnings(apply(grabsfull[,5:ncol(grabsfull)],2,function(x) as.numeric(x)))
   grabsfull$flags<-NA
   
-  if(tofile==TRUE){
-    write.csv(grabsfull,file.path(fdir,"DF_GrabSamples",paste(yearmon,"j.csv",sep="")))
+  grabsfull
   }
+  
+  #EXECUTION BLOCK
+  
+    #TEST INPUTS
+    #yearmon<-201402
+    #fdir<-getOption("fdir")
+  
+    #LOAD FILES####
+    fdir_fd<-file.path(fdir,"DF_FullDataSets")
+    flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
+    streamingdata<-read.csv(flist[substring(basename(flist),1,6)==yearmon])
+    fdir_fd<-file.path(fdir,"DF_GrabSamples","Raw")
+    flist<-list.files(fdir_fd,include.dirs=T,full.names=T,pattern=".csv")
+    sumpath<-suppressWarnings(flist[which(as.numeric(substring(basename(flist),1,6))==yearmon)])
     
-  #if(ncol(read.csv(sumpath,sep=",",skip=4,header=F,stringsAsFactors=T,na.strings="",strip.white=T))>38){
-  # final<-read.csv(sumpath,sep=",",skip=4,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
-  #names(final)<-nms.full
-  #  return(final)
-  #}else{
+    #CLEAN AND AGGREGRATE
+    grabnames<-formatcolnames(sumpath)
+    nmsfull<-unlist(grabnames[1])
+    datacol<-unlist(grabnames[2])
+    
+    grabdata<-cleangrabdata(sumpath,nmsfull,datacol)$grabdata
+    stations<-cleangrabdata(sumpath,nmsfull,datacol)$stations
+    
+    grabsfull<-mergegrabstreaming(streamingdata,grabdata,stations)
+  
+    if(tofile==TRUE){
+      write.csv(grabsfull,file.path(fdir,"DF_GrabSamples",paste(yearmon,"j.csv",sep="")))
+    }
+    
     return(grabsfull)
-  #}
 }
-
-#go to ExtractedChl.R?
 
 #combine all grabsamples####unfinished because of inconsistent column naming
 # grablist<-list.files(path = file.path(paste(getwd(),"/DF_GrabSamples",sep="")), pattern = "*.csv", full.names = T)
