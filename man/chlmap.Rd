@@ -4,7 +4,7 @@
 \alias{chlmap}
 \title{mapping chl data using existing surfaces and chl coeff}
 \usage{
-chlmap(yearmon, fdir = getOption("fdir"))
+chlmap(yearmon, tofile = FALSE, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric date in yyyymm format}
@@ -13,7 +13,9 @@ chlmap(yearmon, fdir = getOption("fdir"))
 mapping chl data using existing surfaces and chl coeff
 }
 \examples{
-chlmap(yearmon=201502)
+\dontrun{
+res<-chlmap(yearmon=200808)
+}
 }
 \author{
 Joseph Stachelek

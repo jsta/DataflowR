@@ -3,6 +3,7 @@
 export(Mode)
 export(avmap)
 export(chlcoef)
+export(chlmap)
 export(cond2sal)
 export(grabclean)
 export(grabget)

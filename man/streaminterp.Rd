@@ -4,7 +4,8 @@
 \alias{streaminterp}
 \title{interpolation of streaming data}
 \usage{
-streaminterp(dt, paramlist, yearmon, fdir = getOption("fdir"))
+streaminterp(dt, paramlist, yearmon, tname = NA, vname = NA,
+  fdir = getOption("fdir"))
 }
 \arguments{
 \item{dt}{input data frame}
@@ -21,6 +22,6 @@ interpolation of streaming data
 \examples{
 \dontrun{
 dt<-streamget(yearmon=201502)
-streaminterp(dt,paramlist=c("sal"),yearmon=201502,fdir=fdir)}
+streaminterp(dt,paramlist=c("sal"),yearmon=201502)}
 }
 

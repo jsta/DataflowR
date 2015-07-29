@@ -55,7 +55,7 @@ This SOP details a workflow and introduces an \texttt{R} package to clean, load,
   \item A spreadsheet program (MS Excel or similar)
   \item R (must have the \texttt{DataflowR} package and its dependencies installed) 
   \item RStudio (optional; for more easily accessing documentation)
-  \item QGIS (optional; alternatively use ArcGIS, Surfer, etc, for more easily adjusting final symbology)
+  \item GRASS (optional; alternatively use QGIS, ArcGIS, Surfer, etc, for more easily adjusting final symbology)
 \end{itemize}
  
 \section{Installing the \texttt{DataflowR} package}
@@ -137,7 +137,7 @@ D &  &  &  & x &  &  &  & x &  & \\
 \end{center}
 
 \subsection{GIS Software}
-Some portions of \nameref{sec:plottingsurf} (Section 4.5) requires a dedicated GIS software such as QGIS, ArcGIS, or GRASS GIS. In the interest of creating a fully reproducible and streamlined workflow for plotting Dataflow output some functions (\texttt{grassmap}) requires GRASS GIS (GRASS). GRASS can be installed by navigating to \href{http://grass.osgeo.org}{http://grass.osgeo.org}.
+Some portions of \nameref{sec:plottingsurf} (Section 4.5) requires dedicated GIS software such as QGIS, ArcGIS, or GRASS GIS. In the interest of creating a fully reproducible and streamlined workflow for plotting Dataflow output some functions (\texttt{grassmap}) requires GRASS GIS (GRASS). GRASS can be installed by navigating to \href{http://grass.osgeo.org}{http://grass.osgeo.org}.
 
 \vspace{15pt}
 \begin{warning}
@@ -327,9 +327,7 @@ The final set of variable coefficients, the R\textsuperscript{2} value, the p-va
 
 \subsubsection{Generate extracted chlorophyll surfaces}
 
-The coefficients calculated as a result of the \texttt{chlcoef} function. 
-
-\texttt{chlmap} function takes a 
+The coefficients calculated as a result of the \texttt{chlcoef} function can be used to create an interpolated map of chlorophyll concentration. The \texttt{chlmap} function takes these coefficients and the associated fulldataset and calculates an extracted chlorophyll value for each measurement point ("extchl"). These values are interpolated using the \texttt{streaminterp} function. The output surface is stored in the \verb|DF_Surfaces| folder under the appropriate survey date folder.  
 
 \begin{Schunk}
 \begin{Sinput}

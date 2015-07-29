@@ -13,7 +13,7 @@
 #'dt<-streamget(yearmon=201502)
 #'streaminterp(dt,paramlist=c("sal"),yearmon=201502)}
 
-streaminterp<-function(dt,paramlist,yearmon,fdir=getOption("fdir")){
+streaminterp<-function(dt,paramlist,yearmon,tname=NA,vname=NA,fdir=getOption("fdir")){
     
   #define projections
   projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
@@ -37,8 +37,10 @@ streaminterp<-function(dt,paramlist,yearmon,fdir=getOption("fdir")){
     warning(paste(-which(naparam>(nrow(dt)/6)),"has many missing values."))
   }
 
+if(is.na(tname)&is.na(vname)){
 tname<-file.path(fdir,"/DF_Subsets/",yearmon,"s.csv",fsep="")
 vname<-file.path(fdir,"/DF_Validation/",yearmon,"s.csv",fsep="")
+}
 
 if(!file.exists(tname)&!file.exists(vname)){
   
@@ -91,7 +93,7 @@ for(j in 1:length(paramlist)){
 #b-Sys.time()
 for(i in 1:length(paramlist)){
   test<-raster::raster(file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".tif",sep="")))
-  #plot(test)
+  #sp::plot(test)
 }
 
 }

@@ -55,7 +55,7 @@ This SOP details a workflow and introduces an \texttt{R} package to clean, load,
   \item A spreadsheet program (MS Excel or similar)
   \item R (must have the \texttt{DataflowR} package and its dependencies installed) 
   \item RStudio (optional; for more easily accessing documentation)
-  \item QGIS (optional; alternatively use ArcGIS, Surfer, etc, for more easily adjusting final symbology)
+  \item GRASS (optional; alternatively use QGIS, ArcGIS, Surfer, etc, for more easily adjusting final symbology)
 \end{itemize}
  
 \section{Installing the \texttt{DataflowR} package}
@@ -301,9 +301,7 @@ chlcoef(yearmon=201502,remove.flags=TRUE)
 
 \subsubsection{Generate extracted chlorophyll surfaces}
 
-The coefficients calculated as a result of the \texttt{chlcoef} function. 
-
-\texttt{chlmap} function takes a 
+The coefficients calculated as a result of the \texttt{chlcoef} function can be used to create an interpolated map of chlorophyll concentration. The \texttt{chlmap} function takes these coefficients and the associated fulldataset and calculates an extracted chlorophyll value for each measurement point ("extchl"). These values are interpolated using the \texttt{streaminterp} function. The output surface is stored in the \verb|DF_Surfaces| folder under the appropriate survey date folder.  
 
 <<eval=FALSE>>=
 chlmap(yearmon=201502)

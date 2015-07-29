@@ -194,11 +194,12 @@ model<-data.frame(matrix(unlist(model),nrow=2))#new
 outtemp[,"model"]<-paste("Chla = ",gsub(" ","+",gsub(",","",toString(apply(model,2,function(x) paste(x[1],x[2],sep="*"))))),"+",intercept,sep="")
 
 if(any(outtemp[,"yearmon"]==coeflist[,"yearmon"],na.rm=T)&overwrite==FALSE){
-  stop("Fit already exists for this survey. Open file and delete in order to replace.")
+  warning("Fit already exists for this survey. Open file and delete in order to replace.")
 }else{
   coeflist<-rbind(coeflist,outtemp)
   write.csv(coeflist,file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"))
 }
+fit
 }
       
 

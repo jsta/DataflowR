@@ -1,15 +1,19 @@
 #'@name chlmap
-#'@title mapping chl data using existing surfaces and chl coeff
+#'@title Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll
+#'@details
+#'A new interpolation is run after calculating an extracted chlorophyll for all streaming observations. Calculated values that exceed the maximum observed grab sample concentration are discarded.
 #'@param yearmon numeric date in yyyymm format
 #'@author Joseph Stachelek
 #'@export
 #'@examples 
+#'\dontrun{
 #'res<-chlmap(yearmon=200808)
+#'}
 
 chlmap<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   #library(DataflowR)
   #fdir<-getOption("fdir")
-  #yearmon<-201002
+  #yearmon<-201305
   
   params<-c("chlaiv","chla")
   #find coefficients that match yearmon####
@@ -24,57 +28,105 @@ chlmap<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   coeflist<-coeflist[coeflist$yearmon==yearmon,4:16]
   namelist<-names(coeflist)[which(!is.na(coeflist))]
   coeflist<-coeflist[!is.na(coeflist)]
-  
-  
-  
-  #match raster surfaces to non-NA coefficients####
-  dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
-  rlist<-list.files(dirlist[substring(basename(dirlist),1,6)==as.character(yearmon)],full.names=T,include.dirs=T,pattern="\\.tif$")
-  plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
+  namelist_sq<-namelist[grep("2",namelist)]
   
   namesalias<-read.table(text="
-                       chlorophyll.a c6chl
                        c6chla c6chl
                        chla chlaiv 
                          ")
   
-  for(n in 1:length(plist)){
-    if(any(plist[n]==namesalias[,1])){
-      plist[n]<-as.character(namesalias[which(plist[n]==namesalias[,1]),2])
+  for(n in 1:length(namelist)){
+    if(any(namelist[n]==namesalias[,2])){
+      namelist[n]<-as.character(namesalias[which(namelist[n]==namesalias[,2]),1])
     }
   }
   
-  pr_order<-match(c(namelist),plist)[!is.na(match(c(namelist),plist))]
-  plist<-plist[pr_order]
-  rlist<-rlist[pr_order]
+  if(length(namelist_sq)>0){
+  namelist_sq<-sapply(namelist_sq,function(x) substring(x,1,(nchar(x)-1)))
+  for(n in 1:length(namelist_sq)){
+    if(any(namelist_sq[n]==namesalias[,2])){
+      namelist_sq[n]<-as.character(namesalias[which(namelist_sq[n]==namesalias[,2]),1])
+    }
+  }
+  }
+  
+  #append a chlext column to the cleaned streaming data and interpolate
+  dt<-streamget(yearmon,qa=TRUE)
+  chlext<-dt[,namelist[1]]*coeflist[1]
+  
+  if(length(namelist_sq)>0){
+    coeflist_sq<-coeflist[grep("2",namelist)]
+    coeflist<-coeflist[-1*grep("2",namelist)]
+    namelist<-namelist[-1*grep("2",namelist)]
+    for(i in 1:(length(namelist_sq))){
+      chlext<-chlext+(dt[,namelist_sq[i]]*coeflist[i])
+    }
+  }
+  
+  if(length(namelist)>2){
+    for(i in 2:(length(namelist)-1)){
+      chlext<-chlext+(dt[,namelist[i]]*coeflist[i])
+    }
+  }
+  chlext<-chlext + coeflist[length(coeflist)]
+  
+  chlext[chlext<0]<-0
+  chlext[chlext>range(grabget(yearmon,remove.flags = TRUE)$chla,na.rm = TRUE)[2]]<-NA
+  dt$chlext<-chlext
+  
+  
+  streaminterp(dt,paramlist = "chlext",yearmon = yearmon,tname = file.path(fdir,paste0("/DF_Subsets/chlext",yearmon,".csv"),fsep="") ,vname = file.path(fdir,paste0("/DF_Validation/chlext",yearmon,".csv"),fsep=""))
+  
+  
+  #####stopped editing here#####
+  #match raster surfaces to non-NA coefficients####
+#   dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
+#   rlist<-list.files(dirlist[substring(basename(dirlist),1,6)==as.character(yearmon)],full.names=T,include.dirs=T,pattern="\\.tif$")
+#   plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
+#   
+#   namesalias<-read.table(text="
+#                        chlorophyll.a c6chl
+#                        c6chla c6chl
+#                        chla chlaiv 
+#                          ")
+#   
+#   for(n in 1:length(plist)){
+#     if(any(plist[n]==namesalias[,1])){
+#       plist[n]<-as.character(namesalias[which(plist[n]==namesalias[,1]),2])
+#     }
+#   }
+#   
+#   pr_order<-match(c(namelist),plist)[!is.na(match(c(namelist),plist))]
+#   plist<-plist[pr_order]
+#   rlist<-rlist[pr_order]
   
   #create rlist2 if polynomial coefficients
-  if(length(grep("2",namelist))>0){
-    poly=TRUE
-    rlist2<-rlist[match(sapply(namelist[grep("2",namelist)],function(x) substring(x,1,(nchar(x)-1))),plist)]
-  }
-  
-  if(length(rlist)==0){
-    stop("no surfaces matching parameter names")
-  }
-  
-  res<-raster::raster(rlist[1])*coeflist[1]
-  if(length(rlist)>1){
-  for(i in 2:length(rlist)){
-    res<-res+(raster::raster(rlist[i])*coeflist[i])
-  }
-  }
-  
-  if(poly==TRUE){
-    
-  }
-  
-  res<-res + coeflist[length(coeflist)]
-  res<-raster::reclassify(res,c(-Inf,0,0))
-  #sp::plot(res)
-  
-  if(tofile==TRUE){
-    raster::writeRaster(res,filename=file.path(fdir,"DF_Surfaces",yearmon,"chlext.tif"),overwrite=TRUE,format = "GTiff")
-  }
-  res
+#   if(length(grep("2",namelist))>0){
+#     poly=TRUE
+#     rlist2<-rlist[match(sapply(namelist[grep("2",namelist)],function(x) substring(x,1,(nchar(x)-1))),plist)]
+#   }
+#   
+#   if(length(rlist)==0){
+#     stop("no surfaces matching parameter names")
+#   }
+#   
+#   res<-raster::raster(rlist[1])*coeflist[1]
+#   if(length(rlist)>1){
+#   for(i in 2:length(rlist)){
+#     res<-res+(raster::raster(rlist[i])*coeflist[i])
+#   }
+#   }
+#   
+#   if(poly==TRUE){
+#     
+#   }
+#   
+#   res<-res + coeflist[length(coeflist)]
+#   res<-raster::reclassify(res,c(-Inf,0,0))
+#   #sp::plot(res)
+#   
+#   if(tofile==TRUE){
+#     raster::writeRaster(res,filename=file.path(fdir,"DF_Surfaces",yearmon,"chlext.tif"),overwrite=TRUE,format = "GTiff")
+#   }
+#   res
 }

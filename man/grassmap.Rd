@@ -30,7 +30,10 @@ not finished yet
 probably need to implement this as a seperate package
 }
 \examples{
-\dontrun{grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")}
+\dontrun{
+grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
+grassmap(rnge=c(200707),params=c("sal"))
+}
 }
 \author{
 Joseph Stachelek

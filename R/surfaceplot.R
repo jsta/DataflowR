@@ -79,8 +79,6 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
 
 avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance=1,fdir){
   
-  #@import raster
-  
   flist.full<-list.files(file.path(fdir,"DF_Surfaces"),pattern="*.grd",recursive=T,include.dirs=T,full.names=T)
   flist<-flist.full[basename(flist.full)==paste(toupper(params),".grd",sep="")|basename(flist.full)==paste(tolower(params),".grd",sep="")]
   
@@ -136,6 +134,9 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@examples \dontrun{
 #'grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
 #'grassmap(rnge=c(200707),params=c("sal"))
+#'
+#'#create a new color ramp by editing DF_Basefile/*.file
+#'exp((seq(from=log(1),to=log(29),length=8)))-1#chlext
 #'}
 
 grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full",panel=FALSE,cleanup=TRUE,rotated = TRUE){
@@ -183,7 +184,14 @@ chlext,chlextrules.file",sep=",",stringsAsFactors=FALSE)
   fboutline<-rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE)
   
   for(i in 1:length(rlist)){
-    #i<-1 
+    #i<-1
+    if(basin!="full"){
+      firstras<-raster::raster(rlist[1])
+      firstras<-raster::crop(firstras,fathombasins[fathombasins$NAME==basin,])
+    }else{
+      firstras<-raster::raster(rlist[i])
+    }
+    
     if(basin!="full"){
       tempras<-raster::raster(rlist[i])
       tempras<-raster::crop(tempras,fathombasins[fathombasins$NAME==basin,])
@@ -208,6 +216,9 @@ chlext,chlextrules.file",sep=",",stringsAsFactors=FALSE)
     loc<-rgrass7::initGRASS("/usr/lib/grass70",home=file.path(fdir,"QGIS_plotting"),override=TRUE)
     
     #raster
+    firstras<-as(firstras,"SpatialGridDataFrame")
+    firstras.g<-rgrass7::writeRAST(firstras,"firstras",flags=c("overwrite"))
+    
     tempras<-as(tempras,"SpatialGridDataFrame")
     tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
     rgrass7::execGRASS("g.region",raster="tempras")
@@ -226,6 +237,7 @@ chlext,chlextrules.file",sep=",",stringsAsFactors=FALSE)
     test<-rgrass7::readVECT("outvec")
     rgrass7::execGRASS("g.region",vector="outvec")
     
+    rgrass7::execGRASS("g.region",raster="firstras")
 #     #compose plotting commands here####
     fileConn<-file(file.path(fdir,"QGIS_plotting","grassplot.file"))
     writeLines(c("raster tempras2",
