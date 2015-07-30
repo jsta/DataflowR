@@ -33,6 +33,9 @@ probably need to implement this as a seperate package
 \dontrun{
 grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
 grassmap(rnge=c(200707),params=c("sal"))
+
+#create a new color ramp by editing DF_Basefile/*.file
+exp((seq(from=log(1),to=log(29),length=8)))-1#chlext
 }
 }
 \author{

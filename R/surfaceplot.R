@@ -130,6 +130,9 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@return output plots to the QGIS_plotting folder
 #'@details probably need to implement this as a seperate package
 #'@import rgrass7
+#'@import maptools
+#'@import rgeos
+#'@import gpclib
 #'@export
 #'@examples \dontrun{
 #'grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
@@ -208,6 +211,7 @@ chlext,chlextrules.file",sep=",",stringsAsFactors=FALSE)
     system(shellcmds)
     outpoly<-rgdal::readOGR(dsn=outpath,layer=paste(rasname,"poly",sep=""),verbose=TRUE)
     require("maptools")#cannot seem to execute below without call to library (require)
+    maptools::gpclibPermit()
     outpoly<-maptools::unionSpatialPolygons(outpoly,IDs=rep(1,length(outpoly)))
     outlines<-as(outpoly,'SpatialLines')
     outlines<-SpatialLinesDataFrame(outlines,data=as.data.frame(1))

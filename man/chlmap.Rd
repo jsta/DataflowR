@@ -2,7 +2,7 @@
 % Please edit documentation in R/chlmap.R
 \name{chlmap}
 \alias{chlmap}
-\title{mapping chl data using existing surfaces and chl coeff}
+\title{Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll}
 \usage{
 chlmap(yearmon, tofile = FALSE, fdir = getOption("fdir"))
 }
@@ -10,7 +10,10 @@ chlmap(yearmon, tofile = FALSE, fdir = getOption("fdir"))
 \item{yearmon}{numeric date in yyyymm format}
 }
 \description{
-mapping chl data using existing surfaces and chl coeff
+Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll
+}
+\details{
+A new interpolation is run after calculating an extracted chlorophyll for all streaming observations. Calculated values that exceed the maximum observed grab sample concentration are discarded.
 }
 \examples{
 \dontrun{
