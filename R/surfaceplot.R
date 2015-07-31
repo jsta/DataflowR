@@ -77,7 +77,7 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
 #'@examples \dontrun{
 #'avmap(yearmon=201505,params="sal",tofile=FALSE,percentcov=0.6,tolerance=1,fdir=fdir)}
 
-avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance=1,fdir){
+avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance=1,fdir=getOption("fdir")){
   
   flist.full<-list.files(file.path(fdir,"DF_Surfaces"),pattern="*.grd",recursive=T,include.dirs=T,full.names=T)
   flist<-flist.full[basename(flist.full)==paste(toupper(params),".grd",sep="")|basename(flist.full)==paste(tolower(params),".grd",sep="")]
@@ -111,9 +111,9 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
   plot(cursurf-rmean,main="Difference from Average")
   
   if(tofile==TRUE){
-  raster::writeRaster(rmean,"meansurf.tif",format="GTiff",overwrite=T)
-  raster::writeRaster(cursurf,"cursurf.tif",format="GTiff",overwrite=T)
-  raster::writeRaster(cursurf-rmean,"diffsurf.tif",format="GTiff",overwrite=T)
+  #raster::writeRaster(rmean,"meansurf.tif",format="GTiff",overwrite=T)
+  #raster::writeRaster(cursurf,"cursurf.tif",format="GTiff",overwrite=T)
+  raster::writeRaster((cursurf-rmean),file.path(fdir,"DF_Surfaces",yearmon,paste0("diff",params,".tif")),format="GTiff",overwrite=T)
   }
 }
 
@@ -126,13 +126,13 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@param panel logical. Combine output into a figure panel?
 #'@param fdir character file path to local data directory
 #'@param cleanup logical remove intermediate rasters and shapefiles?
-#'@param rotated logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured.
+#'@param rotated logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured (not working).
+#'@param labelling logical lablel output with yearmon?
 #'@return output plots to the QGIS_plotting folder
-#'@details probably need to implement this as a seperate package
+#'@details probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function.
 #'@import rgrass7
 #'@import maptools
 #'@import rgeos
-#'@import gpclib
 #'@export
 #'@examples \dontrun{
 #'grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
@@ -142,7 +142,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'exp((seq(from=log(1),to=log(29),length=8)))-1#chlext
 #'}
 
-grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full",panel=FALSE,cleanup=TRUE,rotated = TRUE){
+grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full",labelling=TRUE,panel=FALSE,cleanup=TRUE,rotated = TRUE){
   
 #     library(DataflowR)
 #   params=c("chlext")
@@ -164,7 +164,8 @@ grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="
                          ")
   
   paramkey<-read.table(text="sal,salrules.file
-chlext,chlextrules.file",sep=",",stringsAsFactors=FALSE)
+chlext,chlextrules.file
+diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
   rulesfile<-paramkey[which(params==paramkey[,1]),2]
   
   dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
@@ -242,6 +243,8 @@ chlext,chlextrules.file",sep=",",stringsAsFactors=FALSE)
     rgrass7::execGRASS("g.region",vector="outvec")
     
     rgrass7::execGRASS("g.region",raster="firstras")
+    
+    if(labelling==TRUE){
 #     #compose plotting commands here####
     fileConn<-file(file.path(fdir,"QGIS_plotting","grassplot.file"))
     writeLines(c("raster tempras2",
@@ -259,6 +262,19 @@ chlext,chlextrules.file",sep=",",stringsAsFactors=FALSE)
                  "        end",
                  "end"),fileConn)
     close(fileConn)
+    }else{
+      fileConn<-file(file.path(fdir,"QGIS_plotting","grassplot.file"))
+      writeLines(c("raster tempras2",
+                   "vlines outvec",
+                   "        color black",
+                   "        style dashed",
+                   "        end",
+                   "vareas fbvec",
+                   "        masked y",
+                   "        end",
+                   "end"),fileConn)
+      close(fileConn)
+    }
     
     rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"grassplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".pdf",sep="")),flags="overwrite")
   
@@ -280,6 +296,10 @@ sal,Salinity",sep=",",stringsAsFactors=FALSE)
   }
   if(params=="chlext"){
     legendunits<-seq(from=0,to=28,by=0.1)
+  }
+  
+  if(params=="diffsal"){
+    legendunits<-seq(from=-30,to=35,by=1)
   }
   
   legras<-raster::raster(tempras)
