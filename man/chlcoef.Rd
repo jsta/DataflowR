@@ -5,7 +5,8 @@
 \title{calculation of extracted versus fluoresced chlorophyll coefficients}
 \usage{
 chlcoef(yearmon, remove.flags = FALSE, overwrite = FALSE,
-  fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7)
+  fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7,
+  streamcov = 0.5, checkvif = TRUE)
 }
 \arguments{
 \item{yearmon}{numeric date of survey}
@@ -13,6 +14,10 @@ chlcoef(yearmon, remove.flags = FALSE, overwrite = FALSE,
 \item{remove.flags}{logical trim dataset based on flags?}
 
 \item{overwrite}{logical overwrite previous coefficients?}
+
+\item{streamcov}{numeric percentage of non-missing streaming data used to exclude variables under consideration}
+
+\item{checkvif}{logical check final equation for multicollinearity using VIF?}
 }
 \description{
 calculation of extracted versus fluoresced chlorophyll coefficients

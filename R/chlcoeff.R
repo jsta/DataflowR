@@ -3,6 +3,8 @@
 #'@param yearmon numeric date of survey
 #'@param remove.flags logical trim dataset based on flags?
 #'@param overwrite logical overwrite previous coefficients?
+#'@param streamcov numeric percentage of non-missing streaming data used to exclude variables under consideration
+#'@param checkvif logical check final equation for multicollinearity using VIF?
 #'@details this function should be interactive
 #'@export
 #'@importFrom MASS stepAIC
@@ -12,14 +14,18 @@
 #'chlcoef(201308)
 #'}
 
-chlcoef<-function(yearmon,remove.flags=FALSE,overwrite=FALSE,fdir=getOption("fdir"),polypcut=0.6,corcut=0.7){
-#yearmon=200804
+chlcoef<-function(yearmon,remove.flags=TRUE,overwrite=FALSE,fdir=getOption("fdir"),polypcut=0.6,corcut=0.7,streamcov=0.5,checkvif=TRUE,logtransform=FALSE){
+#yearmon=201212
 #corcut=0.5 
-dt<-grabget(yearmon)
+dt<-grabget(yearmon,remove.flags = remove.flags)
 
-if(remove.flags==TRUE){
-  dt<-dt[-which(dt$flags=="s"),]
+if(logtransform==TRUE){
+  dt[,"chla"]<-log(dt[,"chla"])  
 }
+
+#if(remove.flags==TRUE){
+#  dt<-dt[-which(dt$flags=="s"),]
+#}
 
 #remove all or partial incomplete cases?
 #dt2<-dt[complete.cases(dt),]#all incomplete
@@ -27,7 +33,16 @@ if(remove.flags==TRUE){
 
 #choose variables
 varlist<-c("chla","cdom","chlaiv","phycoe","c6chl","phycoc","c6cdom")
-varlist[sapply(varlist,function(x) sum(!is.na(dt[,x]))>1)]
+varlist<-varlist[sapply(varlist,function(x) sum(!is.na(dt[,x]))>1)]
+
+#exclude variables with streaming data less than streamcov
+streamdata<-streamget(yearmon = yearmon, qa = TRUE)
+streamvarlist<-varlist
+streamvarlist[which(varlist=="chlaiv")]<-"chla"
+streamvarlist[which(streamvarlist=="c6chl")]<-"c6chla"
+streamvarlist<-streamvarlist[-1]
+
+streamvarlist<-streamvarlist[sapply(streamvarlist,function(x) sum(!is.na(streamdata[,x]))/nrow(streamdata))>0.74]
 
 if(length(varlist)>2){
 cormat<-cor(dt[,varlist],use="complete")[-1,1]
@@ -39,9 +54,10 @@ lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
 fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),])
 
 if(length(varlist)>1){
-dt<-dt[apply(dt[,match(varlist,names(dt))],1,function(x) !all(is.na(x))),]
+  dt<-dt[apply(dt[,match(varlist,names(dt))],1,function(x) !all(is.na(x))),]
 }else{
-dt[,match(varlist,names(dt))]<-dt[,match(varlist,names(dt))][!is.na(dt[,match(varlist,names(dt))])]
+  dt<-dt[!is.na(dt[,match(varlist,names(dt))]),]
+#dt[,match(varlist,names(dt))]<-dt[,match(varlist,names(dt))][!is.na(dt[,match(varlist,names(dt))])]
 }
 
 message("Initial correlation matrix")
@@ -74,6 +90,17 @@ rmlist<-gsub(",2,raw=T\\)","",rmlist)
 varlist<-varlist[is.na(match(varlist,rmlist))]
 }
 
+  message("checking for redundacy in paired variables")
+  pairedmat<-matrix(c("chlaiv","c6chl","c6cdom","cdom"),ncol=2,byrow = TRUE)
+  pairedmat<-pairedmat[apply(pairedmat,1,function(x) all(!is.na(match(x,varlist)))),]
+  rmlist<-names(which.min(cormat[which(!is.na(match(names(cormat),pairedmat)))]))
+  if(length(rmlist)>0){
+    varlist<-varlist[-which(varlist==rmlist)]
+    lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
+    fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),])
+  }
+  
+
 if(polyp==TRUE){
   lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=T)",collapse="+")))
   fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),c("chla",varlist)])
@@ -85,6 +112,7 @@ fit<-lm(lmeq,data=dt)
 message("Final AIC reduced fit")
 print(summary(fit))
 
+if(checkvif==TRUE){
 message("Checking VIF...")
 #examine VIF; If GVIF > 5:10, then remove colinear terms, Helsel and Hirsh 2002
 if(length(fit$coefficients)>2 & (polyp!=TRUE & length(fit$coefficients>3))){
@@ -110,6 +138,7 @@ if(polyp==TRUE){
     }
   }
 }
+}
 
 if(summary(fit)$adj.r.squared==1){
   message("Overfit reducing to simple linear eq.")
@@ -120,8 +149,16 @@ if(summary(fit)$adj.r.squared==1){
 
 message("Final statistical fit")
 print(summary(fit))
-plot(fitted(fit),dt$chla[complete.cases(dt[,varlist])],ylab="Ext. chl",main="1 to 1 line")
+
+if(logtransform==TRUE){
+  plot(exp(fitted(fit)),exp(dt$chla[complete.cases(dt[,varlist])]),ylab="Ext. chl",main="1 to 1 line")    
+}else{
+  plot(fitted(fit),dt$chla[complete.cases(dt[,varlist])],ylab="Ext. chl",main="1 to 1 line")  
+}
 abline(0,1)
+
+#message("Accept final fit?")
+#browser()
 
 # #optimize for low values (<1)?####
 # #hist(dt2$CHLa)
@@ -194,7 +231,7 @@ model<-data.frame(matrix(unlist(model),nrow=2))#new
 outtemp[,"model"]<-paste("Chla = ",gsub(" ","+",gsub(",","",toString(apply(model,2,function(x) paste(x[1],x[2],sep="*"))))),"+",intercept,sep="")
 
 if(any(outtemp[,"yearmon"]==coeflist[,"yearmon"],na.rm=T)&overwrite==FALSE){
-  warning("Fit already exists for this survey. Open file and delete in order to replace.")
+  warning("Fit already exists for this survey. Specify overwrite =TRUE or open file and delete in order to replace.")
 }else{
   coeflist<-rbind(coeflist,outtemp)
   write.csv(coeflist,file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"))
