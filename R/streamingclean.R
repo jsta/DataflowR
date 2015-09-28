@@ -34,13 +34,13 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
     
   reslist<-list()
   for(i in 1:length(dflist)){
-    #i<-2
+    #i<-1
     sep<-","
     #mmin<-7
     dt<-read.csv(dflist[i],skip=0,header=F,sep=sep)#start with comma sep
         
     if(suppressWarnings(nchar(gsub("\t","",dt[1,]))<nchar(as.character(dt[1,])))){#switch to tab sep
-      sep<-""
+      sep<-"\t"
       dt<-read.csv(dflist[i],skip=0,header=F,sep=sep,stringsAsFactors=FALSE)
     }
     
@@ -59,27 +59,40 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
     }
     
     sep<-","
+#==================================================================#
+    
     
     #remove bad columns
-    #dtsave<-dt
-    #dt<-dtsave
-    if(class(dt[,3])=="integer"){dt<-dt[,-3]}#remove existing sec column
+    if(class(dt[,3]) == "integer"){
+      dt<-dt[,-3]
+      print("removing existing seconds column")
+    }#remove existing sec column
+    
+    
     if(ncol(dt)>14){
-    dtno.na<-dt[complete.cases(dt[,1:13]),]
-    dt<-dt[,apply(dtno.na,2,function(x) abs(sum(as.numeric(x),na.rm=T))!=0)]
+      dtno.na<-dt[complete.cases(dt[,1:13]),]
+      dt<-dt[,apply(dtno.na,2,function(x) abs(sum(as.numeric(x),na.rm=T))!=0)]
     }
+    
+    
     
     #temp should never be less than 10, these are likely 'bad' DO columns?
     if(mean(as.numeric(dt[,4]),na.rm=T)<10 & mean(as.numeric(dt[,5]),na.rm=T)<10){
       dt<-dt[,-4:-5]
     }
-        
-    dt<-dt[,apply(dt,2,function(x) abs(sum(as.numeric(x),na.rm=T))>66)]#take out all 0
+    
+    #dtsave<-dt
+    #dt<-dtsave
+    #print(apply(dt,2,function(x) abs(sum(as.numeric(x),na.rm=T))))
+    #print(head(dt))
+    #browser()
+           
+    dt<-dt[,apply(dt,2,function(x) abs(sum(as.numeric(x),na.rm=T))>22)]#take out all 0 (38 is an arbitrary "tolerance" value)
     ones<-apply(dt,2,function(x) sd(as.numeric(x)[as.numeric(x)!=0 & !is.na(as.numeric(x))]))!=0
     ones[is.na(ones)]<-TRUE
     ones[1:2]<-TRUE
     dt<-dt[,ones]
-    dt<-dt[,apply(dt,2,function(x) mean(nchar(x),na.rm=T))>=3.7]
+    dt<-dt[,apply(dt,2,function(x) mean(nchar(x),na.rm=T))>=3.0] #(3 is an arbitrary "tolerance" value)
     dt<-dt[,apply(dt[,3:ncol(dt)],2,function(x) length(unique(x))!=3)]
     names(dt)<-c("date","time","chla","temp","cond","sal","trans","cdom","lat_dd","lon_dd")
     
@@ -186,9 +199,9 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
   
     #dtsave<-dt
     
-    #clean and merge C6 here####
     print(paste(basename(dflist[i]),"processed",sep=" "))
-          if(c6pres==TRUE){
+    #clean and merge C6 here####
+    if(c6pres==TRUE){
             
             c6dfmatch<-which(substring(basename(c6list),1,8)==substring(basename(dflist[i]),1,8))
             if(length(c6dfmatch)!=0){
@@ -203,7 +216,17 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
                                         
               #check for mismatched c6df measurement frequency
               dtfreq<-max(dt$sec[2]-dt$sec[1],dt$sec[3]-dt$sec[2])
+              
+              #browser()
+              
+              #check for missing seconds information
+              if(all(is.na(as.POSIXct(strptime(c6$datec,"%m/%d/%y %H:%M:%S"))))){
+                c6sec <- unlist(lapply(rle(sapply(c6$datec, function(x) strftime(strptime(x, format = "%m/%d/%Y %H:%M"), format = "%M")))$lengths, function(x) seq(0, 60 - (60/x), length.out = x)))
+                c6$datec <- as.POSIXct(strptime(paste0(c6$datec, ":", c6sec), "%m/%d/%Y %H:%M:%S"))
+              }else{
               c6$datec<-as.POSIXct(strptime(c6$datec,"%m/%d/%y %H:%M:%S"))
+              }
+              
               if(!any(!is.na(c6$datec))){
                 c6<-read.csv(c6list[c6dfmatch],skip=12,header=F)[,1:9]
                 names(c6)<-c("datec","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","depth","c6temp")
@@ -291,9 +314,10 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
                 names(dt)[names(dt)=="sec"]<-"sec.x"
                 dt<-dt[,match(names(streamget(201505)),names(dt))[!is.na(match(names(streamget(201505)),names(dt)))]]
               }
+            print(paste(basename(c6list[i]),"processed",sep=" "))
             }
     
-    print(paste(basename(c6list[i]),"processed",sep=" "))
+    
               
     #create basin designations here####
         
@@ -348,19 +372,24 @@ dt
 #'@param qa logical strip flagged data?
 #'@export
 #'@examples \dontrun{
-#'yearmon<-201404
+#'yearmon<-201311
 #'dt<-streamget(yearmon)}
 
 streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
   fdir_fd<-file.path(fdir,"DF_FullDataSets")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   flist<-flist[substring(basename(flist),1,6)==yearmon]
-  dt<-read.csv(flist)
+  dt<-read.csv(flist,stringsAsFactors = FALSE)
   
-  if(qa==TRUE&&file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))){
+  if(qa==TRUE&&file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))&&identical(dim(dt),dim(read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))))){
     qafile<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))
-    if(!identical(dim(qafile),dim(dt))){
-      stop("QA file dimensions do not match data dimensions")
+    
+    if(!any(names(qafile)=="chlext")&any(names(dt)=="chlext")){
+      qafile$chlext<-NA
+    }
+    
+    if(!(identical(dim(qafile),dim(dt)))){
+      warning("QA file dimensions do not match data dimensions")
     }
     dt[!is.na(qafile)]<-NA
   }
@@ -396,6 +425,8 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOpt
   #explore and set parameter threshold limits
   par(mfrow=c(1,1))
   parset<-c("chla","temp","cond","sal","trans","cdom","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","c6temp")
+  
+  parset<-parset[parset %in% names(dt)]
   
   
   for(i in parset){
