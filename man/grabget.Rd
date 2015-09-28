@@ -19,6 +19,7 @@ aggregate grab data
 \examples{
 \dontrun{
 grabs<-grabget(rnge=c(201402,201410))
-grabs2<-grabget(rnge=c(201505),fdir=fdir)}
+}
+rnge<-201308
 }
 

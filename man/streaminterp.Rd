@@ -5,7 +5,7 @@
 \title{interpolation of streaming data}
 \usage{
 streaminterp(dt, paramlist, yearmon, tname = NA, vname = NA,
-  fdir = getOption("fdir"))
+  missprop = 0.16, fdir = getOption("fdir"))
 }
 \arguments{
 \item{dt}{input data frame}
@@ -14,6 +14,12 @@ streaminterp(dt, paramlist, yearmon, tname = NA, vname = NA,
 
 \item{yearmon}{a file path used to extract basename}
 
+\item{tname}{file.path location to save training dataset}
+
+\item{vname}{file.path location to save validation dataset}
+
+\item{missprop}{numeric proportion of missing data allowed. Variables with a greater proportion of missing data will be dropped.}
+
 \item{fdir}{character file path to local data directory}
 }
 \description{
@@ -21,7 +27,7 @@ interpolation of streaming data
 }
 \examples{
 \dontrun{
-dt<-streamget(yearmon=201502)
-streaminterp(dt,paramlist=c("sal"),yearmon=201502)}
+dt<-streamget(yearmon=201507,qa=TRUE)
+streaminterp(dt,paramlist=c("sal"),yearmon=201507)}
 }
 

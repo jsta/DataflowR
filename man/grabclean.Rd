@@ -16,6 +16,9 @@ grabclean(yearmon, tofile = FALSE, fdir = getOption("fdir"))
 \description{
 if column names do not match up make sure there is only one "date" column
 }
+\details{
+If streaming data does not exist for a particular data/time pull averages for the previous minute (if data exists).
+}
 \examples{
 \dontrun{res<-grabclean(yearmon=201402,tofile=TRUE,fdir=fdir)}
 }

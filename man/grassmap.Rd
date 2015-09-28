@@ -5,7 +5,8 @@
 \title{Publication quality maps with GRASS}
 \usage{
 grassmap(rnge = c(201502), params = c("sal"), fdir = getOption("fdir"),
-  basin = "full", panel = FALSE, cleanup = TRUE, rotated = TRUE)
+  basin = "full", labelling = TRUE, panel = FALSE, cleanup = TRUE,
+  rotated = TRUE)
 }
 \arguments{
 \item{rnge}{numeric string of no more than two dates in yyyymm format}
@@ -14,11 +15,13 @@ grassmap(rnge = c(201502), params = c("sal"), fdir = getOption("fdir"),
 
 \item{fdir}{character file path to local data directory}
 
+\item{labelling}{logical lablel output with yearmon?}
+
 \item{panel}{logical. Combine output into a figure panel?}
 
 \item{cleanup}{logical remove intermediate rasters and shapefiles?}
 
-\item{rotated}{logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured.}
+\item{rotated}{logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured (not working).}
 }
 \value{
 output plots to the QGIS_plotting folder
@@ -27,7 +30,7 @@ output plots to the QGIS_plotting folder
 not finished yet
 }
 \details{
-probably need to implement this as a seperate package
+probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function.
 }
 \examples{
 \dontrun{
@@ -35,7 +38,7 @@ grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
 grassmap(rnge=c(200707),params=c("sal"))
 
 #create a new color ramp by editing DF_Basefile/*.file
-exp((seq(from=log(1),to=log(29),length=8)))-1#chlext
+exp((seq(from=log(1),to=log(0.5*29),length=8)))-1#chlext
 }
 }
 \author{

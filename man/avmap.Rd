@@ -5,7 +5,7 @@
 \title{create a difference map compared to average}
 \usage{
 avmap(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 0.6,
-  tolerance = 1, fdir)
+  tolerance = 1, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{survey of interest to compare against average}

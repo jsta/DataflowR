@@ -4,10 +4,13 @@
 \alias{chlmap}
 \title{Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll}
 \usage{
-chlmap(yearmon, tofile = FALSE, fdir = getOption("fdir"))
+chlmap(yearmon, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric date in yyyymm format}
+}
+\value{
+An extracted chlorophyll surface and an updated FullDataSet file
 }
 \description{
 Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll
@@ -17,7 +20,7 @@ A new interpolation is run after calculating an extracted chlorophyll for all st
 }
 \examples{
 \dontrun{
-res<-chlmap(yearmon=200808)
+res<-chlmap(yearmon=201308)
 }
 }
 \author{

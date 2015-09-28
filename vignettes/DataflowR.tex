@@ -157,9 +157,9 @@ Incoming streaming data should be placed in \verb|DF_FullDataSets|\texttt{/Raw/I
 .4 Raw.
 .5 InstrumentOutput.
 .6 201502.
-.7 201502\_DF021115.txt.
+.7 20150211\_DF021115.txt.
 .7 ....
-.7 201502\_C6\_11FEB.csv.
+.7 20150211\_C6\_11FEB.csv.
 .7 ....
 }
 \begin{warning}
@@ -239,7 +239,7 @@ The \texttt{grassmap} function creates detailed publication quality maps using G
 
 \begin{Schunk}
 \begin{Sinput}
-> grassmap(params=c("sal"),rnge=201505)
+> grassmap(rnge=201505,params=c("sal"))
 \end{Sinput}
 \end{Schunk}
 
@@ -249,7 +249,7 @@ The \texttt{basin} parameter of the \texttt{grassmap} function allows the user t
 
 \begin{Schunk}
 \begin{Sinput}
-> grassmap(params=c("sal"),rnge=c(200605,201505),basin = "Manatee Bay")
+> grassmap(rnge=c(200605,201505),params=c("sal"),basin = "Manatee Bay")
 \end{Sinput}
 \end{Schunk}
 

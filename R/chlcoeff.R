@@ -15,7 +15,7 @@
 #'}
 
 chlcoef<-function(yearmon,remove.flags=TRUE,overwrite=FALSE,fdir=getOption("fdir"),polypcut=0.6,corcut=0.7,streamcov=0.5,checkvif=TRUE,logtransform=FALSE){
-#yearmon=201212
+#yearmon=201507
 #corcut=0.5 
 dt<-grabget(yearmon,remove.flags = remove.flags)
 

@@ -1,3 +1,3 @@
 #'@name validdf
-#'@title validation Dataflow output against streaming validation set
+#'@title validate Dataflow output against streaming validation set
 #validdf.R

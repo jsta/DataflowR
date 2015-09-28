@@ -155,9 +155,9 @@ Incoming streaming data should be placed in \verb|DF_FullDataSets|\texttt{/Raw/I
 .4 Raw.
 .5 InstrumentOutput.
 .6 201502.
-.7 201502\_DF021115.txt.
+.7 20150211\_DF021115.txt.
 .7 ....
-.7 201502\_C6\_11FEB.csv.
+.7 20150211\_C6\_11FEB.csv.
 .7 ....
 }
 \begin{warning}
@@ -226,7 +226,7 @@ surfplot(rnge=c(201502),params=c("sal"))
 The \texttt{grassmap} function creates detailed publication quality maps using GRASS GIS. Maps are output to the \verb|QGIS_plotting| folder. The following command creates a Bay-wide salinity map for May 2015.
 
 <<eval=FALSE>>=
-grassmap(params=c("sal"),rnge=201505)
+grassmap(rnge=201505,params=c("sal"))
 @
 
 \subsubsection{Producing timeseries for specific basins}
@@ -234,7 +234,7 @@ grassmap(params=c("sal"),rnge=201505)
 The \texttt{basin} parameter of the \texttt{grassmap} function allows the user to limit (zoom-in) to a specific FATHOM basin. A listing of FATHOM basins can be found by inspecting \verb|DF_Basefile/fathom_basins_proj.shp| or by referencing \citet{cosby2005fathom}. The following command will create a series of zoomed-in salinity maps of Manatee Bay for each survey date between June 2006 and May 2015.   
 
 <<eval=FALSE>>=
-grassmap(params=c("sal"),rnge=c(200605,201505),basin = "Manatee Bay")
+grassmap(rnge=c(200605,201505),params=c("sal"),basin = "Manatee Bay")
 @
 
 
