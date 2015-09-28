@@ -3,17 +3,19 @@
 #'@details
 #'A new interpolation is run after calculating an extracted chlorophyll for all streaming observations. Calculated values that exceed the maximum observed grab sample concentration are discarded.
 #'@param yearmon numeric date in yyyymm format
+#'@param remove.flags logical
+#'@return An extracted chlorophyll surface and an updated FullDataSet file
 #'@author Joseph Stachelek
 #'@export
 #'@examples 
 #'\dontrun{
-#'res<-chlmap(yearmon=200808)
+#'res<-chlmap(yearmon=201308)
 #'}
 
-chlmap<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
+chlmap<-function(yearmon, remove.flags = TRUE, fdir=getOption("fdir")){
   #library(DataflowR)
   #fdir<-getOption("fdir")
-  #yearmon<-201305
+  #yearmon<-201311
   
   params<-c("chlaiv","chla")
   #find coefficients that match yearmon####
@@ -71,14 +73,28 @@ chlmap<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   chlext<-chlext + coeflist[length(coeflist)]
   
   chlext[chlext<0]<-0
-  chlext[chlext>range(grabget(yearmon,remove.flags = TRUE)$chla,na.rm = TRUE)[2]]<-NA
+  chlext[chlext>range(grabget(yearmon, remove.flags = remove.flags)$chla,na.rm = TRUE)[2]]<-NA
   dt$chlext<-chlext
   
   
-  streaminterp(dt,paramlist = "chlext",yearmon = yearmon,tname = file.path(fdir,paste0("/DF_Subsets/chlext",yearmon,".csv"),fsep="") ,vname = file.path(fdir,paste0("/DF_Validation/chlext",yearmon,".csv"),fsep=""))
+  if(file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))){
+  qafile<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))
+  qafile$chlext<-NA
+  write.csv(qafile,file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))
+  }
   
+  dtname<-file.path(fdir,.Platform$file.sep,"DF_FullDataSets",.Platform$file.sep,yearmon,"j.csv",fsep="")
+  write.csv(dt,dtname,row.names = FALSE)
   
-  #####stopped editing here#####
+  if(file.exists(file.path(fdir,paste0("/DF_Subsets/chlext",yearmon,".csv"),fsep=""))){
+    file.remove(file.path(fdir,paste0("/DF_Subsets/chlext",yearmon,".csv"),fsep=""))
+    file.remove(file.path(fdir,paste0("/DF_Validation/chlext",yearmon,".csv"),fsep=""))
+  }
+  
+  streaminterp(dt,paramlist = "chlext",yearmon = yearmon,tname = file.path(fdir,paste0("/DF_Subsets/chlext",yearmon,".csv"),fsep="") ,vname = file.path(fdir,paste0("/DF_Validation/chlext",yearmon,".csv"),fsep=""), missprop = (1/3))
+  
+}  
+  #####old code from when raster algebra was used#####
   #match raster surfaces to non-NA coefficients####
 #   dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
 #   rlist<-list.files(dirlist[substring(basename(dirlist),1,6)==as.character(yearmon)],full.names=T,include.dirs=T,pattern="\\.tif$")
@@ -129,4 +145,4 @@ chlmap<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
 #     raster::writeRaster(res,filename=file.path(fdir,"DF_Surfaces",yearmon,"chlext.tif"),overwrite=TRUE,format = "GTiff")
 #   }
 #   res
-}
+
