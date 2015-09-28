@@ -4,6 +4,7 @@
 #'@param yearmon numeric survey date in yyyymm format
 #'@param tofile logical save output to file
 #'@param fdir character file path to local data directory
+#'@details If streaming data does not exist for a particular data/time pull averages for the previous minute (if data exists).
 #'@export
 #'@examples \dontrun{res<-grabclean(yearmon=201402,tofile=TRUE,fdir=fdir)}
 #'
@@ -204,6 +205,7 @@ grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
     rmlist<-list()
     for(j in 1:nrow(stations)){
       if(all(is.na(match(paste(stream$date,stream$time),paste(stations[j,1],stations[j,2]))))){
+
         if(cnt==0){
           nostream[1,]<-grabdata[j,]
           cnt=1
@@ -213,7 +215,29 @@ grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
         rmlist[[j]]<-j
       }
     }
-  
+    
+    #check if streaming data exists for the minute previous to nostream
+    #k<-1
+    
+#     savegrabdata<-grabdata
+#     savenostream<-nostream
+#     savermlist<-rmlist
+#     
+#     rmlist<-savermlist
+#     nostream<-savenostream
+#     rmlist<-savermlist
+    
+    for(k in 1:nrow(nostream)){
+      nostreamprevious<-streamingdata[paste(streamingdata[,"date"],streamingdata[,"time"])==paste(nostream[k,"date"],(nostream[k,"time"]-1)),]
+      nostreamprevious[,"time"]<-nostreamprevious[,"time"]+1
+        if(nrow(nostreamprevious)>0){
+        stream<-rbind(stream,nostreamprevious)
+        grabdata[paste(grabdata[,"date"],grabdata[,"time"])==paste(nostream[k,"date"],nostream[k,"time"]),]$time<-grabdata[paste(grabdata[,"date"],grabdata[,"time"])==paste(nostream[k,"date"],nostream[k,"time"]),]$time+1
+        nostream<-nostream[-k,]
+        rmlist<-unlist(rmlist)[-k]
+      }
+    }
+    
   if(length(unlist(rmlist))>0){
     stations<-stations[-unlist(rmlist),]
     grabdata<-grabdata[-unlist(rmlist),]
@@ -300,10 +324,12 @@ turbidity,c6turbidity",sep=",")
     #LOAD FILES####
     fdir_fd<-file.path(fdir,"DF_FullDataSets")
     flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
-    streamingdata<-read.csv(flist[substring(basename(flist),1,6)==yearmon])
+    streamingdata<-streamget(yearmon)
     fdir_fd<-file.path(fdir,"DF_GrabSamples","Raw")
     flist<-list.files(fdir_fd,include.dirs=T,full.names=T,pattern=".csv")
     sumpath<-suppressWarnings(flist[which(as.numeric(substring(basename(flist),1,6))==yearmon)])
+    
+    #todo: add check that sumpath only returns one file path
     
     #CLEAN AND AGGREGRATE
     grabnames<-formatcolnames(sumpath)
