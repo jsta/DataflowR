@@ -121,15 +121,14 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@title Publication quality maps with GRASS
 #'@description not finished yet
 #'@author Joseph Stachelek
-#'@param rnge numeric string of no more than two dates in yyyymm format
+#'@param rnge numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.
 #'@param params character. string of parameter fields to plot
-#'@param panel logical. Combine output into a figure panel?
 #'@param fdir character file path to local data directory
 #'@param cleanup logical remove intermediate rasters and shapefiles?
 #'@param rotated logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured (not working).
 #'@param labelling logical lablel output with yearmon?
 #'@return output plots to the QGIS_plotting folder
-#'@details probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function.
+#'@details Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory.
 #'@import rgrass7
 #'@import maptools
 #'@import rgeos
@@ -138,11 +137,12 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
 #'grassmap(rnge=c(200707),params=c("sal"))
 #'
-#'#create a new color ramp by editing DF_Basefile/*.file
-#'exp((seq(from=log(1),to=log(29),length=8)))-1#chlext
+#'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
+#'logramp(n = 9, maxrange = 20) #chlext
+#'scales::show_col(viridis::viridis_pal()(9))
 #'}
 
-grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full",labelling=TRUE,panel=FALSE,cleanup=TRUE,rotated = TRUE){
+grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full",labelling=TRUE, cleanup=TRUE,rotated = TRUE){
   
 #     library(DataflowR)
 #   params=c("chlext")
@@ -158,6 +158,7 @@ grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="
   if(length(rnge)==1){
     rnge<-c(rnge,rnge)
   }
+  
   namesalias<-read.table(text="
                          chlorophyll.a c6chl
                          c6chla c6chl
@@ -181,11 +182,19 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     }
   }
   
+  if(length(rnge)>2){
+    rnge <- rnge[order(rnge)]
+    rlist<-list.files(dirlist[which(substring(basename(dirlist),1,6) %in% rnge)],full.names=T,include.dirs=T,pattern="\\.tif$")
+    plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
+  }
+  
   rlist<-rlist[which(!is.na(match(plist,params)))]
   plist<-plist[which(!is.na(match(plist,params)))]
   
   fathombasins<-rgdal::readOGR(file.path(fdir,"DF_Basefile/fathom_basins_proj.shp"),layer="fathom_basins_proj",verbose=FALSE)
   fboutline<-rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE)
+  
+  print(rlist)
   
   for(i in 1:length(rlist)){
     #i<-1
@@ -211,7 +220,7 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     shellcmds = paste("gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
     system(shellcmds)
     outpoly<-rgdal::readOGR(dsn=outpath,layer=paste(rasname,"poly",sep=""),verbose=TRUE)
-    require("maptools")#cannot seem to execute below without call to library (require)
+    require("maptools")#cannot seem to execute below without call to require
     maptools::gpclibPermit()
     outpoly<-maptools::unionSpatialPolygons(outpoly,IDs=rep(1,length(outpoly)))
     outlines<-as(outpoly,'SpatialLines')
@@ -255,7 +264,7 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
                  "vareas fbvec",
                  "        masked y",
                  "        end",
-                 paste("text 80% 8% ",rasname,sep=""),
+                 paste("text 17% 85% ",rasname,sep=""),
                  "        fontsize 35",
                  "        background white",
                  "        border black",
@@ -277,12 +286,26 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     }
     
     rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"grassplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".pdf",sep="")),flags="overwrite")
-  
+    if(length(rlist) == 1){
+      makefile <- file.path(fdir, "DF_Basefile","Makefile_single")
+      system(paste0("make -f ", makefile, " testpanel.png BASEDIR=", fdir," YEARMON=", paste0(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))))))
+      system(paste0("make -f ", makefile, " clean"))
+    }
+    
     if(cleanup==TRUE){
       rmlist<-list.files(file.path(paste(fdir,"/QGIS_plotting",sep="")),pattern = paste(rasname,"*",sep=""),include.dirs = TRUE,full.names = TRUE)
       rmlist<-rmlist[-grep("*.pdf",rmlist)]
       file.remove(rmlist)
     }    
+  }
+  
+  #browser()
+  
+  #assumes that all pdfs in QGIS_plotting are to be part of panel
+  if(length(rlist > 1)){ # & !is.na(panel.dim)
+    makefile <- file.path(fdir, "DF_Basefile","Makefile_multi")
+    system(paste0("make -f ", makefile, " multipanel.png BASEDIR=", fdir))
+    system(paste0("make -f ", makefile, " clean"))
   }
   
   #print legend####
@@ -295,7 +318,8 @@ sal,Salinity",sep=",",stringsAsFactors=FALSE)
     legendunits<-seq(from=5,to=54,by=0.1)
   }
   if(params=="chlext"){
-    legendunits<-seq(from=0,to=28,by=0.1)
+    legendunits<-log(seq(from=0,to=13.5,by=0.1)+1)
+    rulesfile<-paste0(rulesfile,"_log")
   }
   
   if(params=="diffsal"){
@@ -314,6 +338,7 @@ sal,Salinity",sep=",",stringsAsFactors=FALSE)
   rgrass7::execGRASS("v.hull",input="outvec",output="outvec2",flags="overwrite")
   
   rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legendplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legend",paste("legend",".pdf",sep="")),flags="overwrite")
+  
 
   if(cleanup==TRUE){
     rmlist<-list.files(file.path(paste(fdir,"/QGIS_plotting",sep="")),pattern = paste("out","*",sep=""),include.dirs = TRUE,full.names = TRUE)
