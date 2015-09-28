@@ -77,3 +77,85 @@ cond2sal<-function (c, t = 25, P = 0)
   
   return(PSS)
 }
+
+#'@name date456posix
+#'@title Convert numeric dates in mddyy to POSIXct
+#'@param input numeric where the first 1-2 digits specify the month attribute because leading zeros have been stripped. Also detects whether the day attributes has had stripped leading zeros.
+#'@param century numeric century recommended choice of "19" or "20"
+#'@export
+#'@examples
+#'x<-51514
+#'date56posix(x,century="20")
+#'dates<-c("51514","101214","8714","1214")
+#'date456posix(dates,century="20")
+
+date456posix<-function(x,century){
+  year<-paste0(century,substring(x,(nchar(x)-1),nchar(x)))
+  day<-substring(x,(nchar(x)-3),nchar(x)-2)
+  
+  if(any(as.numeric(day)>31)){
+    day<-as.character(sapply(day,function(x){
+      if(as.numeric(x)>31){
+        x<-substring(x,2,2)
+      }
+      x
+    }))
+  }
+  
+  
+  mon<-substring(x,1,nchar(x)-4)
+  
+  if(any(nchar(mon)==0)){
+    mon[which(nchar(mon)==0)]<-substring(x[which(nchar(mon)==0)],1,1)
+  }
+  
+  mon<-as.character(sapply(mon,function(x){
+    if(as.numeric(x)<10){
+      x<-paste0("0",x)
+    }else{
+      x
+    }
+  }))
+  
+  date<-paste0(year,"-",mon,"-",day)
+  return(as.POSIXct(strptime(date,format="%Y-%m-%d")))
+}
+
+
+#'@name coordinatize
+#'@title Convert georeferenced data.frames into projected SpatialPointsDataFrames
+#'@param latname character column name of the "y" coordinate
+#'@param lonname character column name of the "x" coordinate
+#'@export
+#'@examples
+#'dt<-streamget(201002,qa=TRUE)
+coordinatize<-function(dt,latname="latdec",lonname="londec"){
+  projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
+  latlonproj<-"+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+  
+  dt<-dt[!is.na(dt[,lonname]),]
+  dt<-dt[!is.na(dt[,latname]),]
+  
+  sp::coordinates(dt)<-c(lonname,latname)
+  sp::proj4string(dt)<-sp::CRS(latlonproj)
+  dt<-sp::spTransform(dt,sp::CRS(projstr))
+  return(dt)
+}
+
+#'@name logramp
+#'@title Create a log scaled color ramp for the grassmap function
+#'@import viridis
+#'@importFrom scales 
+#'@param n 
+#'@param maxrange
+#'n <- 9
+#'maxrange <- 20
+#'logramp(n, maxrange)
+logramp <- function(n, maxrange){
+  breaks <- round(exp((seq(from=log(1),to=log(maxrange + 1),length=n)))-1, 2)
+  displaybreaks <- round(exp((seq(from=log(1),to=log(breaks[length(breaks)-1]),length=6)))-1, 2)
+  
+  #'scales::show_col(viridis::viridis_pal()(9))
+  
+  list(breaks = breaks, displaybreaks = displaybreaks, rgb = t(col2rgb(viridis::viridis(n))))
+}
