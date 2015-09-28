@@ -6,7 +6,8 @@
 #'@param fdir character file path to local data directory
 #'@examples \dontrun{ 
 #'grabs<-grabget(rnge=c(201402,201410))
-#'grabs2<-grabget(rnge=c(201505),fdir=fdir)}
+#'}
+#'rnge<-201308
 
 grabget<-function(rnge,remove.flags=FALSE,fdir=getOption("fdir")){
   #rnge<-200910
@@ -23,7 +24,7 @@ grabget<-function(rnge,remove.flags=FALSE,fdir=getOption("fdir")){
   dtlist<-list()
   for(i in 1:length(agglist)){
     #i<-1
-    dt<-read.csv(agglist[i],header=T)[,-1]
+    dt<-read.csv(agglist[i],header=T, stringsAsFactors = FALSE)[,-1]
     names(dt)<-tolower(names(dt))
     #names(dt)
     
@@ -45,14 +46,10 @@ grabget<-function(rnge,remove.flags=FALSE,fdir=getOption("fdir")){
     }
     
     dtlist[[i]]<-dt
+    #print(paste0(agglist[i],ncol(dt)))#
 }
 
 dtall<-do.call(rbind,dtlist)
 
-
 dtall
 }
-
-
-
-
