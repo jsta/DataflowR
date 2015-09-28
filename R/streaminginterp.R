@@ -4,16 +4,19 @@
 #'@param paramlist list of parameters (dt column names) to interpolate
 #'@param yearmon a file path used to extract basename
 #'@param fdir character file path to local data directory
+#'@param tname file.path location to save training dataset
+#'@param vname file.path location to save validation dataset
+#'@param missprop numeric proportion of missing data allowed. Variables with a greater proportion of missing data will be dropped.
 #'@export
 #'@importFrom raster raster writeRaster
 #'@importFrom gdata resample
 #'@importFrom sp SpatialPointsDataFrame coordinates CRS spTransform proj4string
 #'@importFrom ipdw ipdwInterp pathdistGen
 #'@examples \dontrun{
-#'dt<-streamget(yearmon=201502)
-#'streaminterp(dt,paramlist=c("sal"),yearmon=201502)}
+#'dt<-streamget(yearmon=201507,qa=TRUE)
+#'streaminterp(dt,paramlist=c("sal"),yearmon=201507)}
 
-streaminterp<-function(dt,paramlist,yearmon,tname=NA,vname=NA,fdir=getOption("fdir")){
+streaminterp<-function(dt,paramlist,yearmon,tname=NA,vname=NA,missprop=0.16,fdir=getOption("fdir")){
     
   #define projections
   projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
@@ -32,14 +35,18 @@ streaminterp<-function(dt,paramlist,yearmon,tname=NA,vname=NA,fdir=getOption("fd
   
 #remove entries from paramlist that have many NA
   naparam<-lapply(paramlist,function(x)length(which(is.na(data.frame(dt[,x])))))
-  if(any(which(naparam>(nrow(dt)/6)))){
-    paramlist<-paramlist[-which(naparam>(nrow(dt)/6))]
-    warning(paste(-which(naparam>(nrow(dt)/6)),"has many missing values."))
+  if(any(which(naparam>(nrow(dt)/(1/missprop))))){
+    paramlist<-paramlist[-which(naparam>(nrow(dt)*missprop))]
+    warning(paste(-which(naparam>(nrow(dt)*missprop)),"has many missing values."))
+  }
+  
+  if(length(paramlist)==0){
+    stop("too many missing values")
   }
 
 if(is.na(tname)&is.na(vname)){
-tname<-file.path(fdir,"/DF_Subsets/",yearmon,"s.csv",fsep="")
-vname<-file.path(fdir,"/DF_Validation/",yearmon,"s.csv",fsep="")
+  tname<-file.path(fdir,"/DF_Subsets/",yearmon,"s.csv",fsep="")
+  vname<-file.path(fdir,"/DF_Validation/",yearmon,"s.csv",fsep="")
 }
 
 if(!file.exists(tname)&!file.exists(vname)){
@@ -77,6 +84,8 @@ write.csv(validate,vname)
 }
 sp::proj4string(training)<-sp::CRS(latlonproj)
 training<-sp::spTransform(training,sp::CRS(projstr))
+
+
 
 #start interpolation####
 #a<-Sys.time()
