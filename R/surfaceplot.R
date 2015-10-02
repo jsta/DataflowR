@@ -122,7 +122,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@description not finished yet
 #'@author Joseph Stachelek
 #'@param rnge numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.
-#'@param params character. string of parameter fields to plot
+#'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal
 #'@param fdir character file path to local data directory
 #'@param cleanup logical remove intermediate rasters and shapefiles?
 #'@param rotated logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured (not working).
@@ -136,13 +136,16 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@examples \dontrun{
 #'grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
 #'grassmap(rnge=c(200707),params=c("sal"))
+#'grassmap(rnge=c(201407),params=c("chlext"))
+#'grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(rnge=c(201507), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 #'logramp(n = 9, maxrange = 20) #chlext
 #'scales::show_col(viridis::viridis_pal()(9))
 #'}
 
-grassmap<-function(rnge=c(201502),params=c("sal"),fdir=getOption("fdir"),basin="full",labelling=TRUE, cleanup=TRUE,rotated = TRUE){
+grassmap<-function(rnge=c(201502),params=c("sal"), mapextent = NA, fdir=getOption("fdir"),basin="full",labelling=TRUE, cleanup=TRUE,rotated = TRUE){
   
 #     library(DataflowR)
 #   params=c("chlext")
@@ -192,7 +195,7 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
   plist<-plist[which(!is.na(match(plist,params)))]
   
   fathombasins<-rgdal::readOGR(file.path(fdir,"DF_Basefile/fathom_basins_proj.shp"),layer="fathom_basins_proj",verbose=FALSE)
-  fboutline<-rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE)
+  fboutline <- rgdal::readOGR(dsn=file.path(getOption("fdir"), "DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE)
   
   print(rlist)
   
@@ -241,9 +244,13 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     rgrass7::execGRASS("r.grow",input="tempras",output="tempras2",radius=1.3,flags="overwrite")
     
     #Florida Bay outline
-    fboutline<-raster::crop(fboutline,raster::extent(raster::raster(tempras)))
+    if(is.na(mapextent)){
+      fboutline <- raster::crop(fboutline, raster::extent(raster::raster(tempras)))
+    }else{
+      fboutline <- raster::crop(fboutline, mapextent)
+    }
     fbvec.g<-rgrass7::writeVECT(fboutline,"fbvec",v.in.ogr_flags = c("o"))
-    rgrass7::execGRASS("g.region",vector="fbvec")
+    #rgrass7::execGRASS("g.region",vector="fbvec")
     rgrass7::execGRASS("v.colors",map = "fbvec",column = "cat", color = "grey")
     
     #raster outline
@@ -252,6 +259,8 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     rgrass7::execGRASS("g.region",vector="outvec")
     
     rgrass7::execGRASS("g.region",raster="firstras")
+    
+    rgrass7::execGRASS("g.region",vector="fbvec")
     
     if(labelling==TRUE){
 #     #compose plotting commands here####
@@ -286,11 +295,14 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     }
     
     rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"grassplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".pdf",sep="")),flags="overwrite")
+
+    #==================================================================#
     if(length(rlist) == 1){
       makefile <- file.path(fdir, "DF_Basefile","Makefile_single")
-      system(paste0("make -f ", makefile, " testpanel.png BASEDIR=", fdir," YEARMON=", paste0(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))))))
+      system(paste0("make -f ", makefile, " testpanel.png BASEDIR=", fdir," YEARMON=", paste0(substring(dirname(rlist[i]), nchar(dirname(rlist[i]))-5, nchar(dirname(rlist[i]))))))
       system(paste0("make -f ", makefile, " clean"))
     }
+    #==================================================================#
     
     if(cleanup==TRUE){
       rmlist<-list.files(file.path(paste(fdir,"/QGIS_plotting",sep="")),pattern = paste(rasname,"*",sep=""),include.dirs = TRUE,full.names = TRUE)
@@ -299,14 +311,14 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     }    
   }
   
-  #browser()
-  
+  #==================================================================#
   #assumes that all pdfs in QGIS_plotting are to be part of panel
   if(length(rlist > 1)){ # & !is.na(panel.dim)
     makefile <- file.path(fdir, "DF_Basefile","Makefile_multi")
     system(paste0("make -f ", makefile, " multipanel.png BASEDIR=", fdir))
     system(paste0("make -f ", makefile, " clean"))
   }
+  #==================================================================#
   
   #print legend####
   legendalias<-read.table(text="chlext,Chlorophyll (ug/L)
