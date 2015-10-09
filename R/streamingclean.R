@@ -31,7 +31,14 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
   if(length(c6list)==0){
     c6list<-list.files(flist,pattern=c("*.CSV"),include.dirs=T,full.names=T)
   }
+  
+  if(length(c6list) != length(dflist)){
+    warning("Differing numbers of Dataflow and C6 input files")
+  }
     
+  #print(paste("cleaning the following Dataflow files:", dflist))
+  #print(paste("cleaning the following C6 files:", c6list))
+
   reslist<-list()
   for(i in 1:length(dflist)){
     #i<-1
@@ -68,26 +75,18 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
       print("removing existing seconds column")
     }#remove existing sec column
     
-    
-    if(ncol(dt)>14){
-      dtno.na<-dt[complete.cases(dt[,1:13]),]
-      dt<-dt[,apply(dtno.na,2,function(x) abs(sum(as.numeric(x),na.rm=T))!=0)]
+    #remove bad columns of all 0 or NA
+    if(ncol(dt) > 14){
+      dtno.na <- dt[complete.cases(dt[,1:12]),]
+      dt <- dt[,apply(dtno.na, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) != 0)]
     }
-    
-    
     
     #temp should never be less than 10, these are likely 'bad' DO columns?
     if(mean(as.numeric(dt[,4]),na.rm=T)<10 & mean(as.numeric(dt[,5]),na.rm=T)<10){
       dt<-dt[,-4:-5]
     }
     
-    #dtsave<-dt
-    #dt<-dtsave
-    #print(apply(dt,2,function(x) abs(sum(as.numeric(x),na.rm=T))))
-    #print(head(dt))
-    #browser()
-           
-    dt<-dt[,apply(dt,2,function(x) abs(sum(as.numeric(x),na.rm=T))>22)]#take out all 0 (38 is an arbitrary "tolerance" value)
+    dt<-dt[,apply(dt,2,function(x) abs(sum(as.numeric(x),na.rm=T))>22)]#take out all 0 (22 or 38 is an arbitrary "tolerance" value)
     ones<-apply(dt,2,function(x) sd(as.numeric(x)[as.numeric(x)!=0 & !is.na(as.numeric(x))]))!=0
     ones[is.na(ones)]<-TRUE
     ones[1:2]<-TRUE
@@ -106,26 +105,27 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
     
     #fix lon lat formatting
     if(mean(nchar(as.character(round(dt[,"lat_dd"]))))!=2){
-    lat<-dt[,"lat_dd"]
-    latdeg<-as.numeric(substr(lat,0,2))
-    latmin<-as.numeric(substr(lat,3,8))
-    dt[,"lat_dd"]<-latdeg+latmin/60
-    lon<-dt[,"lon_dd"]
-    londeg<-as.numeric(substr(lon,0,2))
-    lonmin<-as.numeric(substr(lon,3,8))
-    dt[,"lon_dd"]<-(londeg+lonmin/60)*-1
+      lat<-dt[,"lat_dd"]
+      latdeg<-as.numeric(substr(lat,0,2))
+      latmin<-as.numeric(substr(lat,3,8))
+      dt[,"lat_dd"]<-latdeg+latmin/60
+      lon<-dt[,"lon_dd"]
+      londeg<-as.numeric(substr(lon,0,2))
+      lonmin<-as.numeric(substr(lon,3,8))
+      dt[,"lon_dd"]<-(londeg+lonmin/60)*-1
     }
-        
+    
     dt$time<-as.numeric(dt$time)
     dt$date<-as.numeric(dt$date)
-    
     
     #remove rows of all NA values
     dt<-dt[as.numeric(rowSums(is.na(dt)))<ncol(dt)-1,]
     dt<-dt[as.numeric(rowSums(is.na(dt[,c("lat_dd","lon_dd")])))<2,]
     
+    #remove unrealistic coordinates
+    dt <- dt[abs(dt$lat_dd) > 24.5 & abs(dt$lat_dd) < 25.5, ]
+    dt <- dt[abs(dt$lon_dd) > 80.1 & abs(dt$lon_dd) < 82, ]
     
-      
     #check for incomplete minutes
     datelist<-unique(dt$date)
     reslist2<-list()
@@ -167,8 +167,6 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
     rm(min)
     dt$datetime<-as.POSIXct(strptime(dt$datetime,format="%y-%m-%d-%H-%M-%S"))
         
-    #dtsave<-dt
-        
     #clean data frame
     #trim beginning and end based on when data is all zeros
     trimdt<-function(dt){
@@ -202,9 +200,9 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
     print(paste(basename(dflist[i]),"processed",sep=" "))
     #clean and merge C6 here####
     if(c6pres==TRUE){
-            
             c6dfmatch<-which(substring(basename(c6list),1,8)==substring(basename(dflist[i]),1,8))
             if(length(c6dfmatch)!=0){
+              #browser()
               c6<-read.csv(c6list[c6dfmatch],skip=12,header=F)[,1:9]
               names(c6)<-c("datec","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","depth","c6temp")
               if(!any(!is.na(c6[,"c6temp"]))){
@@ -289,6 +287,7 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
               #merge c6 and df based on time stamp
               c6<-data.frame(alignset,zoo::index(alignset),row.names=NULL)
               names(c6)[ncol(c6)]<-"datetime"
+              #browser()
               dt<-merge(dt,c6,by="datetime",all.x=T)
               datetime<-dt[,"datetime"]
               dt<-data.frame(apply(dt[,2:ncol(dt)],2,function(x) as.numeric(as.character(x))))
@@ -300,21 +299,22 @@ streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fd
                                 
                 datetime<-dt$datetime
                 names(c6)[names(c6)=="datec"]<-"datetime"
+                #browser()
                 dt<-merge(dt,c6,by="datetime",all.x=T)
                 
-                dt<-data.frame(dt$datetime,apply(dt[,2:ncol(dt)],2,function(x) as.numeric(as.character(x))))
+                dt<-data.frame(apply(dt[,2:ncol(dt)],2,function(x) as.numeric(as.character(x))))
                 dt$datetime<-datetime  
               }
               
-              
+              print(paste(basename(c6list[c6dfmatch]),"processed",sep=" "))
               }else{
+                print("No C6 file detected, constructing empty data matrix")
                 emptyc6<-data.frame(matrix(NA,nrow=nrow(dt),ncol=20-ncol(dt)))
                 names(emptyc6)<-c("brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","c6temp","sec.y")
                 dt<-cbind(dt,emptyc6)
                 names(dt)[names(dt)=="sec"]<-"sec.x"
                 dt<-dt[,match(names(streamget(201505)),names(dt))[!is.na(match(names(streamget(201505)),names(dt)))]]
               }
-            print(paste(basename(c6list[i]),"processed",sep=" "))
             }
     
     
@@ -533,14 +533,14 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOpt
 #'@examples \dontrun{dt<-streamparse(yearmon=201002)}
 
 streamparse<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
-  #yearmon<-201007
+  #yearmon<-201109
   fdir_fd<-file.path(fdir,"DF_FullDataSets","Raw")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   flist<-flist[substring(basename(flist),1,6)==yearmon]
   
   dt<-read.csv(flist)
   names(dt)<-tolower(names(dt))
-  namestemp<-tolower(names(streamget(201505))[-1])
+  namestemp<-tolower(names(streamget(201505)))#[-1])
   
   #remove bad coord columns
   coordnames<-c("lat_dd","long_dd","lon_dd")
@@ -555,8 +555,8 @@ streamparse<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   }
   
   #remove unrealistic coordinates
-  dt <- dt[abs(dt$lat_dd) > 24 & abs(dt$lat_dd) < 30, ]
-  dt <- dt[abs(dt$lon_dd) > 79, ]
+  dt <- dt[abs(dt$lat_dd) > 24.5 & abs(dt$lat_dd) < 25.5, ]
+  dt <- dt[abs(dt$lon_dd) > 80.1 & abs(dt$lon_dd) < 82, ]
   
     
   #create translation key
@@ -566,14 +566,14 @@ light,trans
 fluor,chla",sep=",")
   
   for(n in 1:length(names(dt))){
-  #n<-6
+  #n<-1
     if(any(names(dt)[n]==as.character(namesalias[,1]))){
       names(dt)[n]<-as.character(namesalias[which(names(dt)[n]==namesalias[,1]),2])
     }
   }
   
   #remove non-matching columns
-  dt<-dt[,-which(!is.na(match(names(dt),names(dt)[is.na(match(names(dt),namestemp))])))]
+  dt <- dt[,-which(!is.na(match(names(dt), names(dt)[is.na(match(names(dt), namestemp))])))]
   
   #create extra columns if necessary
   dt[,namestemp[is.na(match(namestemp,names(dt)))]]<-NA
