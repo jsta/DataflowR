@@ -127,6 +127,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@param cleanup logical remove intermediate rasters and shapefiles?
 #'@param rotated logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured (not working).
 #'@param labelling logical lablel output with yearmon?
+#'@param mapextent numeric vector of length 4
 #'@return output plots to the QGIS_plotting folder
 #'@details Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory.
 #'@import rgrass7
@@ -138,6 +139,8 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'grassmap(rnge=c(200707),params=c("sal"))
 #'grassmap(rnge=c(201407),params=c("chlext"))
 #'grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(rnge=c(201509),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201507), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
@@ -297,6 +300,7 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"grassplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".pdf",sep="")),flags="overwrite")
 
     #==================================================================#
+    #browser()
     if(length(rlist) == 1){
       makefile <- file.path(fdir, "DF_Basefile","Makefile_single")
       system(paste0("make -f ", makefile, " testpanel.png BASEDIR=", fdir," YEARMON=", paste0(substring(dirname(rlist[i]), nchar(dirname(rlist[i]))-5, nchar(dirname(rlist[i]))))))

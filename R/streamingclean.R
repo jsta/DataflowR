@@ -525,7 +525,7 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOpt
 
 #'@name streamparse
 #'@title Parse old cleaned streaming files
-#'@description Includes checks to ensure that data columns are of type numeric. TODO: check that the fathom basins column is populated. 
+#'@description Includes checks to ensure that data columns are of type numeric. TODO: check that the fathom basins column is populated
 #'@param yearmon numeric yyyymm date
 #'@param tofile logical save to file?
 #'@param fdir character file path to local data directory
@@ -533,7 +533,7 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOpt
 #'@examples \dontrun{dt<-streamparse(yearmon=201002)}
 
 streamparse<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
-  #yearmon<-200812
+  #yearmon<-201007
   fdir_fd<-file.path(fdir,"DF_FullDataSets","Raw")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
   flist<-flist[substring(basename(flist),1,6)==yearmon]
@@ -553,6 +553,11 @@ streamparse<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
       }
     }
   }
+  
+  #remove unrealistic coordinates
+  dt <- dt[abs(dt$lat_dd) > 24 & abs(dt$lat_dd) < 30, ]
+  dt <- dt[abs(dt$lon_dd) > 79, ]
+  
     
   #create translation key
   namesalias<-read.table(text="sec,sec.x

@@ -170,6 +170,14 @@ Cleaning is accomplished via the \nohyphens{\texttt{streamclean}} function. The 
 <<eval=FALSE>>=
 dt<-streamclean(yearmon=201502,mmin=7,c6pres=TRUE,tofile=FALSE,sep=",")
 @
+
+Some older Dataflow surveys have undergone a "hand-cleaning" and are missing the raw inputs neccessary to run \texttt{streamclean}. In these instances, the \texttt{streamparse} function can be used to align the formatting of these files to resemble the output of \texttt{streamclean}. Specifically, the function creates a POSIX compliant date field, and reproduces the column names and ordering of a \texttt{streamclean} output. 
+
+<<eval=FALSE>>=
+dt<-streamparse(yearmon=201007,tofile=FALSE)
+@
+
+
 \subsection{QA cleaned streaming data}
 
 The \texttt{streamclean} function does not perform detailed QA of individual parameter values or detect systematic bias. Systematic bias might occur because of sensor drift or failure. In these cases there may be data but it is "junk data". The \texttt{streamqa} function creates a series of diagnostic plots of the data. The user enters an interactive QA "session" to detect systematic biases and eliminate unrealsitic data spikes. The first set of dialogs steps through each variable and gives the user the opportunity to define a valid data range (flagging values outside this range). Define a range higher (or lower) than all values to flag all records for that particular variable. The second set of dialogs compares parameters that are shared between the Dataflow and C6 instrumentation. The user is given the opportunity to flag the C6 or the Dataflow version of a shared parameter. 
