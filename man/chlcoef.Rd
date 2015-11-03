@@ -4,9 +4,9 @@
 \alias{chlcoef}
 \title{calculation of extracted versus fluoresced chlorophyll coefficients}
 \usage{
-chlcoef(yearmon, remove.flags = FALSE, overwrite = FALSE,
+chlcoef(yearmon, remove.flags = TRUE, overwrite = FALSE,
   fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7,
-  streamcov = 0.5, checkvif = TRUE)
+  streamcov = 0.5, checkvif = TRUE, logtransform = FALSE)
 }
 \arguments{
 \item{yearmon}{numeric date of survey}

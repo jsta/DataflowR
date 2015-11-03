@@ -6,7 +6,7 @@ Date: 2015-05-24
 Author: Joseph Stachelek <jstachel@sfwmd.gov>
 Maintainer: Joseph Stachelek <jstachel@sfwmd.gov>
 Imports:
-      MASS,car,gdata,ipdw,latticeExtra,raster,rasterVis,rgdal,sp,zoo,rgrass7
+      MASS,car,gdata,ipdw,latticeExtra,raster,rasterVis,rgdal,sp,zoo,rgrass7,dbhydroR,maptools,rgeos,scales,viridis
 License: GPL (>= 2)
 LazyData: true
 KeepSource: true

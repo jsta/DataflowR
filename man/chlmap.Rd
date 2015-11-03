@@ -4,10 +4,12 @@
 \alias{chlmap}
 \title{Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll}
 \usage{
-chlmap(yearmon, fdir = getOption("fdir"))
+chlmap(yearmon, remove.flags = TRUE, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric date in yyyymm format}
+
+\item{remove.flags}{logical}
 }
 \value{
 An extracted chlorophyll surface and an updated FullDataSet file

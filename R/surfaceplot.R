@@ -148,7 +148,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'scales::show_col(viridis::viridis_pal()(9))
 #'}
 
-grassmap<-function(rnge=c(201502),params=c("sal"), mapextent = NA, fdir=getOption("fdir"),basin="full",labelling=TRUE, cleanup=TRUE,rotated = TRUE){
+grassmap<-function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, cleanup = TRUE, rotated = TRUE){
   
 #     library(DataflowR)
 #   params=c("chlext")

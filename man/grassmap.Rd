@@ -4,20 +4,20 @@
 \alias{grassmap}
 \title{Publication quality maps with GRASS}
 \usage{
-grassmap(rnge = c(201502), params = c("sal"), fdir = getOption("fdir"),
-  basin = "full", labelling = TRUE, panel = FALSE, cleanup = TRUE,
-  rotated = TRUE)
+grassmap(rnge = c(201502), params = c("sal"), mapextent = NA,
+  fdir = getOption("fdir"), basin = "full", labelling = TRUE,
+  cleanup = TRUE, rotated = TRUE)
 }
 \arguments{
-\item{rnge}{numeric string of no more than two dates in yyyymm format}
+\item{rnge}{numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.}
 
-\item{params}{character. string of parameter fields to plot}
+\item{params}{character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal}
+
+\item{mapextent}{numeric vector of length 4}
 
 \item{fdir}{character file path to local data directory}
 
 \item{labelling}{logical lablel output with yearmon?}
-
-\item{panel}{logical. Combine output into a figure panel?}
 
 \item{cleanup}{logical remove intermediate rasters and shapefiles?}
 
@@ -30,15 +30,21 @@ output plots to the QGIS_plotting folder
 not finished yet
 }
 \details{
-probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function.
+Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory.
 }
 \examples{
 \dontrun{
 grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
 grassmap(rnge=c(200707),params=c("sal"))
+grassmap(rnge=c(201407),params=c("chlext"))
+grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+grassmap(rnge=c(201509),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+grassmap(rnge=c(201507), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 
-#create a new color ramp by editing DF_Basefile/*.file
-exp((seq(from=log(1),to=log(0.5*29),length=8)))-1#chlext
+#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
+logramp(n = 9, maxrange = 20) #chlext
+scales::show_col(viridis::viridis_pal()(9))
 }
 }
 \author{

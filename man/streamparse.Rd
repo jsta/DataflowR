@@ -14,7 +14,7 @@ streamparse(yearmon, tofile = FALSE, fdir = getOption("fdir"))
 \item{fdir}{character file path to local data directory}
 }
 \description{
-Includes checks to ensure that data columns are of type numeric. TODO: check that the fathom basins column is populated.
+Includes checks to ensure that data columns are of type numeric. TODO: check that the fathom basins column is populated
 }
 \examples{
 \dontrun{dt<-streamparse(yearmon=201002)}

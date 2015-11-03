@@ -145,7 +145,7 @@ coordinatize<-function(dt,latname="latdec",lonname="londec"){
 #'@name logramp
 #'@title Create a log scaled color ramp for the grassmap function
 #'@import viridis
-#'@importFrom scales 
+#'@import scales 
 #'@param n 
 #'@param maxrange
 #'n <- 9
