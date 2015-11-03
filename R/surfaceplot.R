@@ -316,15 +316,6 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
   }
   
   #==================================================================#
-  #assumes that all pdfs in QGIS_plotting are to be part of panel
-  if(length(rlist > 1)){ # & !is.na(panel.dim)
-    makefile <- file.path(fdir, "DF_Basefile","Makefile_multi")
-    system(paste0("make -f ", makefile, " multipanel.png BASEDIR=", fdir))
-    system(paste0("make -f ", makefile, " clean"))
-  }
-  #==================================================================#
-  
-  #print legend####
   legendalias<-read.table(text="chlext,Chlorophyll (ug/L)
 sal,Salinity",sep=",",stringsAsFactors=FALSE)
   
@@ -332,15 +323,32 @@ sal,Salinity",sep=",",stringsAsFactors=FALSE)
   
   if(params=="sal"){
     legendunits<-seq(from=5,to=54,by=0.1)
+    legendunits_print <- "'5 10 15 20 25 30 35 40'"
+    legendunits_spacing <- 220
   }
   if(params=="chlext"){
     legendunits<-log(seq(from=0,to=13.5,by=0.1)+1)
+    legendunits_print <- "'0.0 0.7 2.0 4.0 7.0 13.0'"
+    legendunits_spacing <- 250
     rulesfile<-paste0(rulesfile,"_log")
   }
   
   if(params=="diffsal"){
     legendunits<-seq(from=-30,to=35,by=1)
   }
+  
+  #assumes that all pdfs in QGIS_plotting are to be part of panel
+  if(length(rlist > 1)){ # & !is.na(panel.dim)
+    makefile <- file.path(fdir, "DF_Basefile","Makefile_multi")
+  
+      #system(paste0("make -f ", makefile, " variables BASEDIR=", fdir, " PARAM=", legendname, " LEGENDUNITS=", legendunits_print))
+    
+    system(paste0("make -f ", makefile, " multipanel.png BASEDIR=", fdir, " PARAM=", shQuote(legendname), " LEGENDUNITS=", legendunits_print, " LEGENDUNITSSPACING=", legendunits_spacing))
+    
+    #system(paste0("make -f ", makefile, " clean"))
+  }
+  
+  #print legend========================================================#
   
   legras<-raster::raster(tempras)
   legras[1:(length(legendunits)+1)]<-legendunits
