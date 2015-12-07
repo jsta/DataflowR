@@ -45,8 +45,8 @@ streamvarlist<-streamvarlist[-1]
 streamvarlist<-streamvarlist[sapply(streamvarlist,function(x) sum(!is.na(streamdata[,x]))/nrow(streamdata))>0.74]
 
 if(length(varlist)>2){
-cormat<-cor(dt[,varlist],use="complete")[-1,1]
-varlist<-names(cormat[abs(cormat) > corcut])
+  cormat<-cor(dt[,varlist],use="complete")[-1,1]
+  varlist<-names(cormat[abs(cormat) > corcut])
 }
 
 if(!length(varlist)>0){stop("linear correlations too low")}

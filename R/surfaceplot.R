@@ -135,8 +135,9 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@import rgeos
 #'@export
 #'@examples \dontrun{
-#'grassmap(rnge=c(201505),params=c("sal"),basin="Manatee Bay")
-#'grassmap(rnge=c(200707),params=c("sal"))
+#'grassmap(rnge = c(201505), params = c("sal"), basin="Manatee Bay")
+#'grassmap(rnge = c(200707), params = c("sal"))
+#'grassmap(rnge = c(201512), params = c("diffsal"))
 #'grassmap(rnge=c(201407),params=c("chlext"))
 #'grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201509),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
@@ -151,8 +152,8 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 grassmap<-function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, cleanup = TRUE, rotated = TRUE){
   
 #     library(DataflowR)
-#   params=c("chlext")
-#    rnge=c(200804,201502)
+#   params=c("diffsal")
+#    rnge=c(201512)
 #     fdir=getOption("fdir")
 #     basin = "Manatee Bay"
 
@@ -299,11 +300,45 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     
     rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"grassplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".pdf",sep="")),flags="overwrite")
 
+#==================================================================#
+
+    legendalias<-read.table(text="chlext,Chlorophyll (ug/L)
+sal,Salinity
+diffsal,Salinity minus average",sep=",",stringsAsFactors=FALSE)
+    #browser()
+    legendname<-legendalias[which(params==legendalias[,1]),2]
+    
+    if(params=="sal"){
+      legendunits<-seq(from=5,to=54,by=0.1)
+      legendunits_print <- "'5 10 15 20 25 30 35 40'"
+      legendunits_spacing <- 220
+    }
+    if(params=="chlext"){
+      legendunits<-log(seq(from=0,to=13.5,by=0.1)+1)
+      legendunits_print <- "'0.0 0.7 2.0 4.0 7.0 13.0'"
+      legendunits_spacing <- 250
+      rulesfile<-paste0(rulesfile,"_log")
+    }
+    
+    #browser()
+    if(params == "diffsal"){
+      legendunits<-seq(from=-30,to=35,by=1)
+      legendunits_print <- "'-30 -25 -20 -15 -10 -5 0 5 10 15 20'"
+      legendunits_spacing <- 95
+    }
+    
     #==================================================================#
     #browser()
     if(length(rlist) == 1){
+      browser()
       makefile <- file.path(fdir, "DF_Basefile","Makefile_single")
-      system(paste0("make -f ", makefile, " testpanel.png BASEDIR=", fdir," YEARMON=", paste0(substring(dirname(rlist[i]), nchar(dirname(rlist[i]))-5, nchar(dirname(rlist[i]))))))
+      system(paste0("make -f ", makefile, 
+" testpanel.png BASEDIR=", fdir,
+" YEARMON=", paste0(substring(dirname(rlist[i]), nchar(dirname(rlist[i]))-5, nchar(dirname(rlist[i])))),
+" PARAM=", shQuote(legendname),
+" LEGENDUNITS=", legendunits_print,
+" LEGENDUNITSSPACING=", legendunits_spacing
+))
       system(paste0("make -f ", makefile, " clean"))
     }
     #==================================================================#
@@ -316,26 +351,7 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
   }
   
   #==================================================================#
-  legendalias<-read.table(text="chlext,Chlorophyll (ug/L)
-sal,Salinity",sep=",",stringsAsFactors=FALSE)
   
-  legendname<-legendalias[which(params==legendalias[,1]),2]
-  
-  if(params=="sal"){
-    legendunits<-seq(from=5,to=54,by=0.1)
-    legendunits_print <- "'5 10 15 20 25 30 35 40'"
-    legendunits_spacing <- 220
-  }
-  if(params=="chlext"){
-    legendunits<-log(seq(from=0,to=13.5,by=0.1)+1)
-    legendunits_print <- "'0.0 0.7 2.0 4.0 7.0 13.0'"
-    legendunits_spacing <- 250
-    rulesfile<-paste0(rulesfile,"_log")
-  }
-  
-  if(params=="diffsal"){
-    legendunits<-seq(from=-30,to=35,by=1)
-  }
   
   #assumes that all pdfs in QGIS_plotting are to be part of panel
   if(length(rlist > 1)){ # & !is.na(panel.dim)
@@ -369,9 +385,6 @@ sal,Salinity",sep=",",stringsAsFactors=FALSE)
     file.remove(rmlist)
   }
 }
-
-
-
 
 # #create florida inset
 # library(mapdata)
