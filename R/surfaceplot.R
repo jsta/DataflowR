@@ -36,7 +36,8 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
         sal list(seq(0,40,2))
         c6chl list(seq(0,300,50))
         chlext list(seq(0,5,0.5),seq(10,30,5))
-        ")
+        temp list(seq(14,36,2))
+        c6temp list(seq(14,36,2))")
   
   dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
   

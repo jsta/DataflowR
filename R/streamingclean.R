@@ -376,12 +376,13 @@ dt
 #'dt<-streamget(yearmon)}
 
 streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
-  fdir_fd<-file.path(fdir,"DF_FullDataSets")
-  flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
-  flist<-flist[substring(basename(flist),1,6)==yearmon]
-  dt<-read.csv(flist,stringsAsFactors = FALSE)
+  fdir_fd <- file.path(fdir, "DF_FullDataSets")
+  flist <- list.files(fdir_fd, include.dirs = T, full.names = T)
+  flist <- flist[substring(basename(flist),1,6) == yearmon]
+  dt <- read.csv(flist, stringsAsFactors = FALSE)
   
-  if(qa==TRUE&&file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))&&identical(dim(dt),dim(read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))))){
+  if(qa == TRUE && file.exists(file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = ""))) && identical(dim(dt), dim(read.csv(file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = "")))))){
+    
     qafile<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))
     
     if(!any(names(qafile)=="chlext")&any(names(dt)=="chlext")){
@@ -417,10 +418,10 @@ streamqa<-function(yearmon,setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOpt
   
   if(setthresh==TRUE){
   if(file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))){
-   dtqa<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep=""))) 
+    dtqa<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep=""))) 
   }else{  
-  dtqa<-data.frame(matrix(NA,nrow=nrow(dt),ncol=ncol(dt)))
-  names(dtqa)<-names(dt)
+    dtqa<-data.frame(matrix(NA,nrow=nrow(dt),ncol=ncol(dt)))
+    names(dtqa)<-names(dt)
   }
   
   #explore and set parameter threshold limits
