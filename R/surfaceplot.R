@@ -128,6 +128,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@param rotated logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured (not working).
 #'@param labelling logical lablel output with yearmon?
 #'@param mapextent numeric vector of length 4
+#'@param basin character basin name
 #'@return output plots to the QGIS_plotting folder
 #'@details Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory.
 #'@import rgrass7
@@ -135,7 +136,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@import rgeos
 #'@export
 #'@examples \dontrun{
-#'grassmap(rnge = c(201505), params = c("sal"), basin="Manatee Bay")
+#'grassmap(rnge = c(201512), params = c("sal"), basin="Manatee Bay")
 #'grassmap(rnge = c(200707), params = c("sal"))
 #'grassmap(rnge = c(201512), params = c("diffsal"))
 #'grassmap(rnge=c(201407),params=c("chlext"))
@@ -227,11 +228,12 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     shellcmds = paste("gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
     system(shellcmds)
     outpoly<-rgdal::readOGR(dsn=outpath,layer=paste(rasname,"poly",sep=""),verbose=TRUE)
-    require("maptools")#cannot seem to execute below without call to require
+    requireNamespace("maptools")
+    #require("maptools")#cannot seem to execute below without call to require
     maptools::gpclibPermit()
     outpoly<-maptools::unionSpatialPolygons(outpoly,IDs=rep(1,length(outpoly)))
     outlines<-as(outpoly,'SpatialLines')
-    outlines<-SpatialLinesDataFrame(outlines,data=as.data.frame(1))
+    outlines<-sp::SpatialLinesDataFrame(outlines,data=as.data.frame(1))
     
     #GRASS block####
     loc<-rgrass7::initGRASS("/usr/lib/grass70",home=file.path(fdir,"QGIS_plotting"),override=TRUE)
@@ -330,7 +332,6 @@ diffsal,Salinity minus average",sep=",",stringsAsFactors=FALSE)
     #==================================================================#
     #browser()
     if(length(rlist) == 1){
-      browser()
       makefile <- file.path(fdir, "DF_Basefile","Makefile_single")
       system(paste0("make -f ", makefile, 
 " testpanel.png BASEDIR=", fdir,

@@ -80,12 +80,12 @@ cond2sal<-function (c, t = 25, P = 0)
 
 #'@name date456posix
 #'@title Convert numeric dates in mddyy to POSIXct
-#'@param input numeric where the first 1-2 digits specify the month attribute because leading zeros have been stripped. Also detects whether the day attributes has had stripped leading zeros.
+#'@param x numeric where the first 1-2 digits specify the month attribute because leading zeros have been stripped. Also detects whether the day attributes has had stripped leading zeros.
 #'@param century numeric century recommended choice of "19" or "20"
 #'@export
 #'@examples
 #'x<-51514
-#'date56posix(x,century="20")
+#'date456posix(x,century="20")
 #'dates<-c("51514","101214","8714","1214")
 #'date456posix(dates,century="20")
 
@@ -126,6 +126,7 @@ date456posix<-function(x,century){
 #'@title Convert georeferenced data.frames into projected SpatialPointsDataFrames
 #'@param latname character column name of the "y" coordinate
 #'@param lonname character column name of the "x" coordinate
+#'@param dt data.frame with two coordinate columns
 #'@export
 #'@examples
 #'dt<-streamget(201002,qa=TRUE)
@@ -147,8 +148,8 @@ coordinatize<-function(dt,latname="latdec",lonname="londec"){
 #'@export
 #'@import viridis
 #'@import scales 
-#'@param n 
-#'@param maxrange
+#'@param n integer number of breaks
+#'@param maxrange integer maximum range
 #'n <- 9
 #'maxrange <- 20
 #'logramp(n, maxrange)

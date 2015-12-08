@@ -5,6 +5,10 @@
 #'@param overwrite logical overwrite previous coefficients?
 #'@param streamcov numeric percentage of non-missing streaming data used to exclude variables under consideration
 #'@param checkvif logical check final equation for multicollinearity using VIF?
+#'@param fdir file.path to data folder
+#'@param logtransform logical
+#'@param corcut numeric used to screen bad variables with bad correlation coefficients
+#'@param polypcut numeric used to switch to a polynomial regression fit
 #'@details this function should be interactive
 #'@export
 #'@importFrom MASS stepAIC

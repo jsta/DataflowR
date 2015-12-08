@@ -7,16 +7,16 @@
 date456posix(x, century)
 }
 \arguments{
-\item{century}{numeric century recommended choice of "19" or "20"}
+\item{x}{numeric where the first 1-2 digits specify the month attribute because leading zeros have been stripped. Also detects whether the day attributes has had stripped leading zeros.}
 
-\item{input}{numeric where the first 1-2 digits specify the month attribute because leading zeros have been stripped. Also detects whether the day attributes has had stripped leading zeros.}
+\item{century}{numeric century recommended choice of "19" or "20"}
 }
 \description{
 Convert numeric dates in mddyy to POSIXct
 }
 \examples{
 x<-51514
-date56posix(x,century="20")
+date456posix(x,century="20")
 dates<-c("51514","101214","8714","1214")
 date456posix(dates,century="20")
 }

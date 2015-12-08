@@ -15,6 +15,8 @@ streamqa(yearmon, setthresh = TRUE, trimends = FALSE, paired = TRUE,
 \item{trimends}{logical look to trim ends of data stream? NOT IMPLEMENTED YET}
 
 \item{paired}{logical examine relationships between paried parameters?}
+
+\item{fdir}{file.path to data directory}
 }
 \value{
 a matrix of the same size/shape of the fulldataset, with entries specifying where to set to NA, saved to DF_FullDataSets/Raw/IntrumentOutput

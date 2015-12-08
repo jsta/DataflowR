@@ -7,9 +7,10 @@
 logramp(n, maxrange)
 }
 \arguments{
-\item{n}{}
+\item{n}{integer number of breaks}
 
-\item{maxrange}{n <- 9
+\item{maxrange}{integer maximum range
+n <- 9
 maxrange <- 20
 logramp(n, maxrange)}
 }

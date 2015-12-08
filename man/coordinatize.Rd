@@ -7,6 +7,8 @@
 coordinatize(dt, latname = "latdec", lonname = "londec")
 }
 \arguments{
+\item{dt}{data.frame with two coordinate columns}
+
 \item{latname}{character column name of the "y" coordinate}
 
 \item{lonname}{character column name of the "x" coordinate}

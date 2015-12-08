@@ -4,6 +4,7 @@
 #'A new interpolation is run after calculating an extracted chlorophyll for all streaming observations. Calculated values that exceed the maximum observed grab sample concentration are discarded.
 #'@param yearmon numeric date in yyyymm format
 #'@param remove.flags logical
+#'@param fdir file.path to data folder
 #'@return An extracted chlorophyll surface and an updated FullDataSet file
 #'@author Joseph Stachelek
 #'@export

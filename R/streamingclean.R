@@ -402,6 +402,7 @@ streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
 #'@param setthresh logical set parameter thresholds
 #'@param trimends logical look to trim ends of data stream? NOT IMPLEMENTED YET
 #'@param paired logical examine relationships between paried parameters?
+#'@param fdir file.path to data directory
 #'@details loop through parameters giving the opportunity to trim measurement ends, set entire variables to NA, remove variables above/below a threshold
 #'@return a matrix of the same size/shape of the fulldataset, with entries specifying where to set to NA, saved to DF_FullDataSets/Raw/IntrumentOutput
 #'@export

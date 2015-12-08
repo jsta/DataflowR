@@ -15,9 +15,17 @@ chlcoef(yearmon, remove.flags = TRUE, overwrite = FALSE,
 
 \item{overwrite}{logical overwrite previous coefficients?}
 
+\item{fdir}{file.path to data folder}
+
+\item{polypcut}{numeric used to switch to a polynomial regression fit}
+
+\item{corcut}{numeric used to screen bad variables with bad correlation coefficients}
+
 \item{streamcov}{numeric percentage of non-missing streaming data used to exclude variables under consideration}
 
 \item{checkvif}{logical check final equation for multicollinearity using VIF?}
+
+\item{logtransform}{logical}
 }
 \description{
 calculation of extracted versus fluoresced chlorophyll coefficients

@@ -10,6 +10,8 @@ chlmap(yearmon, remove.flags = TRUE, fdir = getOption("fdir"))
 \item{yearmon}{numeric date in yyyymm format}
 
 \item{remove.flags}{logical}
+
+\item{fdir}{file.path to data folder}
 }
 \value{
 An extracted chlorophyll surface and an updated FullDataSet file
