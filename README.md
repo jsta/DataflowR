@@ -1,10 +1,10 @@
-#Intro
+# Intro
 
 The DataflowR package is used interally at SFWMD to handle streaming output and discrete grab samples collected as part of the Dataflow monitoring program.
 
-#Installation
+# Installation
 
-##Prereqs
+## Prereqs
 
 * dbhydroR
 * git
@@ -12,7 +12,7 @@ The DataflowR package is used interally at SFWMD to handle streaming output and 
 * RStudio
 * RTools (Windows only)
 
-##Commands
+## Commands
 
 git clone git@gitlab.com:jsta/DataflowR.git
 cd DataflowR
