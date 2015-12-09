@@ -15,8 +15,19 @@ The DataflowR package is used interally at SFWMD to handle streaming output and 
 ## Commands
 
 git clone git@gitlab.com:jsta/DataflowR.git
+
 cd DataflowR
 
 `install.packages(c("rasterVis", "raster", "maptools", "rgeos", "rgrass7", "scales", "viridis", "MASS", "car", "gdata", "ipdw", "latticeExtra", "rgdal", "sp", "zoo"))`
 
 Ctrl + Shift + B
+
+# Function Documentation and Examples
+
+see either:
+
+* vignettes/DataflowR.pdf
+
+* inst/doc/DataflowR.pdf
+
+* `??DataflowR`
