@@ -6,7 +6,7 @@
 #'@param fdir character file path to local data directory
 #'@details If streaming data does not exist for a particular data/time pull averages for the previous minute (if data exists).
 #'@export
-#'@examples \dontrun{res<-grabclean(yearmon=201402,tofile=TRUE,fdir=fdir)}
+#'@examples \dontrun{res<-grabclean(yearmon=201402,tofile=FALSE,fdir=fdir)}
 #'
 grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   
@@ -315,6 +315,18 @@ turbidity,c6turbidity",sep=",")
   grabsfull
   }
   
+   consistentlocations <- function(dt){
+    fathombasins <- rgdal::readOGR(file.path(fdir,"DF_Basefile/fathom_basins_proj.shp"),layer="fathom_basins_proj",verbose=FALSE)
+    
+    dt <- coordinatize(dt, latname = "lat_dd", lonname = "lon_dd")
+    dt.over <- sp::over(dt, fathombasins)
+    dt_names_temp <- cbind(dt$location, as.character(dt.over$NAME))
+    res <- dt_names_temp[,2]
+    res[which(is.na(res))] <- dt_names_temp[which(is.na(res)), 1]
+    res
+    }
+  
+  
   #EXECUTION BLOCK
   
     #TEST INPUTS
@@ -340,6 +352,8 @@ turbidity,c6turbidity",sep=",")
     stations<-cleangrabdata(sumpath,nmsfull,datacol)$stations
     
     grabsfull<-mergegrabstreaming(streamingdata,grabdata,stations)
+    
+    grabsfull$location <- consistentlocations(grabsfull) 
   
     if(tofile==TRUE){
       write.csv(grabsfull,file.path(fdir,"DF_GrabSamples",paste(yearmon,"j.csv",sep="")))

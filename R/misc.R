@@ -129,7 +129,7 @@ date456posix<-function(x,century){
 #'@param dt data.frame with two coordinate columns
 #'@export
 #'@examples
-#'dt<-streamget(201002,qa=TRUE)
+#'dt<-coordinatize(streamget(201002), latname = "lat_dd", lonname = "lon_dd")
 coordinatize<-function(dt,latname="latdec",lonname="londec"){
   projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
   latlonproj<-"+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
