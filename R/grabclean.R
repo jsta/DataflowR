@@ -6,7 +6,10 @@
 #'@param fdir character file path to local data directory
 #'@details If streaming data does not exist for a particular data/time pull averages for the previous minute (if data exists).
 #'@export
-#'@examples \dontrun{res<-grabclean(yearmon=201402,tofile=FALSE,fdir=fdir)}
+#'@examples \dontrun{
+#'res<-grabclean(yearmon=201402,tofile=FALSE)
+#'res<-grabclean(yearmon=200808,tofile=FALSE)
+#'}
 #'
 grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   
@@ -73,7 +76,7 @@ grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
     nms3<-nms3[-1]
     startread<-startread+1
   }
-  while(nms3[1]!="TP"){
+  while(is.na(nms3[1]) | nms3[1]!="TP"){
     nms3<-nms3[-1]
     startread<-startread+1
   }
@@ -108,7 +111,7 @@ grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   #CLEAN GRABS############################
   cleangrabdata<-function(sumpath,nsmfull,datacol){
   grabdata<-read.csv(sumpath,sep=",",skip=5,header=F,stringsAsFactors=F,na.strings="",strip.white=T)
-  grabdata<-grabdata[!is.na(grabdata[,5]),]#remove trailing blank rows
+  grabdata <- grabdata[!is.na(grabdata[,5]) | !is.na(grabdata[,4]),]#remove trailing blank rows
   grabdata<-grabdata[,datacol]
   names(grabdata)<-nmsfull
   
@@ -316,14 +319,18 @@ turbidity,c6turbidity",sep=",")
   }
   
    consistentlocations <- function(dt){
-    fathombasins <- rgdal::readOGR(file.path(fdir,"DF_Basefile/fathom_basins_proj.shp"),layer="fathom_basins_proj",verbose=FALSE)
     
-    dt <- coordinatize(dt, latname = "lat_dd", lonname = "lon_dd")
-    dt.over <- sp::over(dt, fathombasins)
-    dt_names_temp <- cbind(dt$location, as.character(dt.over$NAME))
-    res <- dt_names_temp[,2]
-    res[which(is.na(res))] <- dt_names_temp[which(is.na(res)), 1]
-    res
+     fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
+    
+    nonna_dt_names <- which(!is.na(dt[,"lon_dd"]) & !is.na(dt[,"lat_dd"])) 
+    dt_over <- coordinatize(dt, latname = "lat_dd", lonname = "lon_dd")
+    dt_over <- sp::over(dt_over, fathombasins)
+    
+    res <- as.character(dt_over$NAME)
+    res[which(is.na(res))] <- dt[nonna_dt_names,]$location[which(is.na(res))]
+    
+    dt[!is.na(dt[,"lon_dd"]) & !is.na(dt[,"lat_dd"]),]$location <- res
+    dt$location
     }
   
   

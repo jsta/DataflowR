@@ -44,12 +44,12 @@ streaminterp<-function(dt,paramlist,yearmon,tname=NA,vname=NA,missprop=0.16,fdir
     stop("too many missing values")
   }
 
-if(is.na(tname)&is.na(vname)){
+if(is.na(tname) & is.na(vname)){
   tname<-file.path(fdir,"/DF_Subsets/",yearmon,"s.csv",fsep="")
   vname<-file.path(fdir,"/DF_Validation/",yearmon,"s.csv",fsep="")
 }
 
-if(!file.exists(tname)&!file.exists(vname)){
+if(!file.exists(tname) & !file.exists(vname)){
   
 fulldataset.over<-dt
 gridlev<-unique(fulldataset.over$gridcode)
@@ -74,8 +74,8 @@ training<-training[!is.na(training$lat_dd),]
 xy<-cbind(training$lon_dd,training$lat_dd)
 training<-sp::SpatialPointsDataFrame(xy,training)
   
-write.csv(training,tname)
-write.csv(validate,vname)
+write.csv(training, tname)
+write.csv(validate, vname)
 
 }else{
   warning("using previously defined subset")
