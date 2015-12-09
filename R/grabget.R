@@ -24,9 +24,8 @@ grabget<-function(rnge,remove.flags=FALSE,fdir=getOption("fdir")){
   dtlist<-list()
   for(i in 1:length(agglist)){
     #i<-1
-    dt<-read.csv(agglist[i],header=T, stringsAsFactors = FALSE)[,-1]
+    dt <- read.csv(agglist[i],header=T, stringsAsFactors = FALSE)[,-1]
     names(dt)<-tolower(names(dt))
-    #names(dt)
     
     if(any(duplicated(names(dt)))){
       dupname<-names(dt)[duplicated(names(dt))]

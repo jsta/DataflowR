@@ -13,7 +13,8 @@
 #'@importFrom sp coordinates CRS spTransform
 #'@details Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. Bad DO columns must sometimes be removed manually. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon
 #'@examples \dontrun{
-#'dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE)}
+#'dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE)
+#'}
 
 streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fdir=getOption("fdir")){
   

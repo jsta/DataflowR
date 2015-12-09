@@ -7,18 +7,20 @@
 #'@details If streaming data does not exist for a particular data/time pull averages for the previous minute (if data exists).
 #'@export
 #'@examples \dontrun{
-#'res<-grabclean(yearmon=201402,tofile=FALSE)
-#'res<-grabclean(yearmon=200808,tofile=FALSE)
+#'res <- grabclean(yearmon = 201402, tofile = FALSE)
+#'res <- grabclean(yearmon = 200808, tofile = FALSE)
+#'res <- grabclean(yearmon = 201007, tofile = FALSE)
+#'res <- grabclean(yearmon = 201004, tofile = FALSE)
 #'}
 #'
-grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
+grabclean<-function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   
   #FORMAT COLUMN NAMES##################################
   formatcolnames<-function(sumpath){
-  datacol<-NA
-  nmsfull<-NA
-  startread<-1
-  endread<-23
+    datacol<-NA
+    nmsfull<-NA
+    startread<-1
+    endread<-23
   
   #READ LABID thru PP
   nms1<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)[1,startread:endread]
@@ -188,16 +190,27 @@ grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
   }
   
   #CALCULATE STREAMING AVERAGES CORRESPONDING TO GRABS
-  mergegrabstreaming<-function(streamingdata,grabdata,stations){
+  mergegrabstreaming<-function(streamingdata, grabdata, stations){
     
-    names(streamingdata)[names(streamingdata)=="chla"]<-"chlaiv"
+    names(streamingdata)[names(streamingdata) == "chla"] <- "chlaiv"
   
-    stream<-merge(stations,streamingdata)#cuts dt down to match "stations"
-    if(nrow(stream)==0){#streamingdata has 5 character dates
-      stations$date<-substring(stations$date,2,mean(nchar(stations$date)))
-      stream<-merge(stations,streamingdata)
+    stream <- merge(stations, streamingdata)#cuts dt down to match "stations"
+    
+    if(nrow(stream) == 0){#streamingdata has 5 character dates
+      stations$date <- substring(stations$date, 2,
+                                 mean(nchar(stations$date)))
+      stream <- merge(stations,streamingdata)
     }
-    #stream$date<-as.numeric(stream$date)
+    
+    if(nrow(stream) == 0){#streamingdata has dates with "/" character 
+      streamingdata$date <- as.numeric(paste0(
+        strftime(streamingdata$datetime, format = "%m"),
+        strftime(streamingdata$datetime, format = "%d"),
+        substring(strftime(streamingdata$datetime, format = "%Y"), 3, 4)
+        ))
+      
+      stream <- merge(stations,streamingdata)
+    }
     
     #check to make sure streaming data exists for each grab
     nostream<-data.frame(matrix(NA,nrow=1,ncol=ncol(grabdata)))
@@ -231,15 +244,15 @@ grabclean<-function(yearmon,tofile=FALSE,fdir=getOption("fdir")){
 #     rmlist<-savermlist
     
     for(k in 1:nrow(nostream)){
-      nostreamprevious<-streamingdata[paste(streamingdata[,"date"],streamingdata[,"time"])==paste(nostream[k,"date"],(nostream[k,"time"]-1)),]
+      nostreamprevious <- streamingdata[paste(streamingdata[,"date"],streamingdata[,"time"]) == paste(nostream[k, "date"], (nostream[k,"time"] - 1)),]
       nostreamprevious[,"time"]<-nostreamprevious[,"time"]+1
         if(nrow(nostreamprevious)>0){
-        stream<-rbind(stream,nostreamprevious)
-        grabdata[paste(grabdata[,"date"],grabdata[,"time"])==paste(nostream[k,"date"],nostream[k,"time"]),]$time<-grabdata[paste(grabdata[,"date"],grabdata[,"time"])==paste(nostream[k,"date"],nostream[k,"time"]),]$time+1
-        nostream<-nostream[-k,]
-        rmlist<-unlist(rmlist)[-k]
+          stream<-rbind(stream,nostreamprevious)
+          grabdata[paste(grabdata[,"date"], grabdata[,"time"]) == paste(nostream[k, "date"], nostream[k, "time"]),]$time <- grabdata[paste(grabdata[,"date"], grabdata[,"time"]) == paste(nostream[k, "date"], nostream[k, "time"]),]$time + 1
+          nostream <- nostream[-k,]
+          rmlist <- unlist(rmlist)[-k]
+        }
       }
-    }
     
   if(length(unlist(rmlist))>0){
     stations<-stations[-unlist(rmlist),]
@@ -319,14 +332,16 @@ turbidity,c6turbidity",sep=",")
   }
   
    consistentlocations <- function(dt){
-    
-     fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
+    #dt <- grabsfull
+     fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fbzonesmerge.shp"), layer = "fbzonesmerge", verbose = FALSE)
+     #slot(fathombasins, "data")
     
     nonna_dt_names <- which(!is.na(dt[,"lon_dd"]) & !is.na(dt[,"lat_dd"])) 
     dt_over <- coordinatize(dt, latname = "lat_dd", lonname = "lon_dd")
     dt_over <- sp::over(dt_over, fathombasins)
     
-    res <- as.character(dt_over$NAME)
+    
+    res <- as.character(dt_over$ZoneName)
     res[which(is.na(res))] <- dt[nonna_dt_names,]$location[which(is.na(res))]
     
     dt[!is.na(dt[,"lon_dd"]) & !is.na(dt[,"lat_dd"]),]$location <- res
@@ -355,10 +370,10 @@ turbidity,c6turbidity",sep=",")
     nmsfull<-unlist(grabnames[1])
     datacol<-unlist(grabnames[2])
     
-    grabdata<-cleangrabdata(sumpath,nmsfull,datacol)$grabdata
-    stations<-cleangrabdata(sumpath,nmsfull,datacol)$stations
+    grabdata <- cleangrabdata(sumpath, nmsfull, datacol)$grabdata
+    stations <- cleangrabdata(sumpath, nmsfull, datacol)$stations
     
-    grabsfull<-mergegrabstreaming(streamingdata,grabdata,stations)
+    grabsfull <- mergegrabstreaming(streamingdata, grabdata, stations)
     
     grabsfull$location <- consistentlocations(grabsfull) 
   
