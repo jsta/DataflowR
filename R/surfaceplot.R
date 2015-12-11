@@ -32,10 +32,12 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
                        c6chla c6chl
                        ")
   #define breaks
-  brks<-read.table(text="
+  brks <- read.table(text = "
         sal list(seq(0,40,2))
         c6chl list(seq(0,300,50))
         chlext list(seq(0,5,0.5),seq(10,30,5))
+        chlext_hi list(seq(0,5,0.5),seq(10,30,5))
+        chlext_low list(seq(0,5,0.5),seq(10,30,5))
         temp list(seq(14,36,2))
         c6temp list(seq(14,36,2))")
   
@@ -44,7 +46,7 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
   minrnge<-min(which(substring(basename(dirlist),1,6)>=rnge[1]))
   maxrnge<-max(which(substring(basename(dirlist),1,6)<=rnge[2]))
   rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.tif$")
-  plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
+  plist <- tolower(sub("[.][^.]*$","",basename(rlist)))
   
   for(n in 1:length(plist)){
     if(any(plist[n]==namesalias[,1])){
@@ -58,7 +60,8 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
   
   for(i in 1:length(rlist)){
     #i<-1
-    my.at<-unlist(eval(parse(text=as.character(brks[which(plist[i]==brks[,1]),2]))))
+    
+    my.at <- unlist(eval(parse(text = as.character(brks[which(plist[i] == brks[,1]), 2]))))
     
     print(rasterVis::levelplot(raster::raster(rlist[i]),ylim=c(2772256,2798000),xlim=c(518000.2,566000),par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_dissolve.shp"),layer="FBcoast_dissolve",verbose=FALSE),fill="green",alpha=0.6)))
     }
@@ -105,7 +108,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
   rstack<-raster::reclassify(rstack,c(-Inf,0,NA))
   rmean<-raster::calc(rstack,fun=mean,na.rm=T)
   rlen<-sum(!is.na(rstack))
-  #browser()
+  
   rmean[rlen<(percentcov*length(flist))]<-NA
   
   plot(rmean,main=paste("Average",params,sdates[1],"-",sdates[length(sdates)],sep=" "))
@@ -152,7 +155,9 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'}
 
 grassmap<-function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, cleanup = TRUE, rotated = TRUE){
+
   
+    
 #     library(DataflowR)
 #   params=c("diffsal")
 #    rnge=c(201512)
@@ -164,21 +169,23 @@ grassmap<-function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = g
     stop("This function only works with Linux!")
   }
   
-  if(length(rnge)==1){
-    rnge<-c(rnge,rnge)
+  if(length(rnge) == 1){
+    rnge <- c(rnge, rnge)
   }
   
-  namesalias<-read.table(text="
+  namesalias <- read.table(text = "
                          chlorophyll.a c6chl
                          c6chla c6chl
                          ")
   
-  paramkey<-read.table(text="sal,salrules.file
+  paramkey <- read.table(text = "sal,salrules.file
 chlext,chlextrules.file
-diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
-  rulesfile<-paramkey[which(params==paramkey[,1]),2]
+chlext_low,chlextrules.file
+chlext_hi,chlextrules.file
+diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
+  rulesfile <- paramkey[which(params == paramkey[,1]), 2]
   
-  dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
+  dirlist <- list.dirs(file.path(fdir, "DF_Surfaces"), recursive = F)
   minrnge<-min(which(substring(basename(dirlist),1,6)>=rnge[1]))
   maxrnge<-max(which(substring(basename(dirlist),1,6)<=rnge[2]))
   rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.tif$")
@@ -187,20 +194,19 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
   for(n in 1:length(plist)){
     if(any(plist[n]==namesalias[,1])){
       plist[n]<-as.character(namesalias[which(plist[n]==namesalias[,1]),2])
-      #print(names(dt)[n])
     }
   }
   
-  if(length(rnge)>2){
+  if(length(rnge) > 2){
     rnge <- rnge[order(rnge)]
-    rlist<-list.files(dirlist[which(substring(basename(dirlist),1,6) %in% rnge)],full.names=T,include.dirs=T,pattern="\\.tif$")
-    plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
+    rlist <- list.files(dirlist[which(substring(basename(dirlist), 1, 6) %in% rnge)], full.names = T, include.dirs = T, pattern = "\\.tif$")
+    plist <- tolower(sub("[.][^.]*$", "", basename(rlist)))
   }
   
-  rlist<-rlist[which(!is.na(match(plist,params)))]
-  plist<-plist[which(!is.na(match(plist,params)))]
+  rlist <- rlist[which(!is.na(match(plist, params)))]
+  plist <- plist[which(!is.na(match(plist, params)))]
   
-  fathombasins<-rgdal::readOGR(file.path(fdir,"DF_Basefile/fathom_basins_proj.shp"),layer="fathom_basins_proj",verbose=FALSE)
+  fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
   fboutline <- rgdal::readOGR(dsn=file.path(getOption("fdir"), "DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE)
   
   print(rlist)
@@ -221,34 +227,35 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
       tempras<-raster::raster(rlist[i])
     }
     
-    rasname <- paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))))
-    raspath <- file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(rasname,".tif",sep=""))
-    outpath = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(rasname,"poly.shp",sep=""))
+    rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
+    raspath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, ".tif", sep = ""))
+    outpath = file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, "poly.shp" ,sep = ""))
     
-    raster::writeRaster(tempras,raspath,format="GTiff",overwrite=TRUE)
+    raster::writeRaster(tempras, raspath, format = "GTiff", overwrite = TRUE)
     shellcmds = paste("gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
     system(shellcmds)
-    outpoly<-rgdal::readOGR(dsn=outpath,layer=paste(rasname,"poly",sep=""),verbose=TRUE)
-    requireNamespace("maptools")
-    #require("maptools")#cannot seem to execute below without call to require
+    outpoly <- rgdal::readOGR(dsn = outpath, layer = paste(rasname, "poly", sep = ""), verbose = TRUE)
+    #requireNamespace("maptools")
+    require("rgeos")
+    require("maptools")#cannot seem to execute below without call to require
     maptools::gpclibPermit()
-    outpoly<-maptools::unionSpatialPolygons(outpoly,IDs=rep(1,length(outpoly)))
-    outlines<-as(outpoly,'SpatialLines')
-    outlines<-sp::SpatialLinesDataFrame(outlines,data=as.data.frame(1))
+    outpoly <- maptools::unionSpatialPolygons(outpoly, IDs = rep(1, length(outpoly)))
+    outlines <- as(outpoly, 'SpatialLines')
+    outlines <- sp::SpatialLinesDataFrame(outlines, data = as.data.frame(1))
     
     #GRASS block####
-    loc<-rgrass7::initGRASS("/usr/lib/grass70",home=file.path(fdir,"QGIS_plotting"),override=TRUE)
+    loc <- rgrass7::initGRASS("/usr/lib/grass70", home = file.path(fdir, "QGIS_plotting"), override = TRUE)
     
     #raster
-    firstras<-as(firstras,"SpatialGridDataFrame")
-    firstras.g<-rgrass7::writeRAST(firstras,"firstras",flags=c("overwrite"))
+    firstras <- as(firstras, "SpatialGridDataFrame")
+    firstras.g <- rgrass7::writeRAST(firstras, "firstras", flags = c("overwrite"))
     
-    tempras<-as(tempras,"SpatialGridDataFrame")
-    tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
-    rgrass7::execGRASS("g.region",raster="tempras")
-    rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile",rulesfile))
+    tempras <- as(tempras, "SpatialGridDataFrame")
+    tempras.g <- rgrass7::writeRAST(tempras, "tempras", flags = c("overwrite"))
+    rgrass7::execGRASS("g.region", raster = "tempras")
+    rgrass7::execGRASS("r.colors", map = "tempras", rules = file.path(fdir, "DF_Basefile", rulesfile))
     
-    rgrass7::execGRASS("r.grow",input="tempras",output="tempras2",radius=1.3,flags="overwrite")
+    rgrass7::execGRASS("r.grow", input = "tempras", output = "tempras2", radius = 1.3, flags = "overwrite")
     
     #Florida Bay outline
     if(is.na(mapextent)){
@@ -256,22 +263,22 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
     }else{
       fboutline <- raster::crop(fboutline, mapextent)
     }
-    fbvec.g<-rgrass7::writeVECT(fboutline,"fbvec",v.in.ogr_flags = c("o"))
+    fbvec.g <- rgrass7::writeVECT(fboutline, "fbvec", v.in.ogr_flags = c("o"))
     #rgrass7::execGRASS("g.region",vector="fbvec")
-    rgrass7::execGRASS("v.colors",map = "fbvec",column = "cat", color = "grey")
+    rgrass7::execGRASS("v.colors", map = "fbvec", column = "cat", color = "grey")
     
     #raster outline
-    outvec.g<-rgrass7::writeVECT(outlines,"outvec",v.in.ogr_flags = c("o"))
-    test<-rgrass7::readVECT("outvec")
-    rgrass7::execGRASS("g.region",vector="outvec")
+    outvec.g <- rgrass7::writeVECT(outlines, "outvec", v.in.ogr_flags = c("o"))
+    test <- rgrass7::readVECT("outvec")
+    rgrass7::execGRASS("g.region", vector = "outvec")
     
-    rgrass7::execGRASS("g.region",raster="firstras")
+    rgrass7::execGRASS("g.region", raster = "firstras")
     
-    rgrass7::execGRASS("g.region",vector="fbvec")
+    rgrass7::execGRASS("g.region", vector = "fbvec")
     
-    if(labelling==TRUE){
+    if(labelling == TRUE){
 #     #compose plotting commands here####
-    fileConn<-file(file.path(fdir,"QGIS_plotting","grassplot.file"))
+    fileConn <- file(file.path(fdir, "QGIS_plotting", "grassplot.file"))
     writeLines(c("raster tempras2",
                  "vlines outvec",
                  "        color black",
@@ -301,26 +308,28 @@ diffsal,diffsalrules.file",sep=",",stringsAsFactors=FALSE)
       close(fileConn)
     }
     
-    rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"grassplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),paste(substring(dirname(rlist[i]),nchar(dirname(rlist[i]))-5,nchar(dirname(rlist[i]))),".pdf",sep="")),flags="overwrite")
+    rgrass7::execGRASS("ps.map", input = file.path(paste(fdir, "/QGIS_plotting", sep=""), "grassplot.file"), output = file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))), ".pdf", sep = "")), flags = "overwrite")
 
 #==================================================================#
 
-    legendalias<-read.table(text="chlext,Chlorophyll (ug/L)
+    legendalias <- read.table(text="chlext,Chlorophyll (ug/L)
+chlext_low,Chlorophyll (ug/L)
+chlext_hi,Chlorophyll (ug/L)
 sal,Salinity
-diffsal,Salinity minus average",sep=",",stringsAsFactors=FALSE)
-    #browser()
-    legendname<-legendalias[which(params==legendalias[,1]),2]
+diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
+    
+    legendname <- legendalias[which(params == legendalias[,1]), 2]
     
     if(params=="sal"){
       legendunits<-seq(from=5,to=54,by=0.1)
       legendunits_print <- "'5 10 15 20 25 30 35 40'"
       legendunits_spacing <- 220
     }
-    if(params=="chlext"){
-      legendunits<-log(seq(from=0,to=13.5,by=0.1)+1)
+    if(params %in% c("chlext", "chlext_low", "chlext_hi")){
+      legendunits <- log(seq(from = 0, to = 13.5, by = 0.1) + 1)
       legendunits_print <- "'0.0 0.7 2.0 4.0 7.0 13.0'"
       legendunits_spacing <- 250
-      rulesfile<-paste0(rulesfile,"_log")
+      rulesfile <- paste0(rulesfile,"_log")
     }
     
     #browser()
@@ -331,7 +340,7 @@ diffsal,Salinity minus average",sep=",",stringsAsFactors=FALSE)
     }
     
     #==================================================================#
-    #browser()
+    
     if(length(rlist) == 1){
       makefile <- file.path(fdir, "DF_Basefile","Makefile_single")
       system(paste0("make -f ", makefile, 
@@ -341,13 +350,14 @@ diffsal,Salinity minus average",sep=",",stringsAsFactors=FALSE)
 " LEGENDUNITS=", legendunits_print,
 " LEGENDUNITSSPACING=", legendunits_spacing
 ))
+      
       system(paste0("make -f ", makefile, " clean"))
     }
     #==================================================================#
     
-    if(cleanup==TRUE){
-      rmlist<-list.files(file.path(paste(fdir,"/QGIS_plotting",sep="")),pattern = paste(rasname,"*",sep=""),include.dirs = TRUE,full.names = TRUE)
-      rmlist<-rmlist[-grep("*.pdf",rmlist)]
+    if(cleanup == TRUE){
+      rmlist <- list.files(file.path(paste(fdir, "/QGIS_plotting", sep = "")), pattern = paste(rasname, "*", sep = ""), include.dirs = TRUE, full.names = TRUE)
+      rmlist <- rmlist[-grep("*.pdf", rmlist)]
       file.remove(rmlist)
     }    
   }
@@ -356,7 +366,7 @@ diffsal,Salinity minus average",sep=",",stringsAsFactors=FALSE)
   
   
   #assumes that all pdfs in QGIS_plotting are to be part of panel
-  if(length(rlist > 1)){ # & !is.na(panel.dim)
+  if(length(rlist) > 1){ # & !is.na(panel.dim)
     makefile <- file.path(fdir, "DF_Basefile","Makefile_multi")
   
       #system(paste0("make -f ", makefile, " variables BASEDIR=", fdir, " PARAM=", legendname, " LEGENDUNITS=", legendunits_print))

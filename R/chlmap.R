@@ -10,7 +10,7 @@
 #'@export
 #'@examples 
 #'\dontrun{
-#'res<-chlmap(yearmon=201308)
+#'res <- chlmap(yearmon = 201502)
 #'}
 
 chlmap<-function(yearmon, remove.flags = TRUE, fdir=getOption("fdir")){
@@ -18,7 +18,7 @@ chlmap<-function(yearmon, remove.flags = TRUE, fdir=getOption("fdir")){
   #fdir<-getOption("fdir")
   #yearmon<-201311
   
-  params<-c("chlaiv","chla")
+  params <- c("chlaiv","chla")
   #find coefficients that match yearmon####
   coeflist<-read.csv(file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"),header=T,na.strings="NA")[,-1]
   names(coeflist)<-tolower(names(coeflist))
@@ -54,28 +54,55 @@ chlmap<-function(yearmon, remove.flags = TRUE, fdir=getOption("fdir")){
   }
   
   #append a chlext column to the cleaned streaming data and interpolate
-  dt<-streamget(yearmon,qa=TRUE)
-  chlext<-dt[,namelist[1]]*coeflist[1]
+  dt <- streamget(yearmon, qa = TRUE)
+  grabs <-  grabget(yearmon)
   
-  if(length(namelist_sq)>0){
-    coeflist_sq<-coeflist[grep("2",namelist)]
-    coeflist<-coeflist[-1*grep("2",namelist)]
-    namelist<-namelist[-1*grep("2",namelist)]
-    for(i in 1:(length(namelist_sq))){
-      chlext<-chlext+(dt[,namelist_sq[i]]*coeflist[i])
+  namelist_temp <- namelist
+  for(n in 1:length(namelist)){
+    if(any(namelist[n]==namesalias[,1])){
+      namelist_temp[n] <- as.character(namesalias[which(namelist[n] == namesalias[,1]),2])
     }
   }
   
-  if(length(namelist)>2){
-    for(i in 2:(length(namelist)-1)){
-      chlext<-chlext+(dt[,namelist[i]]*coeflist[i])
-    }
-  }
-  chlext<-chlext + coeflist[length(coeflist)]
+  #refit equation to generate an lm object
+  fit <- lm(as.formula(paste("chla ~ ", paste(namelist_temp[1:(length(namelist_temp) - 1)], collapse = "+"))), data = grabs)
+  #TODO: ADD CHECK THAT FIT MATCHES COEFLIST
+  dt_temp <- dt[,namelist[1:(length(namelist) - 1)]]
+  names(dt_temp) <- namelist_temp[1:(length(namelist_temp)-1)]
+  chlext <- predict(fit, dt_temp)
+  chlext_low <- predict(fit, dt_temp, se.fit = TRUE)$fit - predict(fit, dt_temp, se.fit = TRUE)$se.fit
+  chlext_hi <- predict(fit, dt_temp, se.fit = TRUE)$fit + predict(fit, dt_temp, se.fit = TRUE)$se.fit
   
-  chlext[chlext<0]<-0
-  chlext[chlext>range(grabget(yearmon, remove.flags = remove.flags)$chla,na.rm = TRUE)[2]]<-NA
-  dt$chlext<-chlext
+  
+#   chlext <- dt[,namelist[1]] * coeflist[1]
+#   
+#   if(length(namelist_sq)>0){
+#     coeflist_sq<-coeflist[grep("2",namelist)]
+#     coeflist<-coeflist[-1*grep("2",namelist)]
+#     namelist<-namelist[-1*grep("2",namelist)]
+#     for(i in 1:(length(namelist_sq))){
+#       chlext<-chlext+(dt[,namelist_sq[i]]*coeflist[i])
+#     }
+#   }
+#   
+#   if(length(namelist)>2){
+#     for(i in 2:(length(namelist)-1)){
+#       chlext<-chlext+(dt[,namelist[i]]*coeflist[i])
+#     }
+#   }
+#   chlext <- chlext + coeflist[length(coeflist)]
+  
+  chlext[chlext < 0] <- 0
+  chlext_low[chlext_low < 0] <- 0
+  
+  bad_chl <- chlext > range(grabget(yearmon, remove.flags = remove.flags)$chla, na.rm = TRUE)[2]
+  chlext[bad_chl] <- NA
+  chlext_low[bad_chl] <- NA
+  chlext_hi[bad_chl] <- NA
+  
+  dt$chlext <- chlext
+  dt$chlext_low <- chlext_low
+  dt$chlext_hi <- chlext_hi
   
   
   if(file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))){
@@ -92,7 +119,11 @@ chlmap<-function(yearmon, remove.flags = TRUE, fdir=getOption("fdir")){
     file.remove(file.path(fdir,paste0("/DF_Validation/chlext",yearmon,".csv"),fsep=""))
   }
   
-  streaminterp(dt,paramlist = "chlext",yearmon = yearmon,tname = file.path(fdir,paste0("/DF_Subsets/chlext",yearmon,".csv"),fsep="") ,vname = file.path(fdir,paste0("/DF_Validation/chlext",yearmon,".csv"),fsep=""), missprop = (1/3))
+  browser()
+  
+  
+  
+  streaminterp(dt, paramlist = c("chlext", "chlext_low", "chlext_hi"), yearmon = yearmon, tname = file.path(fdir, paste0("/DF_Subsets/chlext", yearmon, ".csv"), fsep = "") ,vname = file.path(fdir, paste0("/DF_Validation/chlext", yearmon, ".csv"), fsep = ""), missprop = (1/3))
   
 }  
   #####old code from when raster algebra was used#####

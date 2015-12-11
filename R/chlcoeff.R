@@ -21,7 +21,7 @@
 chlcoef<-function(yearmon,remove.flags=TRUE,overwrite=FALSE,fdir=getOption("fdir"),polypcut=0.6,corcut=0.7,streamcov=0.5,checkvif=TRUE,logtransform=FALSE){
 #yearmon=201507
 #corcut=0.5 
-dt<-grabget(yearmon,remove.flags = remove.flags)
+dt<-grabget(yearmon, remove.flags = remove.flags)
 
 if(logtransform==TRUE){
   dt[,"chla"]<-log(dt[,"chla"])  
@@ -54,8 +54,8 @@ if(length(varlist)>2){
 }
 
 if(!length(varlist)>0){stop("linear correlations too low")}
-lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
-fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),])
+lmeq <- as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
+fit <- lm(lmeq,data=dt[complete.cases(dt[,varlist]),])
 
 if(length(varlist)>1){
   dt<-dt[apply(dt[,match(varlist,names(dt))],1,function(x) !all(is.na(x))),]

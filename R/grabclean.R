@@ -17,10 +17,11 @@ grabclean<-function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   
   #FORMAT COLUMN NAMES##################################
   formatcolnames<-function(sumpath){
-    datacol<-NA
-    nmsfull<-NA
-    startread<-1
-    endread<-23
+    
+    datacol <- NA
+    nmsfull <- NA
+    startread <- 1
+    endread <- 23
   
   #READ LABID thru PP
   nms1<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)[1,startread:endread]
@@ -31,13 +32,13 @@ grabclean<-function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
     nms1<-read.csv(sumpath,sep=",",skip=2,header=F,stringsAsFactors=T,na.strings="",strip.white=T)[1,startread:endread]
     nms1<-apply(nms1,2,as.character)
   }
-  datacol<-startread:endread
+  datacol <- startread:endread
   
   #READ NITROGEN AND PHOSPHORUS COLUMNS (SERC NUTRIENTS)
-  startread<-endread+1
-  endread<-startread+8
+  startread <- endread + 1
+  endread<-startread + 8
   #if(any(nchar(nms1)>10)){nms1<-nms1[-which(nchar(nms1)>10)]}
-  nms2<-read.csv(sumpath,sep=",",skip=3,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
+  nms2 <- read.csv(sumpath,sep=",",skip=3,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
   #nms2<-nms2[1,25:28]
   nms2<-nms2[1,startread:endread]
   nms2<-apply(nms2,2,as.character)
@@ -89,37 +90,43 @@ grabclean<-function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   startread<-endread+1
   
   nms4<-read.csv(sumpath,sep=",",skip=1,header=F,stringsAsFactors=T,na.strings="",strip.white=T)
-  if(ncol(nms4)>endread){#is there C6 data?
+  if(ncol(nms4) > endread){#is there C6 data?
     nms4<-nms4[1,startread:ncol(nms4)]
     nms4<-apply(nms4,2,as.character)
     
     nms.full<-c(nms1,nms2,nms3,nms4)
-    datacol<-append(datacol,(startread:(startread+length(nms4)-1)))
+    datacol <- append(datacol, (startread:(startread + length(nms4) - 1)))
     
   }else{
-    nms.full<-c(nms1,nms2,nms3)
+    nms.full<-c(nms1, nms2, nms3)
     nms.full<-c(nms.full,rep(NA,(77-length(nms.full))))#need to fix this
   }
   
-  nms.full<-tolower(nms.full)
-  nms.full<-gsub(" ","",nms.full)
-  nms.full<-gsub("\\(","",nms.full)
-  nms.full<-gsub(")","",nms.full)
-  nms.full<-nms.full[!is.na(nms.full)]
+  nms.full <- tolower(nms.full)
+  nms.full <- gsub(" ","",nms.full)
+  nms.full <- gsub("\\(","",nms.full)
+  nms.full <- gsub(")","",nms.full)
   
-  list(nms.full,datacol)
+  if(length(which(is.na(nms.full))) > 0){
+    datacol <- datacol[-which(is.na(nms.full))]
+    nms.full <- nms.full[!is.na(nms.full)]
+  }
+  
+  list(nms.full, datacol)
   }
   
   #CLEAN GRABS############################
-  cleangrabdata<-function(sumpath,nsmfull,datacol){
-  grabdata<-read.csv(sumpath,sep=",",skip=5,header=F,stringsAsFactors=F,na.strings="",strip.white=T)
-  grabdata <- grabdata[!is.na(grabdata[,5]) | !is.na(grabdata[,4]),]#remove trailing blank rows
-  grabdata<-grabdata[,datacol]
-  names(grabdata)<-nmsfull
-  
-  #REMOVE EBS AND NA ROWS/COLUMNS
-  grabdata<-grabdata[,colSums(is.na(grabdata))<nrow(grabdata)]#remove columns of all NA
-  narows<-as.numeric(which(apply(grabdata,1,function(x)sum(is.na(x)))>50))
+  cleangrabdata <- function(sumpath, nsmfull, datacol){
+    grabdata <- read.csv(sumpath, sep = ",", skip = 5, header = F, stringsAsFactors = F, na.strings = "", strip.white = T)
+    
+    grabdata <- grabdata[!is.na(grabdata[,5]) | !is.na(grabdata[,4]),]#remove trailing blank rows
+
+    grabdata <- grabdata[,datacol]
+    names(grabdata) <- nmsfull
+
+    grabdata <- grabdata[,colSums(is.na(grabdata)) < nrow(grabdata)]#remove columns of all NA  
+    narows<-as.numeric(which(apply(grabdata,1,function(x)sum(is.na(x)))>50))
+    
   if(length(narows)>0){
     grabdata<-grabdata[-unique(narows),]#remove NA rows
   }
@@ -366,9 +373,9 @@ turbidity,c6turbidity",sep=",")
     #todo: add check that sumpath only returns one file path
     
     #CLEAN AND AGGREGRATE
-    grabnames<-formatcolnames(sumpath)
-    nmsfull<-unlist(grabnames[1])
-    datacol<-unlist(grabnames[2])
+    grabnames <- formatcolnames(sumpath)
+    nmsfull <- unlist(grabnames[1])
+    datacol <- unlist(grabnames[2])
     
     grabdata <- cleangrabdata(sumpath, nmsfull, datacol)$grabdata
     stations <- cleangrabdata(sumpath, nmsfull, datacol)$stations
