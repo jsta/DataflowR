@@ -324,12 +324,16 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       legendunits<-seq(from=5,to=54,by=0.1)
       legendunits_print <- "'5 10 15 20 25 30 35 40'"
       legendunits_spacing <- 220
+      legend_xlim <- 270
+      legend_crop_extent <- 2404
     }
     if(params %in% c("chlext", "chlext_low", "chlext_hi")){
       legendunits <- log(seq(from = 0, to = 13.5, by = 0.1) + 1)
       legendunits_print <- "'0.0 0.7 2.0 4.0 7.0 13.0'"
       legendunits_spacing <- 250
       rulesfile <- paste0(rulesfile,"_log")
+      legend_xlim <- 140
+      legend_crop_extent <- 2188
     }
     
     #browser()
@@ -337,20 +341,41 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       legendunits<-seq(from=-30,to=35,by=1)
       legendunits_print <- "'-30 -25 -20 -15 -10 -5 0 5 10 15 20'"
       legendunits_spacing <- 95
+      legend_xlim <- 270
+      legend_crop_extent <- 2404 
     }
+    #print legend========================================================#
+    
+    legras <- raster::raster(tempras)
+    legras[1:(length(legendunits)+1)]<-legendunits
+    tempras<-as(legras,"SpatialGridDataFrame")
+    tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
+    rgrass7::execGRASS("r.support",map="tempras",units=legendname)
+    rgrass7::execGRASS("g.region",raster="tempras")
+    rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile",rulesfile))
+    
+    rgrass7::execGRASS("r.to.vect",input="tempras",output="outvec",type="area",flags="overwrite")
+    rgrass7::execGRASS("v.hull",input="outvec",output="outvec2",flags="overwrite")
+    
+    rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legendplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legend",paste("legend",".pdf",sep="")),flags="overwrite")
     
     #==================================================================#
+    #browser()
     
     if(length(rlist) == 1){
+      
       makefile <- file.path(fdir, "DF_Basefile","Makefile_single")
       system(paste0("make -f ", makefile, 
 " testpanel.png BASEDIR=", fdir,
 " YEARMON=", paste0(substring(dirname(rlist[i]), nchar(dirname(rlist[i]))-5, nchar(dirname(rlist[i])))),
 " PARAM=", shQuote(legendname),
 " LEGENDUNITS=", legendunits_print,
-" LEGENDUNITSSPACING=", legendunits_spacing
+" LEGENDUNITSSPACING=", legendunits_spacing,
+" LEGEND_XLIM=", legend_xlim,
+" LEGEND_CROP_EXTENT=", legend_crop_extent
 ))
       
+      #browser()
       system(paste0("make -f ", makefile, " clean"))
     }
     #==================================================================#
@@ -376,20 +401,7 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     #system(paste0("make -f ", makefile, " clean"))
   }
   
-  #print legend========================================================#
   
-  legras<-raster::raster(tempras)
-  legras[1:(length(legendunits)+1)]<-legendunits
-  tempras<-as(legras,"SpatialGridDataFrame")
-  tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
-  rgrass7::execGRASS("r.support",map="tempras",units=legendname)
-  rgrass7::execGRASS("g.region",raster="tempras")
-  rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile",rulesfile))
-  
-  rgrass7::execGRASS("r.to.vect",input="tempras",output="outvec",type="area",flags="overwrite")
-  rgrass7::execGRASS("v.hull",input="outvec",output="outvec2",flags="overwrite")
-  
-  rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legendplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legend",paste("legend",".pdf",sep="")),flags="overwrite")
   
 
   if(cleanup==TRUE){

@@ -16,8 +16,7 @@
 #'dt<-streamclean(yearmon=201505,mmin=7,c6mmin=10,tofile=FALSE,c6pres=TRUE)
 #'}
 
-streamclean<-function(yearmon,mmin,c6mmin=NA,c6pres=TRUE,tofile=FALSE,sep=",",fdir=getOption("fdir")){
-  
+streamclean<-function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, tofile = FALSE, sep = ",", fdir = getOption("fdir")){
   options(warn=-1)  
   fdir_fd<-file.path(fdir,"DF_FullDataSets","Raw","InstrumentOutput")
   flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
