@@ -154,7 +154,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'scales::show_col(viridis::viridis_pal()(9))
 #'}
 
-grassmap<-function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
+grassmap <- function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
 
 #     library(DataflowR)
 #   params=c("diffsal")
@@ -163,7 +163,7 @@ grassmap<-function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = g
 #     basin = "Manatee Bay"
 
   #detect operating system####
-  if(as.character(Sys.info()["sysname"])!="Linux"){
+  if(as.character(Sys.info()["sysname"]) != "Linux"){
     stop("This function only works with Linux!")
   }
   
@@ -206,7 +206,11 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
   
   fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
   fboutline <- rgdal::readOGR(dsn=file.path(getOption("fdir"), "DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE)
-  surveytrack <- coordinatize(streamget(rnge[1]), latname = "lat_dd", lonname = "lon_dd")
+  
+  if(print_track == TRUE){
+    surveytrack <- coordinatize(streamget(rnge[1]), latname = "lat_dd", lonname = "lon_dd")
+  }
+  #interp_pnts <- coordinatize(read.csv(file.path(fdir, "DF_Subsets", paste0(rnge[1], "s.csv"))), latname = "lat_dd", lonname = "lon_dd")
   
   print(rlist)
   
@@ -267,8 +271,10 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
     rgrass7::execGRASS("v.colors", map = "fbvec", column = "cat", color = "grey")
     #browser()
     #survey track
-    trackvec.g <- rgrass7::writeVECT(surveytrack, "trackvec", v.in.ogr_flags = c("o"))
-    rgrass7::execGRASS("v.colors", use = "cat", map = "trackvec", color = "grey")
+    if(print_track == TRUE){
+      trackvec.g <- rgrass7::writeVECT(surveytrack, "trackvec", v.in.ogr_flags = c("o"))
+      rgrass7::execGRASS("v.colors", use = "cat", map = "trackvec", color = "grey")
+    }
     
     #raster outline
     outvec.g <- rgrass7::writeVECT(outlines, "outvec", v.in.ogr_flags = c("o"))
