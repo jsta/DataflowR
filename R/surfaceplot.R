@@ -145,19 +145,17 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'grassmap(rnge = c(201512), params = c("diffsal"))
 #'grassmap(rnge=c(201407),params=c("chlext"))
 #'grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-#'grassmap(rnge=c(201509),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201507), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(201512, "sal", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 #'
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 #'logramp(n = 9, maxrange = 20) #chlext
 #'scales::show_col(viridis::viridis_pal()(9))
 #'}
 
-grassmap<-function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, cleanup = TRUE, rotated = TRUE){
+grassmap<-function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
 
-  
-    
 #     library(DataflowR)
 #   params=c("diffsal")
 #    rnge=c(201512)
@@ -208,6 +206,7 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
   
   fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
   fboutline <- rgdal::readOGR(dsn=file.path(getOption("fdir"), "DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE)
+  surveytrack <- coordinatize(streamget(rnge[1]), latname = "lat_dd", lonname = "lon_dd")
   
   print(rlist)
   
@@ -243,7 +242,7 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
     outlines <- as(outpoly, 'SpatialLines')
     outlines <- sp::SpatialLinesDataFrame(outlines, data = as.data.frame(1))
     
-    #GRASS block####
+    #GRASS block===============================================================#
     loc <- rgrass7::initGRASS("/usr/lib/grass70", home = file.path(fdir, "QGIS_plotting"), override = TRUE)
     
     #raster
@@ -266,10 +265,14 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
     fbvec.g <- rgrass7::writeVECT(fboutline, "fbvec", v.in.ogr_flags = c("o"))
     #rgrass7::execGRASS("g.region",vector="fbvec")
     rgrass7::execGRASS("v.colors", map = "fbvec", column = "cat", color = "grey")
+    #browser()
+    #survey track
+    trackvec.g <- rgrass7::writeVECT(surveytrack, "trackvec", v.in.ogr_flags = c("o"))
+    rgrass7::execGRASS("v.colors", use = "cat", map = "trackvec", color = "grey")
     
     #raster outline
     outvec.g <- rgrass7::writeVECT(outlines, "outvec", v.in.ogr_flags = c("o"))
-    test <- rgrass7::readVECT("outvec")
+    #test <- rgrass7::readVECT("outvec")
     rgrass7::execGRASS("g.region", vector = "outvec")
     
     rgrass7::execGRASS("g.region", raster = "firstras")
@@ -294,6 +297,30 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
                  "        end",
                  "end"),fileConn)
     close(fileConn)
+    if(print_track == TRUE){
+      fileConn <- file(file.path(fdir, "QGIS_plotting", "grassplot.file"))
+      writeLines(c("raster tempras2",
+                   "vpoints trackvec",
+                   "        color black",
+                   "        fcolor black",
+                   "        symbol basic/cross1",
+                   "        size 5",
+                   "        end",
+                   "vlines outvec",
+                   "        color black",
+                   "        style dashed",
+                   "        end",
+                   "vareas fbvec",
+                   "        masked y",
+                   "        end",
+                   paste("text 17% 85% ",rasname,sep=""),
+                   "        fontsize 35",
+                   "        background white",
+                   "        border black",
+                   "        end",
+                   "end"),fileConn)
+      close(fileConn)
+    }
     }else{
       fileConn<-file(file.path(fdir,"QGIS_plotting","grassplot.file"))
       writeLines(c("raster tempras2",
