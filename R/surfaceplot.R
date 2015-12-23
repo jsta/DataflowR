@@ -256,6 +256,14 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
     tempras <- as(tempras, "SpatialGridDataFrame")
     tempras.g <- rgrass7::writeRAST(tempras, "tempras", flags = c("overwrite"))
     rgrass7::execGRASS("g.region", raster = "tempras")
+    
+     if(params %in% c("chlext", "chlext_low", "chlext_hi")){
+#       browser()
+       if(length(grep("_log", rulesfile)) != 0){
+         rulesfile <- gsub("_log", "", rulesfile)
+       }
+     }
+    
     rgrass7::execGRASS("r.colors", map = "tempras", rules = file.path(fdir, "DF_Basefile", rulesfile))
     
     rgrass7::execGRASS("r.grow", input = "tempras", output = "tempras2", radius = 1.3, flags = "overwrite")
@@ -280,9 +288,7 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
     outvec.g <- rgrass7::writeVECT(outlines, "outvec", v.in.ogr_flags = c("o"))
     #test <- rgrass7::readVECT("outvec")
     rgrass7::execGRASS("g.region", vector = "outvec")
-    
     rgrass7::execGRASS("g.region", raster = "firstras")
-    
     rgrass7::execGRASS("g.region", vector = "fbvec")
     
     if(labelling == TRUE){
@@ -364,7 +370,11 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       legendunits <- log(seq(from = 0, to = 13.5, by = 0.1) + 1)
       legendunits_print <- "'0.0 0.7 2.0 4.0 7.0 13.0'"
       legendunits_spacing <- 250
-      rulesfile <- paste0(rulesfile,"_log")
+      
+      if(length(grep("_log", rulesfile)) == 0){
+        rulesfile <- paste0(rulesfile,"_log")
+      }
+      
       legend_xlim <- 140
       legend_crop_extent <- 2188
     }
@@ -384,8 +394,8 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     tempras<-as(legras,"SpatialGridDataFrame")
     tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
     rgrass7::execGRASS("r.support",map="tempras",units=legendname)
-    rgrass7::execGRASS("g.region",raster="tempras")
-    rgrass7::execGRASS("r.colors",map = "tempras",rules = file.path(fdir,"DF_Basefile",rulesfile))
+    rgrass7::execGRASS("g.region", raster = "tempras")
+    rgrass7::execGRASS("r.colors", map = "tempras", rules = file.path(fdir, "DF_Basefile", rulesfile))
     
     rgrass7::execGRASS("r.to.vect",input="tempras",output="outvec",type="area",flags="overwrite")
     rgrass7::execGRASS("v.hull",input="outvec",output="outvec2",flags="overwrite")
@@ -427,18 +437,21 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
   if(length(rlist) > 1){ # & !is.na(panel.dim)
     makefile <- file.path(fdir, "DF_Basefile","Makefile_multi")
   
-      #system(paste0("make -f ", makefile, " variables BASEDIR=", fdir, " PARAM=", legendname, " LEGENDUNITS=", legendunits_print))
+    system(paste0("make -f ", makefile,
+                  " multipanel.png BASEDIR=", fdir,
+                  " PARAM=", shQuote(legendname),
+                  " LEGENDUNITS=", legendunits_print,
+                  " LEGENDUNITSSPACING=", legendunits_spacing,
+                  " LEGEND_XLIM=", legend_xlim,
+                  " LEGEND_CROP_EXTENT=", legend_crop_extent
+                  ))
     
-    system(paste0("make -f ", makefile, " multipanel.png BASEDIR=", fdir, " PARAM=", shQuote(legendname), " LEGENDUNITS=", legendunits_print, " LEGENDUNITSSPACING=", legendunits_spacing))
-    
-    #system(paste0("make -f ", makefile, " clean"))
+    system(paste0("make -f ", makefile, " clean"))
   }
   
   
-  
-
   if(cleanup==TRUE){
-    rmlist<-list.files(file.path(paste(fdir,"/QGIS_plotting",sep="")),pattern = paste("out","*",sep=""),include.dirs = TRUE,full.names = TRUE)
+    rmlist <- list.files(file.path(paste(fdir,"/QGIS_plotting",sep="")),pattern = paste("out","*",sep=""),include.dirs = TRUE,full.names = TRUE)
     file.remove(rmlist)
   }
 }
