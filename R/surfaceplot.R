@@ -14,20 +14,21 @@
 #'@export
 #'@examples \dontrun{
 #'surfplot(rnge=c(200707), params = c("cdom"))
+#'surfplot(201513, c("ph", "c6turbidity", "c6chl", "c6cdom"), yext = c(2786102, 2797996), xext = c(557217, 567415))
 #'}
 
-surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption("fdir")){
+surfplot <- function(rnge=c(201402, 201404), params = c("c6chl", "sal"), fdir=getOption("fdir"), yext = c(2772256,2798000), xext = c(518000.2,566000)){
   print(fdir)
   #fdir<-"/home/jose/Documents/Science/Data/Dataflow"
   #rnge<-201410
   #params<-"chlext"
   
-  fbcoast<-rgdal::readOGR(dsn=file.path(fdir,"DF_Basefile","FBcoast_big.shp"),layer="FBcoast_big",verbose=TRUE)
+  fbcoast <- rgdal::readOGR(dsn = file.path(fdir, "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE)
   
-  if(length(rnge)==1){
-    rnge<-c(rnge,rnge)
+  if(length(rnge) == 1){
+    rnge <- c(rnge, rnge)
   }
-  namesalias<-read.table(text="
+  namesalias <- read.table(text="
                        chlorophyll.a c6chl
                        c6chla c6chl
                        ")
@@ -41,6 +42,7 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
         temp list(seq(14,36,2))
         c6temp list(seq(14,36,2))
         c6cdom list(seq(80,360,40))
+        ph list(seq(7.3,8.1,0.1))
         c6turbidity list(seq(0,45,5))")
   
   dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
@@ -64,8 +66,9 @@ surfplot<-function(rnge=c(201402,201404),params=c("c6chl","sal"),fdir=getOption(
     #i<-1
     
     my.at <- unlist(eval(parse(text = as.character(brks[which(plist[i] == brks[,1]), 2]))))
+      
+    print(rasterVis::levelplot(raster::raster(rlist[i]),ylim =yext, xlim = xext,par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn = file.path(fdir, "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE), fill="green",alpha=0.6)))
     
-    print(rasterVis::levelplot(raster::raster(rlist[i]),ylim=c(2772256,2798000),xlim=c(518000.2,566000),par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn=file.path(getOption("fdir"),"DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE),fill="green",alpha=0.6)))
     }
 }
 
