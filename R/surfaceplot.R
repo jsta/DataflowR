@@ -147,11 +147,13 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@examples \dontrun{
 #'grassmap(rnge = c(201512), params = c("sal"), basin="Manatee Bay")
 #'grassmap(rnge = c(200707), params = c("sal"))
+#'grassmap(rnge = c(201512), params = c("sal"))
 #'grassmap(rnge = c(201512), params = c("diffsal"))
 #'grassmap(rnge=c(201407),params=c("chlext"))
 #'grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-#'grassmap(rnge=c(201507), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(rnge=c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(rnge=c(201512), params = "sal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(201512, "sal", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 #'
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
@@ -364,7 +366,8 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     
     legendname <- legendalias[which(params == legendalias[,1]), 2]
     
-    if(params=="sal"){
+    if(params == "sal"){
+      paramxcoord <- 2060
       legendunits<-seq(from=5,to=54,by=0.1)
       legendunits_print <- "'5 10 15 20 25 30 35 40'"
       legendunits_spacing <- 220
@@ -372,6 +375,7 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       legend_crop_extent <- 2404
     }
     if(params %in% c("chlext", "chlext_low", "chlext_hi")){
+      paramxcoord <- 1860
       legendunits <- log(seq(from = 0, to = 13.5, by = 0.1) + 1)
       legendunits_print <- "'0.0 0.7 2.0 4.0 7.0 13.0'"
       legendunits_spacing <- 250
@@ -386,9 +390,10 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     
     #browser()
     if(params == "diffsal"){
-      legendunits<-seq(from=-30,to=35,by=1)
+      paramxcoord <- 1960
+      legendunits <- seq(from = -30, to = 35, by = 1)
       legendunits_print <- "'-30 -25 -20 -15 -10 -5 0 5 10 15 20'"
-      legendunits_spacing <- 95
+      legendunits_spacing <- 120
       legend_xlim <- 270
       legend_crop_extent <- 2404 
     }
@@ -420,6 +425,7 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
 " LEGENDUNITS=", legendunits_print,
 " LEGENDUNITSSPACING=", legendunits_spacing,
 " LEGEND_XLIM=", legend_xlim,
+" PARAMXCOORD=", paramxcoord,
 " LEGEND_CROP_EXTENT=", legend_crop_extent
 ))
       
