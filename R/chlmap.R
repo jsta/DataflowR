@@ -3,7 +3,8 @@
 #'@details
 #'A new interpolation is run after calculating an extracted chlorophyll for all streaming observations. Calculated values that exceed the maximum observed grab sample concentration are discarded.
 #'@param yearmon numeric date in yyyymm format
-#'@param remove.flags logical
+#'@param remove.flags logical Use QA'd grab data?
+#'@param stream.qa logical Use QA'd streaming data?
 #'@param fdir file.path to data folder
 #'@return An extracted chlorophyll surface and an updated FullDataSet file
 #'@author Joseph Stachelek
@@ -13,12 +14,12 @@
 #'res <- chlmap(yearmon = 201502)
 #'}
 
-chlmap<-function(yearmon, remove.flags = TRUE, fdir=getOption("fdir")){
+chlmap <- function(yearmon, remove.flags = TRUE, stream.qa = TRUE, fdir=getOption("fdir")){
   #library(DataflowR)
   #fdir<-getOption("fdir")
   #yearmon<-201311
   
-  params <- c("chlaiv","chla")
+  params <- c("chlaiv", "chla")
   #find coefficients that match yearmon####
   coeflist<-read.csv(file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"),header=T,na.strings="NA")[,-1]
   names(coeflist)<-tolower(names(coeflist))
@@ -54,7 +55,12 @@ chlmap<-function(yearmon, remove.flags = TRUE, fdir=getOption("fdir")){
   }
   
   #append a chlext column to the cleaned streaming data and interpolate
-  dt <- streamget(yearmon, qa = TRUE)
+  if(stream.qa == TRUE){
+    dt <- streamget(yearmon, qa = TRUE)
+  }else{
+    dt <- streamget(yearmon, qa = FALSE)
+  }
+  
   grabs <-  grabget(yearmon)
   
   namelist_temp <- namelist
@@ -67,8 +73,10 @@ chlmap<-function(yearmon, remove.flags = TRUE, fdir=getOption("fdir")){
   #refit equation to generate an lm object
   fit <- lm(as.formula(paste("chla ~ ", paste(namelist_temp[1:(length(namelist_temp) - 1)], collapse = "+"))), data = grabs)
   #TODO: ADD CHECK THAT FIT MATCHES COEFLIST
+  
   dt_temp <- dt[,namelist[1:(length(namelist) - 1)]]
   names(dt_temp) <- namelist_temp[1:(length(namelist_temp)-1)]
+  
   chlext <- predict(fit, dt_temp)
   chlext_low <- predict(fit, dt_temp, se.fit = TRUE)$fit - predict(fit, dt_temp, se.fit = TRUE)$se.fit
   chlext_hi <- predict(fit, dt_temp, se.fit = TRUE)$fit + predict(fit, dt_temp, se.fit = TRUE)$se.fit
@@ -119,7 +127,7 @@ chlmap<-function(yearmon, remove.flags = TRUE, fdir=getOption("fdir")){
     file.remove(file.path(fdir,paste0("/DF_Validation/chlext",yearmon,".csv"),fsep=""))
   }
   
-  browser()
+  #browser()
   
   
   
