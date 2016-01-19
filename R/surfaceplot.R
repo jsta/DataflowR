@@ -154,7 +154,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201512), params = "sal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-#'grassmap(201512, "sal", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
+#'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 #'
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 #'logramp(n = 9, maxrange = 20) #chlext
@@ -162,12 +162,6 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'}
 
 grassmap <- function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
-
-#     library(DataflowR)
-#   params=c("diffsal")
-#    rnge=c(201512)
-#     fdir=getOption("fdir")
-#     basin = "Manatee Bay"
 
   #detect operating system####
   if(as.character(Sys.info()["sysname"]) != "Linux"){
@@ -222,19 +216,18 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
   print(rlist)
   
   for(i in 1:length(rlist)){
-    #i<-1
     if(basin!="full"){
       firstras<-raster::raster(rlist[1])
-      firstras<-raster::crop(firstras,fathombasins[fathombasins$NAME==basin,])
+      firstras<-raster::crop(firstras, fathombasins[fathombasins$NAME == basin,])
     }else{
       firstras<-raster::raster(rlist[i])
     }
     
-    if(basin!="full"){
-      tempras<-raster::raster(rlist[i])
-      tempras<-raster::crop(tempras,fathombasins[fathombasins$NAME==basin,])
+    if(basin != "full"){
+      tempras <- raster::raster(rlist[i])
+      tempras <- raster::crop(tempras, fathombasins[fathombasins$NAME == basin,])
     }else{
-      tempras<-raster::raster(rlist[i])
+      tempras <- raster::raster(rlist[i])
     }
     
     rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
@@ -258,7 +251,7 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
     
     #raster
     firstras <- as(firstras, "SpatialGridDataFrame")
-    firstras.g <- rgrass7::writeRAST(firstras, "firstras", flags = c("overwrite"))
+    firstras.g <- rgrass7::writeRAST(firstras, "firstras", flags = c("overwrite", "quiet"))
     
     tempras <- as(tempras, "SpatialGridDataFrame")
     tempras.g <- rgrass7::writeRAST(tempras, "tempras", flags = c("overwrite"))
@@ -273,7 +266,7 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
     
     rgrass7::execGRASS("r.colors", map = "tempras", rules = file.path(fdir, "DF_Basefile", rulesfile))
     
-    rgrass7::execGRASS("r.grow", input = "tempras", output = "tempras2", radius = 1.3, flags = "overwrite")
+    rgrass7::execGRASS("r.grow", input = "tempras", output = "tempras2", radius = 1.3, flags = c("overwrite", "quiet"))
     
     #Florida Bay outline
     if(is.na(mapextent)){
@@ -284,7 +277,7 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
     fbvec.g <- rgrass7::writeVECT(fboutline, "fbvec", v.in.ogr_flags = c("o"))
     #rgrass7::execGRASS("g.region",vector="fbvec")
     rgrass7::execGRASS("v.colors", map = "fbvec", column = "cat", color = "grey")
-    #browser()
+    
     #survey track
     if(print_track == TRUE){
       trackvec.g <- rgrass7::writeVECT(surveytrack, "trackvec", v.in.ogr_flags = c("o"))
@@ -367,7 +360,7 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     legendname <- legendalias[which(params == legendalias[,1]), 2]
     
     if(params == "sal"){
-      paramxcoord <- 2060
+      paramxcoord <- 2160
       legendunits<-seq(from=5,to=54,by=0.1)
       legendunits_print <- "'5 10 15 20 25 30 35 40'"
       legendunits_spacing <- 220
@@ -375,17 +368,19 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       legend_crop_extent <- 2404
     }
     if(params %in% c("chlext", "chlext_low", "chlext_hi")){
-      paramxcoord <- 1860
+      paramxcoord <- 1980
       legendunits <- log(seq(from = 0, to = 13.5, by = 0.1) + 1)
       legendunits_print <- "'0.0 0.7 2.0 4.0 7.0 13.0'"
-      legendunits_spacing <- 250
+      legendunits_spacing <- 275
       
       if(length(grep("_log", rulesfile)) == 0){
         rulesfile <- paste0(rulesfile,"_log")
       }
       
-      legend_xlim <- 140
-      legend_crop_extent <- 2188
+      legend_xlim <- 300
+      legend_crop_extent <- 2404
+      #legend_xlim <- 140
+      #legend_crop_extent <- 2188
     }
     
     #browser()
@@ -400,17 +395,24 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     #print legend========================================================#
     
     legras <- raster::raster(tempras)
-    legras[1:(length(legendunits)+1)]<-legendunits
-    tempras<-as(legras,"SpatialGridDataFrame")
-    tempras.g<-rgrass7::writeRAST(tempras,"tempras",flags=c("overwrite"))
-    rgrass7::execGRASS("r.support",map="tempras",units=legendname)
+    legras[1:length(legras)] <- legendunits
+    #legras[1:(length(legendunits) + 1)] <- legendunits #old implementation
+    tempras <- as(legras, "SpatialGridDataFrame")
+    tempras.g <- rgrass7::writeRAST(tempras, "tempras", flags = c("overwrite"))
+    
+    #browser()
+    #hist(as.numeric(unlist(tempras@data)))
+    #print(legendunits)
+    #print(rulesfile)
+    
+    rgrass7::execGRASS("r.support", map = "tempras", units = legendname)
     rgrass7::execGRASS("g.region", raster = "tempras")
     rgrass7::execGRASS("r.colors", map = "tempras", rules = file.path(fdir, "DF_Basefile", rulesfile))
     
-    rgrass7::execGRASS("r.to.vect",input="tempras",output="outvec",type="area",flags="overwrite")
-    rgrass7::execGRASS("v.hull",input="outvec",output="outvec2",flags="overwrite")
+    rgrass7::execGRASS("r.to.vect", input = "tempras", output = "outvec", type = "area", flags = "overwrite")
+    rgrass7::execGRASS("v.hull", input = "outvec", output = "outvec2", flags = "overwrite")
     
-    rgrass7::execGRASS("ps.map",input = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legendplot.file"),output = file.path(paste(fdir,"/QGIS_plotting",sep=""),"legend",paste("legend",".pdf",sep="")),flags="overwrite")
+    rgrass7::execGRASS("ps.map", input = file.path(paste(fdir, "/QGIS_plotting", sep = ""), "legendplot.file"), output = file.path(paste(fdir, "/QGIS_plotting", sep = ""), "legend", paste("legend", ".pdf", sep = "")), flags = "overwrite")
     
     #==================================================================#
     #browser()
