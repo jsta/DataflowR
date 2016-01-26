@@ -262,24 +262,6 @@ The \texttt{rnge} paramter takes either a single survey date or a list of two su
 grabs<-grabget(rnge=c(201402,201410))
 @
 
-\subsection{Plotting grab sample data}
-
-Several plot types are defined in the \texttt{grabplot} function including "permit-style" vertical bar plots ("permitbarplot"), and.
-
-<<eval=FALSE>>=
-grabplot(rnge=201410,params=c("chla"),plottype="permitbarplot")
-@
-%\vspace{15pt}
-
- \begin{figure}[h!]
- \begin{center}
- \includegraphics[width=3.5in,keepaspectratio=true]{figure1}
- \end{center}
- \label{fig:one}
- \end{figure}
-%\clearpage
-%\FloatBarrier
-
 \section{Data Analysis}
 \subsection{Calculating a difference-from-average surface}
 The \texttt{avmap} function takes a survey date as input and searches the \verb|DF_Surfaces| folder for interpolated surfaces of the same parameter within a specified number of months for each year. The number of months on either side of the input month is set using the \texttt{tolerance} parameter. The found surfaces often have different extents. The \texttt{percentcov} parameter controls the percent of all identified surveys required before a pixel is included in difference-from-average computations. Output surfaces are written to the current working directory unless the \texttt{tofile} parameter is set to \texttt{FALSE}.
