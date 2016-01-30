@@ -1,5 +1,6 @@
 #'@name chlmap
-#'@title Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll
+#'@title Create chlorophyll maps
+#'@description Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll
 #'@details
 #'A new interpolation is run after calculating an extracted chlorophyll for all streaming observations. Calculated values that exceed the maximum observed grab sample concentration are discarded.
 #'@param yearmon numeric date in yyyymm format
@@ -15,10 +16,7 @@
 #'}
 
 chlmap <- function(yearmon, remove.flags = TRUE, stream.qa = TRUE, fdir=getOption("fdir")){
-  #library(DataflowR)
-  #fdir<-getOption("fdir")
-  #yearmon<-201311
-  
+
   params <- c("chlaiv", "chla")
   #find coefficients that match yearmon####
   coeflist<-read.csv(file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"),header=T,na.strings="NA")[,-1]
@@ -75,6 +73,9 @@ chlmap <- function(yearmon, remove.flags = TRUE, stream.qa = TRUE, fdir=getOptio
   #TODO: ADD CHECK THAT FIT MATCHES COEFLIST
   
   dt_temp <- dt[,namelist[1:(length(namelist) - 1)]]
+  if(!(length(ncol(dt_temp)) >= 1)){ #handle one variable namelist
+    dt_temp <- data.frame(dt_temp)
+  }
   names(dt_temp) <- namelist_temp[1:(length(namelist_temp)-1)]
   
   chlext <- predict(fit, dt_temp)

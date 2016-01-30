@@ -1,5 +1,6 @@
 #'@name grabget
 #'@title aggregate grab data
+#'@description Retrieve discrete grab sample data from data directory
 #'@export
 #'@param rnge list of length two specifying date range in yyyymm format
 #'@param remove.flags logical trim dataset based on flags?
@@ -7,14 +8,11 @@
 #'@examples \dontrun{ 
 #'grabs<-grabget(rnge=c(201402,201410))
 #'}
-#'rnge<-201308
 
 grabget<-function(rnge,remove.flags=FALSE,fdir=getOption("fdir")){
-  #rnge<-200910
-  ##i=2
-  ##rnge=c(201402,201410)
-  if(length(rnge)==1){
-    rnge<-c(rnge,rnge)
+
+  if(length(rnge) == 1){
+    rnge <- c(rnge, rnge)
   }
     
   agglist<-list.files(file.path(fdir,"DF_GrabSamples"),"*.csv",include.dirs=T,full.names=T)

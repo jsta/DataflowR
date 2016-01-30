@@ -18,6 +18,9 @@ validdbhydro(yearmon, params = "chlext", tolerance = 1,
 
 \item{fdir}{file.path to data folder}
 }
+\description{
+Validate Dataflow output against DBHYDRO data
+}
 \examples{
 \dontrun{
 dbfile<-file.path("/home","jose","Documents","Science","Data","ENP_MMN","WQSuM_2015.csv")

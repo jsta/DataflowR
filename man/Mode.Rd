@@ -9,4 +9,7 @@ Mode(x)
 \arguments{
 \item{x}{numeric array}
 }
+\description{
+Returns the mode of a numeric array
+}
 

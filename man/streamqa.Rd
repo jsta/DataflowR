@@ -2,7 +2,7 @@
 % Please edit documentation in R/streamingclean.R
 \name{streamqa}
 \alias{streamqa}
-\title{Retrieve previously cleaned full streaming datasets}
+\title{Supervised quality control of streaming datasets}
 \usage{
 streamqa(yearmon, setthresh = TRUE, trimends = FALSE, paired = TRUE,
   fdir = getOption("fdir"))
@@ -21,12 +21,15 @@ streamqa(yearmon, setthresh = TRUE, trimends = FALSE, paired = TRUE,
 \value{
 a matrix of the same size/shape of the fulldataset, with entries specifying where to set to NA, saved to DF_FullDataSets/Raw/IntrumentOutput
 }
+\description{
+Supervised quality control of streaming datasets
+}
 \details{
 loop through parameters giving the opportunity to trim measurement ends, set entire variables to NA, remove variables above/below a threshold
 }
 \examples{
 \dontrun{
-dt<-streamqa(yearmon=201410)}
-
+dt<-streamqa(yearmon=201410)
+}
 }
 

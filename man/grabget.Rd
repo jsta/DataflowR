@@ -13,10 +13,12 @@ grabget(rnge, remove.flags = FALSE, fdir = getOption("fdir"))
 
 \item{fdir}{character file path to local data directory}
 }
+\description{
+Retrieve discrete grab sample data from data directory
+}
 \examples{
 \dontrun{ 
 grabs<-grabget(rnge=c(201402,201410))
 }
-rnge<-201308
 }
 

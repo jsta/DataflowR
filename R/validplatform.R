@@ -1,12 +1,11 @@
 #'@name validdbhydro
 #'@title Validate Dataflow output against DBHYDRO data
-#'@import dbhydroR
+#'@description Validate Dataflow output against DBHYDRO data
 #'@param yearmon numeric 6 character date in YYYYMM format
 #'@param params character string of parameter names
 #'@param fdir file.path to data folder
 #'@param tolerance numeric number of days pre/post streaming to search for in DBHYDRO
 #'@param dbfile file.path pointing at a cleaned database of dbhydro measurements
-#'@export
 #'@examples \dontrun{
 #'dbfile<-file.path("/home","jose","Documents","Science","Data","ENP_MMN","WQSuM_2015.csv")
 #'validdbhydro("201502",params="chlext",tolerance=10, dbfile=dbfile)

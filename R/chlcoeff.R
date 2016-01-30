@@ -1,5 +1,6 @@
 #'@name chlcoef
 #'@title calculation of extracted versus fluoresced chlorophyll coefficients
+#'@description Calculate extracted versus fluoresced chlorophyll coefficients
 #'@param yearmon numeric date of survey
 #'@param remove.flags logical trim dataset based on flags?
 #'@param overwrite logical overwrite previous coefficients?
@@ -18,9 +19,8 @@
 #'chlcoef(201308)
 #'}
 
-chlcoef<-function(yearmon,remove.flags=TRUE,overwrite=FALSE,fdir=getOption("fdir"),polypcut=0.6,corcut=0.7,streamcov=0.5,checkvif=TRUE,logtransform=FALSE){
-#yearmon=201507
-#corcut=0.5 
+chlcoef <- function(yearmon, remove.flags = TRUE, overwrite = FALSE, fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7, streamcov = 0.5, checkvif = TRUE, logtransform = FALSE){
+
 dt<-grabget(yearmon, remove.flags = remove.flags)
 
 if(logtransform==TRUE){

@@ -14,6 +14,10 @@ surfplot(rnge = c(201402, 201404), params = c("c6chl", "sal"),
 \item{params}{character. string of parameter fields to plot}
 
 \item{fdir}{character file path to local data directory}
+
+\item{yext}{numeric length 2 y extent}
+
+\item{xext}{numeric length 2 x extent}
 }
 \value{
 output plots to plot window
@@ -24,7 +28,8 @@ accounts for corner case parameter spellings, variable specific contour breaks a
 \examples{
 \dontrun{
 surfplot(rnge=c(200707), params = c("cdom"))
-surfplot(201513, c("ph", "c6turbidity", "c6chl", "c6cdom"), yext = c(2786102, 2797996), xext = c(557217, 567415))
+surfplot(201513, c("ph", "c6turbidity", "c6chl", "c6cdom"),
+yext = c(2786102, 2797996), xext = c(557217, 567415))
 }
 }
 \author{

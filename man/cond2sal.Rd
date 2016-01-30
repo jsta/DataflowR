@@ -13,12 +13,15 @@ cond2sal(c, t = 25, P = 0)
 
 \item{P}{numeric optional pressure (defaults to 0)}
 }
+\description{
+Uses the PSS-78 practical salinity equation
+}
 \details{
 algorithm based off an excel implementation by N. Iricanin
 }
 \examples{
 \dontrun{csal<-cond2sal(c=dt$cond*1000,t=dt$temp)
-plot(csal,dt$sal)
+plot(csal, dt$sal)
 abline(a=0,b=1,col="red",lwd=2)}
 }
 \seealso{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/streaminginterp.R
 \name{streaminterp}
 \alias{streaminterp}
-\title{interpolation of streaming data}
+\title{Interpolation of streaming data}
 \usage{
 streaminterp(dt, paramlist, yearmon, trim_rstack = TRUE,
   costrasname = "barrier60large2e2.tif", tname = NA, vname = NA,
@@ -17,6 +17,8 @@ streaminterp(dt, paramlist, yearmon, trim_rstack = TRUE,
 
 \item{trim_rstack}{logical trim the raster stack by the convex hull of training points?}
 
+\item{costrasname}{character file.path to cost raster}
+
 \item{tname}{file.path location to save training dataset}
 
 \item{vname}{file.path location to save validation dataset}
@@ -24,6 +26,9 @@ streaminterp(dt, paramlist, yearmon, trim_rstack = TRUE,
 \item{missprop}{numeric proportion of missing data allowed. Variables with a greater proportion of missing data will be dropped.}
 
 \item{fdir}{character file path to local data directory}
+}
+\description{
+Interpolation of streaming data
 }
 \examples{
 \dontrun{

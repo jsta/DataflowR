@@ -21,6 +21,8 @@ grassmap(rnge = c(201502), params = c("sal"), mapextent = NA,
 
 \item{labelling}{logical lablel output with yearmon?}
 
+\item{print_track}{logical print dataflow track?}
+
 \item{cleanup}{logical remove intermediate rasters and shapefiles?}
 
 \item{rotated}{logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured (not working).}

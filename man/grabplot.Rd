@@ -14,7 +14,12 @@ grabplot(rnge = c(201407, 201410), params = c("sal", "chla"),
 
 \item{plottype}{character choice of plot type}
 }
+\description{
+Plot discrete grab data
+}
 \examples{
-\dontrun{grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")}
+\dontrun{
+grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")
+}
 }
 

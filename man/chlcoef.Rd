@@ -27,6 +27,9 @@ chlcoef(yearmon, remove.flags = TRUE, overwrite = FALSE,
 
 \item{logtransform}{logical}
 }
+\description{
+Calculate extracted versus fluoresced chlorophyll coefficients
+}
 \details{
 this function should be interactive
 }

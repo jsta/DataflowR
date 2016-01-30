@@ -15,4 +15,7 @@ maxrange <- 20
 logramp(n, maxrange)
 scales::show_col(viridis::viridis_pal()(9))}
 }
+\description{
+Create a log scaled color ramp for the grassmap function
+}
 

@@ -1,5 +1,6 @@
 #'@name streaminterp
-#'@title interpolation of streaming data
+#'@title Interpolation of streaming data
+#'@description Interpolation of streaming data
 #'@param dt input data frame
 #'@param paramlist list of parameters (dt column names) to interpolate
 #'@param yearmon a file path used to extract basename
@@ -8,18 +9,19 @@
 #'@param vname file.path location to save validation dataset
 #'@param missprop numeric proportion of missing data allowed. Variables with a greater proportion of missing data will be dropped.
 #'@param fdir character file path to local data directory
+#'@param costrasname character file.path to cost raster
 #'@export
 #'@importFrom raster raster writeRaster mask
 #'@importFrom gdata resample
 #'@importFrom sp SpatialPointsDataFrame coordinates CRS spTransform proj4string
 #'@importFrom ipdw ipdwInterp pathdistGen
-#'@importFrom rgeos gConvexHull
+#'@import rgeos
 #'@examples \dontrun{
-#'dt <- streamget(yearmon = 201507, qa = TRUE)
-#'streaminterp(dt, paramlist = c("sal"), yearmon = 201507)
+#'dt <- streamget(yearmon = 201513, qa = TRUE)
+#'streaminterp(dt, paramlist = c("sal"), yearmon = 201513)
 #'}
 
-streaminterp <- function(dt, paramlist, yearmon, trim_rstack = FALSE, costrasname = "barrier60large2e2.tif", tname = NA, vname = NA, missprop = 0.16, fdir = getOption("fdir")){
+streaminterp <- function(dt, paramlist, yearmon, trim_rstack = TRUE, costrasname = "barrier60large2e2.tif", tname = NA, vname = NA, missprop = 0.16, fdir = getOption("fdir")){
     
   #define projections
   projstr <- "+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"

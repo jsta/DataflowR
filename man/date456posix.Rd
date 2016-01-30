@@ -11,6 +11,9 @@ date456posix(x, century)
 
 \item{century}{numeric century recommended choice of "19" or "20"}
 }
+\description{
+Convert numeric dates in mddyy to POSIXct
+}
 \examples{
 x<-51514
 date456posix(x,century="20")

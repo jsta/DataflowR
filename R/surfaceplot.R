@@ -5,6 +5,8 @@
 #'@param rnge numeric string of no more than two dates in yyyymm format
 #'@param params character. string of parameter fields to plot
 #'@param fdir character file path to local data directory
+#'@param yext numeric length 2 y extent
+#'@param xext numeric length 2 x extent
 #'@return output plots to plot window
 #'@importFrom rgdal readOGR
 #'@importFrom rasterVis levelplot
@@ -14,15 +16,13 @@
 #'@export
 #'@examples \dontrun{
 #'surfplot(rnge=c(200707), params = c("cdom"))
-#'surfplot(201513, c("ph", "c6turbidity", "c6chl", "c6cdom"), yext = c(2786102, 2797996), xext = c(557217, 567415))
+#'surfplot(201513, c("ph", "c6turbidity", "c6chl", "c6cdom"),
+#' yext = c(2786102, 2797996), xext = c(557217, 567415))
 #'}
 
-surfplot <- function(rnge=c(201402, 201404), params = c("c6chl", "sal"), fdir=getOption("fdir"), yext = c(2772256,2798000), xext = c(518000.2,566000)){
+surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir = getOption("fdir"), yext = c(2772256, 2798000), xext = c(518000.2, 566000)){
   print(fdir)
-  #fdir<-"/home/jose/Documents/Science/Data/Dataflow"
-  #rnge<-201410
-  #params<-"chlext"
-  
+
   fbcoast <- rgdal::readOGR(dsn = file.path(fdir, "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE)
   
   if(length(rnge) == 1){
@@ -138,6 +138,7 @@ avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance
 #'@param labelling logical lablel output with yearmon?
 #'@param mapextent numeric vector of length 4
 #'@param basin character basin name
+#'@param print_track logical print dataflow track?
 #'@return output plots to the QGIS_plotting folder
 #'@details Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory.
 #'@import rgrass7

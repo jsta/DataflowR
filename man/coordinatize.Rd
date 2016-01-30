@@ -13,7 +13,12 @@ coordinatize(dt, latname = "latdec", lonname = "londec")
 
 \item{lonname}{character column name of the "x" coordinate}
 }
+\description{
+Convert georeferenced data.frames into projected SpatialPointsDataFrames
+}
 \examples{
+\dontrun{
 dt<-coordinatize(streamget(201002), latname = "lat_dd", lonname = "lon_dd")
+}
 }
 

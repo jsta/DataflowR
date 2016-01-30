@@ -2,7 +2,7 @@
 % Please edit documentation in R/chlmap.R
 \name{chlmap}
 \alias{chlmap}
-\title{Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll}
+\title{Create chlorophyll maps}
 \usage{
 chlmap(yearmon, remove.flags = TRUE, stream.qa = TRUE,
   fdir = getOption("fdir"))
@@ -18,6 +18,9 @@ chlmap(yearmon, remove.flags = TRUE, stream.qa = TRUE,
 }
 \value{
 An extracted chlorophyll surface and an updated FullDataSet file
+}
+\description{
+Create a chlorophyll concentration surface using streaming data and regression against extracted chlorophyll
 }
 \details{
 A new interpolation is run after calculating an extracted chlorophyll for all streaming observations. Calculated values that exceed the maximum observed grab sample concentration are discarded.

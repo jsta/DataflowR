@@ -8,6 +8,7 @@
 
 #'@name Mode
 #'@title Mode
+#'@description Returns the mode of a numeric array
 #'@export
 #'@param x numeric array
 Mode<-function (x) 
@@ -18,12 +19,13 @@ Mode<-function (x)
 
 #'@name cond2sal
 #'@title Conductivity to salinity conversion
+#'@description Uses the PSS-78 practical salinity equation
 #'@export
 #'@param c numeric conducitivity in uS (measurements in mS need to multiplied by 1000)
 #'@param t numeric celcius temperature
 #'@param P numeric optional pressure (defaults to 0)
 #'@examples \dontrun{csal<-cond2sal(c=dt$cond*1000,t=dt$temp)
-#'plot(csal,dt$sal)
+#'plot(csal, dt$sal)
 #'abline(a=0,b=1,col="red",lwd=2)}
 #'@details algorithm based off an excel implementation by N. Iricanin
 #'@seealso \code{\link[wq]{ec2pss}}
@@ -80,6 +82,7 @@ cond2sal<-function (c, t = 25, P = 0)
 
 #'@name date456posix
 #'@title Convert numeric dates in mddyy to POSIXct
+#'@description Convert numeric dates in mddyy to POSIXct 
 #'@param x numeric where the first 1-2 digits specify the month attribute because leading zeros have been stripped. Also detects whether the day attributes has had stripped leading zeros.
 #'@param century numeric century recommended choice of "19" or "20"
 #'@export
@@ -89,9 +92,9 @@ cond2sal<-function (c, t = 25, P = 0)
 #'dates<-c("51514","101214","8714","1214")
 #'date456posix(dates,century="20")
 
-date456posix<-function(x,century){
-  year<-paste0(century,substring(x,(nchar(x)-1),nchar(x)))
-  day<-substring(x,(nchar(x)-3),nchar(x)-2)
+date456posix <- function(x, century){
+  year <- paste0(century, substring(x, (nchar(x) - 1), nchar(x)))
+  day <- substring(x, (nchar(x) - 3), nchar(x) - 2)
   
   if(any(as.numeric(day)>31)){
     day<-as.character(sapply(day,function(x){
@@ -124,13 +127,15 @@ date456posix<-function(x,century){
 
 #'@name coordinatize
 #'@title Convert georeferenced data.frames into projected SpatialPointsDataFrames
+#'@description Convert georeferenced data.frames into projected SpatialPointsDataFrames
 #'@param latname character column name of the "y" coordinate
 #'@param lonname character column name of the "x" coordinate
 #'@param dt data.frame with two coordinate columns
 #'@export
-#'@examples
+#'@examples \dontrun{
 #'dt<-coordinatize(streamget(201002), latname = "lat_dd", lonname = "lon_dd")
-coordinatize<-function(dt,latname="latdec",lonname="londec"){
+#'}
+coordinatize <- function(dt, latname = "latdec", lonname = "londec"){
   projstr<-"+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
   latlonproj<-"+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
   
@@ -145,6 +150,7 @@ coordinatize<-function(dt,latname="latdec",lonname="londec"){
 
 #'@name logramp
 #'@title Create a log scaled color ramp for the grassmap function
+#'@description Create a log scaled color ramp for the grassmap function
 #'@export
 #'@import viridis
 #'@import scales 
@@ -160,4 +166,35 @@ logramp <- function(n, maxrange){
   #'scales::show_col(viridis::viridis_pal()(9))
   
   list(breaks = breaks, displaybreaks = displaybreaks, rgb = t(col2rgb(viridis::viridis(n))))
+}
+
+#'@name mdy2mmyyyy
+#'@title convert m/d/yy to mm/dd/yyyy
+#'@description Pads dates in preparation for POSIX coercion
+#'@param x character date to be formatted
+#'@export
+#'@examples
+#' x <- "5/5/15"
+#' mdy2mmyyyy(x)
+mdy2mmyyyy <- function(x){
+  
+  #strsplit based on "/"
+  month <- strsplit(x, "/")[[1]][1]
+  if(nchar(month) < 2){
+    month <- paste("0", month, sep="")
+  }
+  day <- strsplit(x, "/")[[1]][2]
+  if(nchar(day) < 2){
+    day <- paste("0", day ,sep="")
+  }
+  year <- strsplit(x, "/")[[1]][3]
+  if(nchar(year) < 3 & as.numeric(year) < 80){
+    year <- paste("20", year, sep="")
+  }else{
+    if(nchar(year) < 3){
+      year <- paste("19", year, sep="")
+    }
+  }
+  
+  paste(month, "/", day, "/", year, sep="")
 }

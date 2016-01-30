@@ -1,9 +1,14 @@
 #'@name streamclean
 #'@title Cleaning raw streaming Dataflow output
+#'@description Cleaning raw streaming Dataflow, C6, Eureka-Manta, and YSI-Exo output
 #'@param yearmon numeric designation of survey date formatted as yyyymm
 #'@param mmin minimum measurement frequency (# measurements/min)
 #'@param c6mmin integer optional minimum c6 measurement frequency if different than mmin
 #'@param c6pres logical was C6 data collected?
+#'@param eummin integer optional minimum eureka measurement frequency if different than mmin
+#'@param eupres logical was eureka data collected?
+#'@param exommin integer optional minimum exo measurement frequency if different than mmin
+#'@param exopres logical was exo data collected?
 #'@param tofile logical save cleaned output to DF_FullDataSets?
 #'@param sep character optional predesignation of item seperation character in raw data files
 #'@param fdir character file path to local data directory
@@ -14,10 +19,11 @@
 #'@details Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. Bad DO columns must sometimes be removed manually. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon
 #'@examples \dontrun{
 #'dt <- streamclean(yearmon = 201505, mmin = 7, c6mmin = 10, tofile = FALSE, c6pres = TRUE)
-#'dt <- streamclean(yearmon = 201513, mmin = 7, c6pres = TRUE, c6mmin = 12, tofile = FALSE, exommin = 60, exopres = TRUE, eupres = TRUE, eummin = 12)
+#'dt <- streamclean(yearmon = 201513, mmin = 7, c6pres = TRUE, c6mmin = 12,
+#' tofile = FALSE, exommin = 60, exopres = TRUE, eupres = TRUE, eummin = 12)
 #'}
 
-streamclean<-function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, eupres = FALSE, exommin = NA, exopres = FALSE, tofile = FALSE, sep = ",", fdir = getOption("fdir")){
+streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, eupres = FALSE, exommin = NA, exopres = FALSE, tofile = FALSE, sep = ",", fdir = getOption("fdir")){
   
   options(warn = -1)  
   fdir_fd <- file.path(fdir, "DF_FullDataSets", "Raw", "InstrumentOutput")
@@ -48,12 +54,8 @@ streamclean<-function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, eu
     warning("Differing numbers of Dataflow and C6 input files")
   }
     
-  #print(paste("cleaning the following Dataflow files:", dflist))
-  #print(paste("cleaning the following C6 files:", c6list))
-
   reslist <- list()
   for(i in 1:length(dflist)){
-    #i <- 1
     sep<-","
     dt <- read.csv(dflist[i],skip=0,header=F,sep=sep)#start with comma sep
         
@@ -96,7 +98,7 @@ streamclean<-function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, eu
       dt<-dt[,-4:-5]
     }
     
-    dt<-dt[,apply(dt,2,function(x) abs(sum(as.numeric(x),na.rm=T))>22)]#take out all 0 (22 or 38 is an arbitrary "tolerance" value)
+    dt <- dt[,apply(dt, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) > 22)]#take out all 0 (22 or 38 is an arbitrary "tolerance" value)
     ones<-apply(dt,2,function(x) sd(as.numeric(x)[as.numeric(x)!=0 & !is.na(as.numeric(x))]))!=0
     ones[is.na(ones)]<-TRUE
     ones[1:2]<-TRUE
@@ -327,7 +329,7 @@ streamclean<-function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, eu
       if(length(eudfmatch) != 0){
         eu <- read.csv(eulist[eudfmatch], header = TRUE, stringsAsFactors = FALSE)#[,c(1:13, 17:18)]
         names(eu) <- tolower(make.names(names(eu)))
-        eu$datetime <- paste(sapply(eu$date, function(x) jsta::mdy2mmyyyy(x)), eu$time)
+        eu$datetime <- paste(sapply(eu$date, function(x) mdy2mmyyyy(x)), eu$time)
         
         #check for mismatched eu-df measurement frequency
         dtfreq <- max(dt$sec.x[2] - dt$sec.x[1], dt$sec.x[3] - dt$sec.x[2])
@@ -510,13 +512,15 @@ dt
 
 #'@name streamget
 #'@title Retrieve previously cleaned full streaming datasets
+#'@description Retrieve previously cleaned full streaming datasets
 #'@param yearmon numeric date in yyyymm format
 #'@param fdir character file path to local data directory
 #'@param qa logical strip flagged data?
 #'@export
 #'@examples \dontrun{
 #'yearmon<-201311
-#'dt<-streamget(yearmon)}
+#'dt<-streamget(yearmon)
+#'}
 
 streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
   fdir_fd <- file.path(fdir, "DF_FullDataSets")
@@ -541,7 +545,8 @@ streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
 }
 
 #'@name streamqa
-#'@title Retrieve previously cleaned full streaming datasets
+#'@title Supervised quality control of streaming datasets
+#'@description Supervised quality control of streaming datasets
 #'@param yearmon numeric date in yyyymm format
 #'@param setthresh logical set parameter thresholds
 #'@param trimends logical look to trim ends of data stream? NOT IMPLEMENTED YET
@@ -551,8 +556,9 @@ streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
 #'@return a matrix of the same size/shape of the fulldataset, with entries specifying where to set to NA, saved to DF_FullDataSets/Raw/IntrumentOutput
 #'@export
 #'@examples \dontrun{
-#'dt<-streamqa(yearmon=201410)}
-#'
+#'dt<-streamqa(yearmon=201410)
+#'}
+
 streamqa<-function(yearmon,setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOption("fdir")){
   #yearmon=200904
   dt<-streamget(yearmon)
@@ -773,10 +779,3 @@ fluor,chla",sep=",")
   }
 }
 
-
-#'@name clean_eureka
-#'@title Clean eureka sonde data
-clean_eureka <- function(){
-  
-  
-}

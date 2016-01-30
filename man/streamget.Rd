@@ -13,9 +13,13 @@ streamget(yearmon, qa = TRUE, fdir = getOption("fdir"))
 
 \item{fdir}{character file path to local data directory}
 }
+\description{
+Retrieve previously cleaned full streaming datasets
+}
 \examples{
 \dontrun{
 yearmon<-201311
-dt<-streamget(yearmon)}
+dt<-streamget(yearmon)
+}
 }
 

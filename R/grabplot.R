@@ -1,10 +1,13 @@
 #'@name grabplot
 #'@title plotting grab data
+#'@description Plot discrete grab data
 #'@export
 #'@param rnge list of length two specifying date range in yyyymm format
 #'@param params character list of parameters to plot
 #'@param plottype character choice of plot type 
-#'@examples \dontrun{grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")}
+#'@examples \dontrun{
+#'grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")
+#'}
 
 grabplot<-function(rnge=c(201407,201410),params=c("sal","chla"),plottype="permitbarplot"){#a file with all msrmnts does not yet exist
   
