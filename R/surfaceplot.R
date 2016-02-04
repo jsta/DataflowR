@@ -84,45 +84,47 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
 #'@export
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@examples \dontrun{
-#'avmap(yearmon=201505,params="sal",tofile=FALSE,percentcov=0.6,tolerance=1,fdir=fdir)}
+#'avmap(yearmon = 201505, params = "sal", tofile = FALSE, percentcov = 0.6, tolerance = 1, fdir = fdir)}
 
 avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 0.6, tolerance = 1, fdir = getOption("fdir")){
   
-  flist.full<-list.files(file.path(fdir,"DF_Surfaces"),pattern="*.grd",recursive=T,include.dirs=T,full.names=T)
-  flist<-flist.full[basename(flist.full)==paste(toupper(params),".grd",sep="")|basename(flist.full)==paste(tolower(params),".grd",sep="")]
+  flist.full <- list.files(file.path(fdir, "DF_Surfaces"), pattern = "*.grd", recursive = T, include.dirs = T, full.names = T)
+  flist <- flist.full[basename(flist.full) == paste(toupper(params), ".grd", sep = "") | basename(flist.full) == paste(tolower(params), ".grd", sep = "")]
   
-  sdates<-data.frame(matrix(unlist(strsplit(dirname(flist),"/")),nrow=length(flist),byrow=T))
-  sdates<-substring(sdates[,ncol(sdates)],1,6)
+  sdates <- data.frame(matrix(unlist(strsplit(dirname(flist), "/")), nrow = length(flist), byrow = T))
+  sdates <- substring(sdates[,ncol(sdates)], 1, 6)
   
-  cursurf<-raster::raster(flist[which(sdates==yearmon)])
-  flist<-flist[-which(sdates==yearmon)]
-  sdates<-sdates[-which(sdates==yearmon)]
+  cursurf <- raster::raster(flist[which(sdates == yearmon)])
+  flist <- flist[-which(sdates == yearmon)]
+  sdates <- sdates[-which(sdates == yearmon)]
     
-  curmon<-as.numeric(substring(yearmon,5,6))
-  saveflist<-flist
-  flist<-flist[as.numeric(substring(sdates,5,6))<=curmon+tolerance&as.numeric(substring(sdates,5,6))>=curmon-tolerance]
-  remlist<-which(is.na(flist))
-  if(length(remlist)>0){
-  flist<-flist[-remlist]
+  curmon <-as.numeric(substring(yearmon, 5, 6))
+  
+  flist <- flist[as.numeric(substring(sdates, 5, 6)) <= curmon + tolerance & as.numeric(substring(sdates, 5, 6)) >= curmon - tolerance]
+  remlist <- which(is.na(flist))
+  if(length(remlist) > 0){
+    flist <- flist[-remlist]
   }
   
-  sdates<-data.frame(matrix(unlist(strsplit(dirname(flist),"/")),nrow=length(flist),byrow=T))
-  sdates<-substring(sdates[,ncol(sdates)],1,6)
+  #move this chunk below stack calculations?
+  sdates <- data.frame(matrix(unlist(strsplit(dirname(flist), "/")), nrow = length(flist), byrow = T))
+  sdates <- substring(sdates[,ncol(sdates)], 1, 6)
   
-  rstack<-raster::stack(flist)
-  rstack<-raster::reclassify(rstack,c(-Inf,0,NA))
-  rmean<-raster::calc(rstack,fun=mean,na.rm=T)
-  rlen<-sum(!is.na(rstack))
+  rstack <- raster::stack(flist)
+  rstack <- raster::reclassify(rstack, c(-Inf, 0, NA))
+  rmean <- raster::calc(rstack, fun = mean, na.rm = T)
+  rlen <- sum(!is.na(rstack))
   
-  rmean[rlen<(percentcov*length(flist))]<-NA
+  rmean[rlen < (percentcov * length(flist))] <- NA
   
-  plot(rmean,main=paste("Average",params,sdates[1],"-",sdates[length(sdates)],sep=" "))
-  plot(cursurf-rmean,main="Difference from Average")
+#plotting===============================================================#
+  plot(rmean, main = paste("Average", params, sdates[1], "-", sdates[length(sdates)], sep = " "))
+  plot(cursurf - rmean, main = "Difference from Average")
   
-  if(tofile==TRUE){
-  #raster::writeRaster(rmean,"meansurf.tif",format="GTiff",overwrite=T)
-  #raster::writeRaster(cursurf,"cursurf.tif",format="GTiff",overwrite=T)
-  raster::writeRaster((cursurf-rmean),file.path(fdir,"DF_Surfaces",yearmon,paste0("diff",params,".tif")),format="GTiff",overwrite=T)
+  if(tofile == TRUE){
+    #raster::writeRaster(rmean,"meansurf.tif",format="GTiff",overwrite=T)
+    #raster::writeRaster(cursurf,"cursurf.tif",format="GTiff",overwrite=T)
+    raster::writeRaster((cursurf - rmean), file.path(fdir, "DF_Surfaces", yearmon, paste0("diff", params, ".tif")), format = "GTiff", overwrite = T)
   }
 }
 
