@@ -64,7 +64,7 @@ The \texttt{R} package \texttt{DataflowR} is distributed via a \texttt{.tar.gz} 
 
 \begin{Schunk}
 \begin{Sinput}
-> install.packages(path.to.zip,type="win.binary",repos=NULL,dependencies = TRUE)
+> install.packages(path.to.zip, type = "win.binary", repos = NULL, dependencies = TRUE)
 \end{Sinput}
 \end{Schunk}
 
@@ -145,9 +145,9 @@ Some portions of \nameref{sec:plottingsurf} (Section 4.5) requires dedicated GIS
 \end{warning}
 
 \section{Handling streaming data}
-\subsection{Cleaning incoming Dataflow and C6 files}
+\subsection{Cleaning incoming streaming data files}
 
-Incoming streaming data should be placed in \verb|DF_FullDataSets|\texttt{/Raw/InstrumentOutput} in a folder named for the survey date in yyyymm format (e.g. Feb-2015 is 201502). Likewise, Dataflow (\texttt{".txt"} or \texttt{".TXT"}) and C6 (\texttt{".csv"} or \texttt{".CSV"})  files should start with the survey date in yyyymmdd format. For example, the raw data files for February 2015 would be placed under:
+Incoming streaming data should be placed in \verb|DF_FullDataSets|\texttt{/Raw/InstrumentOutput} in a folder named for the survey date in yyyymm format (e.g. Feb-2015 is 201502). Likewise, Dataflow (\texttt{".txt"} or \texttt{".TXT"}), C6 (\texttt{".csv"} or \texttt{".CSV"}), Exo, and Eureka  files should start with the survey date in yyyymmdd format. For example, the raw data files for February 2015 would be placed under:
 
 
 \dirtree{%
@@ -158,8 +158,9 @@ Incoming streaming data should be placed in \verb|DF_FullDataSets|\texttt{/Raw/I
 .5 InstrumentOutput.
 .6 201502.
 .7 20150211\_DF021115.txt.
-.7 ....
 .7 20150211\_C6\_11FEB.csv.
+.7 20150211\_11FEB\_eu.csv.
+.7 20150211\_11FEB\_exo.csv.
 .7 ....
 }
 \begin{warning}
@@ -171,7 +172,18 @@ Cleaning is accomplished via the \nohyphens{\texttt{streamclean}} function. The 
 
 \begin{Schunk}
 \begin{Sinput}
-> dt<-streamclean(yearmon=201502,mmin=7,c6pres=TRUE,tofile=FALSE,sep=",")
+> dt <- streamclean(yearmon = 201502, mmin = 7, c6pres = TRUE, tofile = FALSE,
++                   sep = ",")
+\end{Sinput}
+\end{Schunk}
+
+If the survey includes Eureka (Manata) or Exo output, this can be included by setting \texttt{eupres} and(or) \texttt{exopres} to \texttt{TRUE} as in the following example:
+
+\begin{Schunk}
+\begin{Sinput}
+> dt <- streamclean(yearmon = 201513, mmin = 7, c6pres = TRUE,
++                   c6mmin = 12, tofile = FALSE, exommin = 60,
++                   exopres = TRUE, eupres = TRUE, eummin = 12)
 \end{Sinput}
 \end{Schunk}
 
@@ -179,7 +191,7 @@ Some older Dataflow surveys have undergone a "hand-cleaning" and are missing the
 
 \begin{Schunk}
 \begin{Sinput}
-> dt<-streamparse(yearmon=201007,tofile=FALSE)
+> dt <- streamparse(yearmon = 201007, tofile = FALSE)
 \end{Sinput}
 \end{Schunk}
 
@@ -192,7 +204,7 @@ Cleaned data files are not modified directly. Instead, \texttt{streamqa} creates
 
 \begin{Schunk}
 \begin{Sinput}
-> streamqa(yearmon=201502)
+> streamqa(yearmon = 201502)
 \end{Sinput}
 \end{Schunk}
 
@@ -204,7 +216,7 @@ The \texttt{streamget} function will retrieve previously cleaned data. The funct
 
 \begin{Schunk}
 \begin{Sinput}
-> dt<-streamget(yearmon=201502,qa=TRUE)
+> dt <- streamget(yearmon = 201502, qa = TRUE)
 \end{Sinput}
 \end{Schunk}
 
@@ -218,7 +230,7 @@ More details regarding the interpolation procedure can be found in \cite{stachel
 
 \begin{Schunk}
 \begin{Sinput}
-> streaminterp(dt,paramlist=c("sal"),yearmon)
+> streaminterp(dt, paramlist = c("sal"), yearmon)
 \end{Sinput}
 \end{Schunk}
 
@@ -230,7 +242,7 @@ A quick visual inspection of interpolated outputs can be accomplished using the 
 
 \begin{Schunk}
 \begin{Sinput}
-> surfplot(rnge=c(201502),params=c("sal"))
+> surfplot(rnge = c(201502), params = c("sal"))
 \end{Sinput}
 \end{Schunk}
 
@@ -249,7 +261,7 @@ The \texttt{grassmap} function creates detailed publication quality maps using G
 
 \begin{Schunk}
 \begin{Sinput}
-> grassmap(rnge=201505,params=c("sal"))
+> grassmap(rnge = 201505, params = c("sal"))
 \end{Sinput}
 \end{Schunk}
 
@@ -259,7 +271,7 @@ The \texttt{basin} parameter of the \texttt{grassmap} function allows the user t
 
 \begin{Schunk}
 \begin{Sinput}
-> grassmap(rnge=c(200605,201505),params=c("sal"),basin = "Manatee Bay")
+> grassmap(rnge = c(200605, 201505), params = c("sal"), basin = "Manatee Bay")
 \end{Sinput}
 \end{Schunk}
 
@@ -270,7 +282,7 @@ Incoming grab sample \texttt{.csv} data files should be placed in the \verb|DF_G
 
 \begin{Schunk}
 \begin{Sinput}
-> grabclean(yearmon=201410,tofile=FALSE)
+> grabclean(yearmon = 201410, tofile = FALSE)
 \end{Sinput}
 \end{Schunk}
 
@@ -280,29 +292,9 @@ The \texttt{rnge} paramter takes either a single survey date or a list of two su
 
 \begin{Schunk}
 \begin{Sinput}
-> grabs<-grabget(rnge=c(201402,201410))
+> grabs <- grabget(rnge = c(201402, 201410))
 \end{Sinput}
 \end{Schunk}
-
-\subsection{Plotting grab sample data}
-
-Several plot types are defined in the \texttt{grabplot} function including "permit-style" vertical bar plots ("permitbarplot"), and.
-
-\begin{Schunk}
-\begin{Sinput}
-> grabplot(rnge=201410,params=c("chla"),plottype="permitbarplot")
-\end{Sinput}
-\end{Schunk}
-%\vspace{15pt}
-
- \begin{figure}[h!]
- \begin{center}
- \includegraphics[width=3.5in,keepaspectratio=true]{figure1}
- \end{center}
- \label{fig:one}
- \end{figure}
-%\clearpage
-%\FloatBarrier
 
 \section{Data Analysis}
 \subsection{Calculating a difference-from-average surface}
@@ -310,7 +302,8 @@ The \texttt{avmap} function takes a survey date as input and searches the \verb|
 
 \begin{Schunk}
 \begin{Sinput}
-> avmap(yearmon=201502,params="sal",tofile=TRUE,percentcov=0.6,tolerance=1)
+> avmap(yearmon = 201502, params = "sal", tofile = TRUE, percentcov = 0.6,
++       tolerance = 1)
 \end{Sinput}
 \end{Schunk}
 
@@ -331,7 +324,7 @@ The final set of variable coefficients, the R\textsuperscript{2} value, the p-va
 
 \begin{Schunk}
 \begin{Sinput}
-> chlcoef(yearmon=201502,remove.flags=TRUE)
+> chlcoef(yearmon = 201502, remove.flags = TRUE)
 \end{Sinput}
 \end{Schunk}
 
@@ -341,7 +334,7 @@ The coefficients calculated as a result of the \texttt{chlcoef} function can be 
 
 \begin{Schunk}
 \begin{Sinput}
-> chlmap(yearmon=201502)
+> chlmap(yearmon = 201502)
 \end{Sinput}
 \end{Schunk}
 

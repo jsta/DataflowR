@@ -114,13 +114,13 @@ chlmap <- function(yearmon, remove.flags = TRUE, stream.qa = TRUE, fdir=getOptio
   dt$chlext_hi <- chlext_hi
   
   
-  if(file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))){
-  qafile<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))
-  qafile$chlext<-NA
-  write.csv(qafile,file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))
+  if(file.exists(file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = "")))){
+    qafile <- read.csv(file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = "")))
+    qafile$chlext <- NA
+    write.csv(qafile, file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = "")))
   }
   
-  dtname<-file.path(fdir,.Platform$file.sep,"DF_FullDataSets",.Platform$file.sep,yearmon,"j.csv",fsep="")
+  dtname <- file.path(fdir, .Platform$file.sep, "DF_FullDataSets",.Platform$file.sep, yearmon, "j.csv", fsep = "")
   write.csv(dt,dtname,row.names = FALSE)
   
   if(file.exists(file.path(fdir,paste0("/DF_Subsets/chlext",yearmon,".csv"),fsep=""))){

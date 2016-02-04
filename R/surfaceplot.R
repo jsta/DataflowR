@@ -86,7 +86,7 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
 #'@examples \dontrun{
 #'avmap(yearmon=201505,params="sal",tofile=FALSE,percentcov=0.6,tolerance=1,fdir=fdir)}
 
-avmap<-function(yearmon=201505,params="sal",tofile=TRUE,percentcov=0.6,tolerance=1,fdir=getOption("fdir")){
+avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 0.6, tolerance = 1, fdir = getOption("fdir")){
   
   flist.full<-list.files(file.path(fdir,"DF_Surfaces"),pattern="*.grd",recursive=T,include.dirs=T,full.names=T)
   flist<-flist.full[basename(flist.full)==paste(toupper(params),".grd",sep="")|basename(flist.full)==paste(tolower(params),".grd",sep="")]
