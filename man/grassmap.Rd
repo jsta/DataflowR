@@ -4,11 +4,13 @@
 \alias{grassmap}
 \title{Publication quality maps with GRASS}
 \usage{
-grassmap(rnge = c(201502), params = c("sal"), mapextent = NA,
+grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
   fdir = getOption("fdir"), basin = "full", labelling = TRUE,
   print_track = FALSE, cleanup = TRUE, rotated = TRUE)
 }
 \arguments{
+\item{fpath}{file.path to geotiff file}
+
 \item{rnge}{numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.}
 
 \item{params}{character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal}
@@ -34,7 +36,7 @@ output plots to the QGIS_plotting folder
 not finished yet
 }
 \details{
-Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory.
+Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff.
 }
 \examples{
 \dontrun{
@@ -48,6 +50,7 @@ grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 27
 grassmap(rnge=c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 grassmap(rnge=c(201512), params = "sal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
+grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
 
 #create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 logramp(n = 9, maxrange = 20) #chlext

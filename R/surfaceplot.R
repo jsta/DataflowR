@@ -84,10 +84,13 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
 #'@export
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@examples \dontrun{
-#'avmap(yearmon = 201505, params = "sal", tofile = FALSE, percentcov = 0.6, tolerance = 1, fdir = fdir)}
+#'avmap(yearmon = 201505, params = "sal", tofile = FALSE, percentcov = 0.6, tolerance = 1, fdir = fdir)
+#'avmap(yearmon = 201505, params = "sal", tofile = FALSE)
+#'}
 
 avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 0.6, tolerance = 1, fdir = getOption("fdir")){
-  
+
+#generate-flist=========================================================#
   flist.full <- list.files(file.path(fdir, "DF_Surfaces"), pattern = "*.grd", recursive = T, include.dirs = T, full.names = T)
   flist <- flist.full[basename(flist.full) == paste(toupper(params), ".grd", sep = "") | basename(flist.full) == paste(tolower(params), ".grd", sep = "")]
   
@@ -105,33 +108,38 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
   if(length(remlist) > 0){
     flist <- flist[-remlist]
   }
-  
-  #move this chunk below stack calculations?
-  sdates <- data.frame(matrix(unlist(strsplit(dirname(flist), "/")), nrow = length(flist), byrow = T))
-  sdates <- substring(sdates[,ncol(sdates)], 1, 6)
-  
+
+#stack-and-calculate====================================================#
   rstack <- raster::stack(flist)
   rstack <- raster::reclassify(rstack, c(-Inf, 0, NA))
   rmean <- raster::calc(rstack, fun = mean, na.rm = T)
   rlen <- sum(!is.na(rstack))
   
   rmean[rlen < (percentcov * length(flist))] <- NA
+  res <- cursurf - rmean
   
 #plotting===============================================================#
-  plot(rmean, main = paste("Average", params, sdates[1], "-", sdates[length(sdates)], sep = " "))
-  plot(cursurf - rmean, main = "Difference from Average")
+  sdates <- data.frame(matrix(unlist(strsplit(dirname(flist), "/")), nrow = length(flist), byrow = T))
+  sdates <- substring(sdates[,ncol(sdates)], 1, 6)
   
+  sp::plot(rmean, main = paste("Average", params, sdates[1], "-", sdates[length(sdates)], sep = " "))
+  sp::plot(cursurf - rmean, main = "Difference from Average")
+
+#save-to-file===========================================================#
   if(tofile == TRUE){
-    #raster::writeRaster(rmean,"meansurf.tif",format="GTiff",overwrite=T)
-    #raster::writeRaster(cursurf,"cursurf.tif",format="GTiff",overwrite=T)
+    #raster::writeRaster(rmean, "meansurf.tif", format = "GTiff", overwrite = T)
+    #raster::writeRaster(cursurf, "cursurf.tif", format = "GTiff", overwrite = T)
     raster::writeRaster((cursurf - rmean), file.path(fdir, "DF_Surfaces", yearmon, paste0("diff", params, ".tif")), format = "GTiff", overwrite = T)
   }
+  
+  res
 }
 
 #'@name grassmap
 #'@title Publication quality maps with GRASS
 #'@description not finished yet
 #'@author Joseph Stachelek
+#'@param fpath file.path to geotiff file
 #'@param rnge numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.
 #'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal
 #'@param fdir character file path to local data directory
@@ -142,7 +150,7 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'@param basin character basin name
 #'@param print_track logical print dataflow track?
 #'@return output plots to the QGIS_plotting folder
-#'@details Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory.
+#'@details Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff.
 #'@import rgrass7
 #'@import maptools
 #'@import rgeos
@@ -158,58 +166,71 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'grassmap(rnge=c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201512), params = "sal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
+#'grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
 #'
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 #'logramp(n = 9, maxrange = 20) #chlext
 #'scales::show_col(viridis::viridis_pal()(9))
 #'}
 
-grassmap <- function(rnge = c(201502), params = c("sal"), mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
+grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
 
-  #detect operating system####
   if(as.character(Sys.info()["sysname"]) != "Linux"){
     stop("This function only works with Linux!")
   }
   
-  if(length(rnge) == 1){
-    rnge <- c(rnge, rnge)
-  }
-  
-  namesalias <- read.table(text = "
-                         chlorophyll.a c6chl
-                         c6chla c6chl
-                         ")
-  
-  paramkey <- read.table(text = "sal,salrules.file
+  paramkey <- read.table(text = "
+sal,salrules.file
 chlext,chlextrules.file
 chlext_low,chlextrules.file
 chlext_hi,chlextrules.file
-diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
+diffsal,diffsalrules.file",
+  sep = ",", stringsAsFactors = FALSE)
   rulesfile <- paramkey[which(params == paramkey[,1]), 2]
   
-  dirlist <- list.dirs(file.path(fdir, "DF_Surfaces"), recursive = F)
-  minrnge<-min(which(substring(basename(dirlist),1,6)>=rnge[1]))
-  maxrnge<-max(which(substring(basename(dirlist),1,6)<=rnge[2]))
-  rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.tif$")
-  plist<-tolower(sub("[.][^.]*$","",basename(rlist)))
-  
-  for(n in 1:length(plist)){
-    if(any(plist[n]==namesalias[,1])){
-      plist[n]<-as.character(namesalias[which(plist[n]==namesalias[,1]),2])
+  create_rlist <- function(rnge, params){
+    if(length(rnge) == 1){
+      rnge <- c(rnge, rnge)
     }
-  }
-  
-  if(length(rnge) > 2){
-    rnge <- rnge[order(rnge)]
-    rlist <- list.files(dirlist[which(substring(basename(dirlist), 1, 6) %in% rnge)], full.names = T, include.dirs = T, pattern = "\\.tif$")
+    
+    namesalias <- read.table(text = "
+                         chlorophyll.a c6chl
+                         c6chla c6chl
+                         ")
+    
+    dirlist <- list.dirs(file.path(fdir, "DF_Surfaces"), recursive = F)
+    minrnge <- min(which(substring(basename(dirlist), 1, 6) >= rnge[1]))
+    maxrnge <- max(which(substring(basename(dirlist), 1, 6) <= rnge[2]))
+    rlist <- list.files(dirlist[minrnge:maxrnge], full.names = T, include.dirs = T, pattern = "\\.tif$")
     plist <- tolower(sub("[.][^.]*$", "", basename(rlist)))
+    
+    for(n in 1:length(plist)){
+      if(any(plist[n] == namesalias[,1])){
+        plist[n] <- as.character(namesalias[which(plist[n] == namesalias[,1]), 2])
+      }
+    }
+    
+    if(length(rnge) > 2){
+      rnge <- rnge[order(rnge)]
+      rlist <- list.files(dirlist[which(substring(basename(dirlist), 1, 6) %in% rnge)], full.names = T, include.dirs = T, pattern = "\\.tif$")
+      plist <- tolower(sub("[.][^.]*$", "", basename(rlist)))
+    }
+    
+    rlist <- rlist[which(!is.na(match(plist, params)))]
+    plist <- plist[which(!is.na(match(plist, params)))]
+    list(rlist = rlist, plist = plist)
   }
   
-  rlist <- rlist[which(!is.na(match(plist, params)))]
-  plist <- plist[which(!is.na(match(plist, params)))]
+  if(length(fpath) == 0){
+    rlist <- create_rlist(rnge = rnge, params = params)$rlist
+    plist <- create_rlist(rnge = rnge, params = params)$plist
+  }else{
+    rlist <- fpath
+    plist <- rep(params, each = length(rlist))
+  }
   
   fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
-  fboutline <- rgdal::readOGR(dsn=file.path(getOption("fdir"), "DF_Basefile/FBcoast_big.shp"),layer="FBcoast_big",verbose=FALSE)
+  fboutline <- rgdal::readOGR(dsn = file.path(getOption("fdir"), "DF_Basefile/FBcoast_big.shp"), layer = "FBcoast_big", verbose = FALSE)
   
   if(print_track == TRUE){
     surveytrack <- coordinatize(streamget(rnge[1]), latname = "lat_dd", lonname = "lon_dd")
@@ -219,11 +240,11 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
   print(rlist)
   
   for(i in 1:length(rlist)){
-    if(basin!="full"){
-      firstras<-raster::raster(rlist[1])
-      firstras<-raster::crop(firstras, fathombasins[fathombasins$NAME == basin,])
+    if(basin != "full"){
+      firstras <- raster::raster(rlist[1])
+      firstras <- raster::crop(firstras, fathombasins[fathombasins$NAME == basin,])
     }else{
-      firstras<-raster::raster(rlist[i])
+      firstras <- raster::raster(rlist[i])
     }
     
     if(basin != "full"){
@@ -354,7 +375,7 @@ diffsal,diffsalrules.file", sep = ",", stringsAsFactors = FALSE)
 
 #==================================================================#
 
-    legendalias <- read.table(text="chlext,Chlorophyll (ug/L)
+    legendalias <- read.table(text = "chlext,Chlorophyll (ug/L)
 chlext_low,Chlorophyll (ug/L)
 chlext_hi,Chlorophyll (ug/L)
 sal,Salinity
@@ -364,7 +385,7 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     
     if(params == "sal"){
       paramxcoord <- 2160
-      legendunits<-seq(from=5,to=54,by=0.1)
+      legendunits<-seq(from = 5,to = 54,by = 0.1)
       legendunits_print <- "'5 10 15 20 25 30 35 40'"
       legendunits_spacing <- 220
       legend_xlim <- 270
