@@ -15,41 +15,41 @@
 #'res <- chlmap(yearmon = 201502)
 #'}
 
-chlmap <- function(yearmon, remove.flags = TRUE, stream.qa = TRUE, fdir=getOption("fdir")){
+chlmap <- function(yearmon, remove.flags = TRUE, stream.qa = TRUE, fdir = getOption("fdir")){
 
   params <- c("chlaiv", "chla")
   #find coefficients that match yearmon####
-  coeflist<-read.csv(file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"),header=T,na.strings="NA")[,-1]
-  names(coeflist)<-tolower(names(coeflist))
-  model<-coeflist[coeflist$yearmon==yearmon,"model"]
+  coeflist <- read.csv(file.path(fdir, "DF_GrabSamples", "extractChlcoef2.csv"), header = T, na.strings = "NA")[,-1]
+  names(coeflist) <- tolower(names(coeflist))
+  model <- coeflist[coeflist$yearmon == yearmon, "model"]
   
-  if(length(model)==0){
+  if(length(model) == 0){
     stop("No chl model fit for this survey")
   }
   
-  coeflist<-coeflist[coeflist$yearmon==yearmon,4:16]
-  namelist<-names(coeflist)[which(!is.na(coeflist))]
-  coeflist<-coeflist[!is.na(coeflist)]
-  namelist_sq<-namelist[grep("2",namelist)]
+  coeflist <- coeflist[coeflist$yearmon == yearmon, 4:16]
+  namelist <- names(coeflist)[which(!is.na(coeflist))]
+  coeflist <- coeflist[!is.na(coeflist)]
+  namelist_sq <- namelist[grep("2", namelist)]
   
-  namesalias<-read.table(text="
+  namesalias <- read.table(text = "
                        c6chla c6chl
                        chla chlaiv 
                          ")
   
   for(n in 1:length(namelist)){
-    if(any(namelist[n]==namesalias[,2])){
-      namelist[n]<-as.character(namesalias[which(namelist[n]==namesalias[,2]),1])
+    if(any(namelist[n] == namesalias[,2])){
+      namelist[n] <- as.character(namesalias[which(namelist[n] == namesalias[,2]), 1])
     }
   }
   
-  if(length(namelist_sq)>0){
-  namelist_sq<-sapply(namelist_sq,function(x) substring(x,1,(nchar(x)-1)))
-  for(n in 1:length(namelist_sq)){
-    if(any(namelist_sq[n]==namesalias[,2])){
-      namelist_sq[n]<-as.character(namesalias[which(namelist_sq[n]==namesalias[,2]),1])
+  if(length(namelist_sq) > 0){
+    namelist_sq <- sapply(namelist_sq, function(x) substring(x, 1, (nchar(x) - 1)))
+    for(n in 1:length(namelist_sq)){
+      if(any(namelist_sq[n] == namesalias[,2])){
+        namelist_sq[n] <- as.character(namesalias[which(namelist_sq[n] == namesalias[,2]), 1])
+      }
     }
-  }
   }
   
   #append a chlext column to the cleaned streaming data and interpolate
@@ -63,7 +63,7 @@ chlmap <- function(yearmon, remove.flags = TRUE, stream.qa = TRUE, fdir=getOptio
   
   namelist_temp <- namelist
   for(n in 1:length(namelist)){
-    if(any(namelist[n]==namesalias[,1])){
+    if(any(namelist[n] == namesalias[,1])){
       namelist_temp[n] <- as.character(namesalias[which(namelist[n] == namesalias[,1]),2])
     }
   }
