@@ -447,7 +447,7 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     #system(paste("echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'single.txt'"))
     
     if(length(rlist) == 1){
-      makefile <- file.path(fdir, "DF_Basefile", "Makefile_single")
+      makefile <- system.file("grass-image_makefiles/Makefile_single", package = "DataflowR")
       system(paste0("make -f ", makefile, 
 " testpanel.png BASEDIR=", fdir,
 " YEARMON=", rasname,
@@ -479,7 +479,7 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
   
   #assumes that all pdfs in QGIS_plotting are to be part of panel
   if(length(rlist) > 1){ # & !is.na(panel.dim)
-    makefile <- file.path(fdir, "DF_Basefile", "Makefile_multi")
+    makefile <- system.file("grass-image_makefiles/Makefile_multi", package = "DataflowR")
     system(paste0("make -f ", makefile,
                   " multipanel.png BASEDIR=", fdir,
                   " PARAM=", shQuote(legendname),

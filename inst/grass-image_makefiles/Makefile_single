@@ -1,0 +1,52 @@
+
+#BASEDIR=/home/jose/Documents/Science/Data/Dataflow
+SURFACES=$(wildcard $(BASEDIR)/DF_Surfaces/*)
+#COEF_FILE=$(BASEDIR)/DF_GrabSamples/extractChlcoef2.csv
+#CSV_FILES=$(wildcard $(BASEDIR)/DF_FullDataSets/*.csv)
+#LOG_FILES=$(wildcard logs/*.log)
+#SURVEY_FILE=yearmonfits.csv
+GRASSTEST=$(BASEDIR)/QGIS_plotting/$(YEARMON).pdf
+LEGEND_FILE=$(BASEDIR)/QGIS_plotting/legend/legend.pdf
+
+
+.PHONY : variables
+variables:
+	@echo BASEDIR: $(BASEDIR)
+#	@echo COEF_FILE: $(COEF_FILE)
+#	@echo CSV_FILES: $(CSV_FILES)
+#	@echo TIF_FILES: $(TIF_FILES)
+#	@echo LOG_FILES: $(LOG_FILES)
+	@echo GRASSTEST: $(GRASSTEST)
+
+
+yearmonfits.csv: $(COEF_FILE)
+	-Rscript R/chlextlist.R $< $@
+
+$(BASEDIR)/DF_Surfaces/%/chlext.tif: $(LOG_FILES) yearmonfits.csv
+	-Rscript R/chlext.R $< $@
+
+#create a "log" file for each survey that has an acceptable model fit
+#logs/%fit.log: $(COEF_FILE) $(BASEDIR)/DF_FullDataSets/%.csv
+#	-Rscript R/chlextlist.R $< $@
+#.PHONY: logsall
+#logsall: $(LOG_FILES)	
+
+
+legend5.png: $(LEGEND_FILE)
+	convert $(LEGEND_FILE) -crop $(LEGEND_XLIM)x8+42+95 -trim -resize $(LEGEND_CROP_EXTENT)x +repage legend.png
+	convert legend.png -crop x120 legend2.png
+	convert legend2.png -bordercolor black -border 5x5 -background white -extent $(LEGEND_CROP_EXTENT)x200 +repage legend3.png
+	convert legend3.png -interword-spacing 20 -pointsize 40 -fill black -draw "text $(PARAMXCOORD),175 '$(PARAM)'" legend4.png	
+	convert legend4.png -interword-spacing $(LEGENDUNITSSPACING) -pointsize 55 -fill black -draw "text 20,175 '$(LEGENDUNITS)'" -resize 534x legend5.png
+
+#find grassmap plots
+testpanel.png: $(GRASSTEST) legend5.png
+	convert $(GRASSTEST) -trim -geometry +6+6 -bordercolor black -border 5x5 tile.png
+	convert /home/jose/Documents/Science/Data/Dataflow/DF_Basefile/sfwmd_bar8half_wordorexcel.png -resize 534x sfwmdbar.png
+	montage sfwmdbar.png tile.png legend5.png -tile x3 -geometry +1+1 -bordercolor white -border 1x1 $(YEARMON).png
+
+.PHONY: clean
+clean:
+	rm -f testpanel.png
+	rm -f legend*.png
+	rm -f sfwmdbar.png

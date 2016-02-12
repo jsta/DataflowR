@@ -1,0 +1,48 @@
+#generate extracted chlorophyll mosaic from existing chlext.tif(s)
+
+#BASEDIR=/home/jose/Documents/Science/Data/Dataflow
+#SURFACES=$(wildcard $(BASEDIR)/DF_Surfaces/*)
+#COEF_FILE=$(BASEDIR)/DF_GrabSamples/extractChlcoef2.csv
+#CSV_FILES=$(wildcard $(BASEDIR)/DF_FullDataSets/*.csv)
+#LOG_FILES=$(wildcard logs/*.log)
+#SURVEY_FILE=yearmonfits.csv
+#GRASSTEST=$(BASEDIR)/QGIS_plotting/201311.pdf
+GRASSMAPS=$(sort $(BASEDIR)/QGIS_plotting/*.pdf)
+LEGEND_FILE=$(BASEDIR)/QGIS_plotting/legend/legend.pdf
+
+FRAME_WIDTH = 539
+PLOT_XLIM=$(shell expr $(NCOL) \* $(FRAME_WIDTH))
+
+.PHONY : variables
+variables:
+	@echo PLOT_XLIM: $(PLOT_XLIM)
+#	@echo BASEDIR: $(BASEDIR)
+#	@echo COEF_FILE: $(COEF_FILE)
+#	@echo CSV_FILES: $(CSV_FILES)
+#	@echo TIF_FILES: $(TIF_FILES)
+#	@echo LOG_FILES: $(LOG_FILES)
+#	@echo GRASSTEST: $(GRASSTEST)
+#	@echo GRASSMAPS: $(GRASSMAPS)
+#	@echo PARAM: $(PARAM)
+#	@echo LEGENDUNITS: $(LEGENDUNITS)
+	
+legend5.png: $(LEGEND_FILE)
+	convert $(LEGEND_FILE) -crop $(LEGEND_XLIM)x8+42+95 -trim -resize $(LEGEND_CROP_EXTENT)x +repage legend.png
+	convert legend.png -crop x120 legend2.png
+	convert legend2.png -bordercolor black -border 5x5 -background white -extent $(LEGEND_CROP_EXTENT)x200 +repage legend3.png
+	convert legend3.png -interword-spacing 20 -pointsize 40 -fill black -draw "text $(PARAMXCOORD),175 '$(PARAM)'" legend4.png	
+	convert legend4.png -interword-spacing $(LEGENDUNITSSPACING) -pointsize 55 -fill black -draw "text 20,175 '$(LEGENDUNITS)'" -resize $(PLOT_XLIM)x legend5.png
+
+multipanel.png: $(GRASSMAPS) legend5.png
+	montage $(GRASSMAPS) -trim -geometry +6+6 -bordercolor black -border 5x5 -tile $(NCOL)x$(NROW) tile.png
+	convert /home/jose/Documents/Science/Data/Dataflow/DF_Basefile/sfwmd_bar8half_wordorexcel.png -resize $(PLOT_XLIM)x sfwmdbar.png
+	montage sfwmdbar.png tile.png legend5.png -tile 1x3 -geometry +1+1 -bordercolor white -border 1x1 multipanel.png
+
+.PHONY: clean
+clean:
+	rm -f tile.png
+	rm -f legend*.png
+	rm -f sfwmdbar.png
+	rm -f $(GRASSMAPS)
+
+
