@@ -5,8 +5,9 @@
 \title{Publication quality maps with GRASS}
 \usage{
 grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
-  fdir = getOption("fdir"), basin = "full", labelling = TRUE,
-  print_track = FALSE, cleanup = TRUE, rotated = TRUE)
+  numrow = NULL, numcol = NULL, fdir = getOption("fdir"),
+  basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE,
+  rotated = TRUE)
 }
 \arguments{
 \item{fpath}{file.path to geotiff file}
@@ -16,6 +17,10 @@ grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
 \item{params}{character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal}
 
 \item{mapextent}{numeric vector of length 4}
+
+\item{numrow}{numeric number of rows in a multipanel}
+
+\item{numcol}{numeric number of columns in a multipanel}
 
 \item{fdir}{character file path to local data directory}
 
@@ -41,14 +46,12 @@ Probably need to implement this as a seperate package. Set param to "diffsal" to
 \examples{
 \dontrun{
 grassmap(rnge = c(201512), params = c("sal"), basin="Manatee Bay")
-grassmap(rnge = c(200707), params = c("sal"))
 grassmap(rnge = c(201512), params = c("sal"))
 grassmap(rnge = c(201512), params = c("diffsal"))
 grassmap(rnge=c(201407),params=c("chlext"))
 grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 grassmap(rnge=c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-grassmap(rnge=c(201512), params = "sal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
 

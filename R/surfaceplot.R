@@ -146,6 +146,8 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'@param cleanup logical remove intermediate rasters and shapefiles?
 #'@param rotated logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured (not working).
 #'@param labelling logical lablel output with yearmon?
+#'@param numrow numeric number of rows in a multipanel
+#'@param numcol numeric number of columns in a multipanel
 #'@param mapextent numeric vector of length 4
 #'@param basin character basin name
 #'@param print_track logical print dataflow track?
@@ -157,14 +159,12 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'@export
 #'@examples \dontrun{
 #'grassmap(rnge = c(201512), params = c("sal"), basin="Manatee Bay")
-#'grassmap(rnge = c(200707), params = c("sal"))
 #'grassmap(rnge = c(201512), params = c("sal"))
 #'grassmap(rnge = c(201512), params = c("diffsal"))
 #'grassmap(rnge=c(201407),params=c("chlext"))
 #'grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge=c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-#'grassmap(rnge=c(201512), params = "sal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 #'grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
 #'
@@ -173,7 +173,7 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'scales::show_col(viridis::viridis_pal()(9))
 #'}
 
-grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, fdir = getOption("fdir"), basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
+grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, numrow = NULL, numcol = NULL, fdir = getOption("fdir"), basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
 
   if(as.character(Sys.info()["sysname"]) != "Linux"){
     stop("This function only works with Linux!")
@@ -282,7 +282,6 @@ diffsal,diffsalrules.file",
     rgrass7::execGRASS("g.region", raster = "tempras")
     
      if(params %in% c("chlext", "chlext_low", "chlext_hi")){
-#       browser()
        if(length(grep("_log", rulesfile)) != 0){
          rulesfile <- gsub("_log", "", rulesfile)
        }
@@ -310,7 +309,6 @@ diffsal,diffsalrules.file",
     
     #raster outline
     outvec.g <- rgrass7::writeVECT(outlines, "outvec", v.in.ogr_flags = c("o"))
-    #test <- rgrass7::readVECT("outvec")
     rgrass7::execGRASS("g.region", vector = "outvec")
     rgrass7::execGRASS("g.region", raster = "firstras")
     rgrass7::execGRASS("g.region", vector = "fbvec")
@@ -440,13 +438,14 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     
     #==================================================================#
     #browser()
+    system(paste(
+      "echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'single.txt'"))
     
     if(length(rlist) == 1){
-      
-      makefile <- file.path(fdir, "DF_Basefile","Makefile_single")
+      makefile <- file.path(fdir, "DF_Basefile", "Makefile_single")
       system(paste0("make -f ", makefile, 
 " testpanel.png BASEDIR=", fdir,
-" YEARMON=", paste0(substring(dirname(rlist[i]), nchar(dirname(rlist[i]))-5, nchar(dirname(rlist[i])))),
+" YEARMON=", paste0(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i])))),
 " PARAM=", shQuote(legendname),
 " LEGENDUNITS=", legendunits_print,
 " LEGENDUNITSSPACING=", legendunits_spacing,
@@ -469,18 +468,22 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
   }
   
   #==================================================================#
-  
+  #browser()
+  system(paste(
+    "echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'multi.txt'"))
   
   #assumes that all pdfs in QGIS_plotting are to be part of panel
   if(length(rlist) > 1){ # & !is.na(panel.dim)
-    makefile <- file.path(fdir, "DF_Basefile","Makefile_multi")
-  
+    makefile <- file.path(fdir, "DF_Basefile", "Makefile_multi")
     system(paste0("make -f ", makefile,
                   " multipanel.png BASEDIR=", fdir,
                   " PARAM=", shQuote(legendname),
                   " LEGENDUNITS=", legendunits_print,
                   " LEGENDUNITSSPACING=", legendunits_spacing,
                   " LEGEND_XLIM=", legend_xlim,
+                  " PARAMXCOORD=", paramxcoord,
+                  " NROW=", numrow,
+                  " NCOL=", numcol,
                   " LEGEND_CROP_EXTENT=", legend_crop_extent
                   ))
     if(cleanup == TRUE){
@@ -488,9 +491,8 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     }
   }
   
-  
-  if(cleanup==TRUE){
-    rmlist <- list.files(file.path(paste(fdir,"/QGIS_plotting",sep="")),pattern = paste("out","*",sep=""),include.dirs = TRUE,full.names = TRUE)
+  if(cleanup == TRUE){
+    rmlist <- list.files(file.path(paste(fdir,"/QGIS_plotting", sep = "")), pattern = paste("out", "*", sep = ""), include.dirs = TRUE, full.names = TRUE)
     file.remove(rmlist)
   }
 }
