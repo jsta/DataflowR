@@ -84,7 +84,8 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
 #'@export
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@examples \dontrun{
-#'avmap(yearmon = 201505, params = "sal", tofile = FALSE, percentcov = 0.6, tolerance = 1, fdir = fdir)
+#'avmap(yearmon = 201505, params = "sal", tofile = FALSE,
+#' percentcov = 0.6, tolerance = 1, fdir = fdir)
 #'avmap(yearmon = 201505, params = "sal", tofile = FALSE)
 #'}
 
@@ -150,6 +151,7 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'@param numcol numeric number of columns in a multipanel
 #'@param mapextent numeric vector of length 4
 #'@param basin character basin name
+#'@param label_string character label
 #'@param print_track logical print dataflow track?
 #'@return output plots to the QGIS_plotting folder
 #'@details Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff.
@@ -160,24 +162,29 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'@examples \dontrun{
 #'grassmap(rnge = c(201512), params = c("sal"), basin="Manatee Bay")
 #'grassmap(rnge = c(201512), params = c("sal"))
+#'grassmap(rnge = c(201509, 201512), params = c("sal"))#'
 #'grassmap(rnge = c(201512), params = c("diffsal"))
-#'grassmap(rnge=c(201407),params=c("chlext"))
-#'grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-#'grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-#'grassmap(rnge=c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(rnge = c(201407), params = c("chlext"))
+#'grassmap(rnge = c(201507), params = c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(rnge = c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 #'grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
+#'grassmap(fpath = "/home/jose/Documents/Science/sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring/pre.proj_mean.tif", params = "sal", label_string = "Pre C-111")
 #'
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 #'logramp(n = 9, maxrange = 20) #chlext
 #'scales::show_col(viridis::viridis_pal()(9))
 #'}
 
-grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, numrow = NULL, numcol = NULL, fdir = getOption("fdir"), basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
+grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, numrow = NULL, numcol = NULL, fdir = getOption("fdir"), basin = "full", label_string = NULL, labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
 
   if(as.character(Sys.info()["sysname"]) != "Linux"){
     stop("This function only works with Linux!")
   }
+  
+  fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
+  fboutline <- rgdal::readOGR(dsn = file.path(getOption("fdir"), "DF_Basefile/FBcoast_big.shp"), layer = "FBcoast_big", verbose = FALSE)
   
   paramkey <- read.table(text = "
 sal,salrules.file
@@ -229,17 +236,15 @@ diffsal,diffsalrules.file",
     plist <- rep(params, each = length(rlist))
   }
   
-  fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
-  fboutline <- rgdal::readOGR(dsn = file.path(getOption("fdir"), "DF_Basefile/FBcoast_big.shp"), layer = "FBcoast_big", verbose = FALSE)
-  
   if(print_track == TRUE){
     surveytrack <- coordinatize(streamget(rnge[1]), latname = "lat_dd", lonname = "lon_dd")
+    #interp_pnts <- coordinatize(read.csv(file.path(fdir, "DF_Subsets", paste0(rnge[1], "s.csv"))), latname = "lat_dd", lonname = "lon_dd")
   }
-  #interp_pnts <- coordinatize(read.csv(file.path(fdir, "DF_Subsets", paste0(rnge[1], "s.csv"))), latname = "lat_dd", lonname = "lon_dd")
   
   print(rlist)
   
   for(i in 1:length(rlist)){
+    #set extent============================================================#
     if(basin != "full"){
       firstras <- raster::raster(rlist[1])
       firstras <- raster::crop(firstras, fathombasins[fathombasins$NAME == basin,])
@@ -253,10 +258,18 @@ diffsal,diffsalrules.file",
     }else{
       tempras <- raster::raster(rlist[i])
     }
-    
-    rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
-    raspath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, ".tif", sep = ""))
-    outpath = file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, "poly.shp" ,sep = ""))
+
+    #create raster outline====================================================#
+    #browser()
+    if(length(label_string) == 0){
+      label_string <- rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
+      raspath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, ".tif", sep = ""))
+      outpath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, "poly.shp" ,sep = ""))
+    }else{
+      rasname <- paste0(strsplit(basename(fpath), "\\.")[[1]][-(length(strsplit(basename(fpath), "\\.")[[1]]))], collapse = "")
+      raspath <- file.path(paste0(fdir, "/QGIS_plotting", sep = ""), basename(fpath))
+      outpath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, "poly.shp" ,sep = ""))
+    }
     
     raster::writeRaster(tempras, raspath, format = "GTiff", overwrite = TRUE)
     shellcmds = paste("gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
@@ -324,12 +337,12 @@ diffsal,diffsalrules.file",
                  "vareas fbvec",
                  "        masked y",
                  "        end",
-                 paste("text 17% 85% ",rasname,sep=""),
+                 paste("text 17% 85% ", label_string, sep = ""),
                  "        fontsize 35",
                  "        background white",
                  "        border black",
                  "        end",
-                 "end"),fileConn)
+                 "end"), fileConn)
     close(fileConn)
     if(print_track == TRUE){
       fileConn <- file(file.path(fdir, "QGIS_plotting", "grassplot.file"))
@@ -347,7 +360,7 @@ diffsal,diffsalrules.file",
                    "vareas fbvec",
                    "        masked y",
                    "        end",
-                   paste("text 17% 85% ",rasname,sep=""),
+                   paste("text 17% 85% ", label_string, sep = ""),
                    "        fontsize 35",
                    "        background white",
                    "        border black",
@@ -369,7 +382,9 @@ diffsal,diffsalrules.file",
       close(fileConn)
     }
     
-    rgrass7::execGRASS("ps.map", input = file.path(paste(fdir, "/QGIS_plotting", sep=""), "grassplot.file"), output = file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))), ".pdf", sep = "")), flags = "overwrite")
+    #browser()
+    
+    rgrass7::execGRASS("ps.map", input = file.path(paste(fdir, "/QGIS_plotting", sep=""), "grassplot.file"), output = file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, ".pdf", sep = "")), flags = "overwrite")
 
 #==================================================================#
 
@@ -438,14 +453,13 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     
     #==================================================================#
     #browser()
-    system(paste(
-      "echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'single.txt'"))
+    #system(paste("echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'single.txt'"))
     
     if(length(rlist) == 1){
       makefile <- file.path(fdir, "DF_Basefile", "Makefile_single")
       system(paste0("make -f ", makefile, 
 " testpanel.png BASEDIR=", fdir,
-" YEARMON=", paste0(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i])))),
+" YEARMON=", rasname,
 " PARAM=", shQuote(legendname),
 " LEGENDUNITS=", legendunits_print,
 " LEGENDUNITSSPACING=", legendunits_spacing,

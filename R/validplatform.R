@@ -7,7 +7,7 @@
 #'@param tolerance numeric number of days pre/post streaming to search for in DBHYDRO
 #'@param dbfile file.path pointing at a cleaned database of dbhydro measurements
 #'@examples \dontrun{
-#'dbfile<-file.path("/home","jose","Documents","Science","Data","ENP_MMN","WQSuM_2015.csv")
+#'dbfile <- file.path("/home","jose","Documents","Science","Data","ENP_MMN","WQSuM_2015.csv")
 #'validdbhydro("201502",params="chlext",tolerance=10, dbfile=dbfile)
 #'validdbhydro(201410,params="chlext",tolerance=13,dbfile=dbfile)
 #'validdbhydro(201407,params="chlext",tolerance=2,dbfile=dbfile)
@@ -16,7 +16,7 @@
 #'validdbhydro(201308,params="chlext",tolerance=5,dbfile=dbfile)
 #'}
 
-validdbhydro<-function(yearmon,params="chlext",tolerance=1,dbfile=file.path(),fdir=getOption("fdir")){
+validdbhydro <- function(yearmon, params = "chlext", tolerance = 1, dbfile = file.path(), fdir = getOption("fdir")){
   
 #   library(DataflowR)
 #   dbfile<-file.path("/home","jose","Documents","Science","Data","ENP_MMN","WQSuM_2015.csv")

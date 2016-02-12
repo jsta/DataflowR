@@ -23,7 +23,7 @@ Validate Dataflow output against DBHYDRO data
 }
 \examples{
 \dontrun{
-dbfile<-file.path("/home","jose","Documents","Science","Data","ENP_MMN","WQSuM_2015.csv")
+dbfile <- file.path("/home","jose","Documents","Science","Data","ENP_MMN","WQSuM_2015.csv")
 validdbhydro("201502",params="chlext",tolerance=10, dbfile=dbfile)
 validdbhydro(201410,params="chlext",tolerance=13,dbfile=dbfile)
 validdbhydro(201407,params="chlext",tolerance=2,dbfile=dbfile)

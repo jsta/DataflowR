@@ -25,7 +25,8 @@ takes a survey date as input and searches the DF_Surfaces folder for maps of the
 }
 \examples{
 \dontrun{
-avmap(yearmon = 201505, params = "sal", tofile = FALSE, percentcov = 0.6, tolerance = 1, fdir = fdir)
+avmap(yearmon = 201505, params = "sal", tofile = FALSE,
+percentcov = 0.6, tolerance = 1, fdir = fdir)
 avmap(yearmon = 201505, params = "sal", tofile = FALSE)
 }
 }

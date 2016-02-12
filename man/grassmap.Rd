@@ -6,8 +6,8 @@
 \usage{
 grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
   numrow = NULL, numcol = NULL, fdir = getOption("fdir"),
-  basin = "full", labelling = TRUE, print_track = FALSE, cleanup = TRUE,
-  rotated = TRUE)
+  basin = "full", label_string = NULL, labelling = TRUE,
+  print_track = FALSE, cleanup = TRUE, rotated = TRUE)
 }
 \arguments{
 \item{fpath}{file.path to geotiff file}
@@ -25,6 +25,8 @@ grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
 \item{fdir}{character file path to local data directory}
 
 \item{basin}{character basin name}
+
+\item{label_string}{character label}
 
 \item{labelling}{logical lablel output with yearmon?}
 
@@ -47,13 +49,15 @@ Probably need to implement this as a seperate package. Set param to "diffsal" to
 \dontrun{
 grassmap(rnge = c(201512), params = c("sal"), basin="Manatee Bay")
 grassmap(rnge = c(201512), params = c("sal"))
+grassmap(rnge = c(201509, 201512), params = c("sal"))#'
 grassmap(rnge = c(201512), params = c("diffsal"))
-grassmap(rnge=c(201407),params=c("chlext"))
-grassmap(rnge=c(201507),params=c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-grassmap(rnge=c(201509),params=c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-grassmap(rnge=c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+grassmap(rnge = c(201407), params = c("chlext"))
+grassmap(rnge = c(201507), params = c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+grassmap(rnge = c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
+grassmap(fpath = "/home/jose/Documents/Science/sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring/pre.proj_mean.tif", params = "sal", label_string = "Pre C-111")
 
 #create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 logramp(n = 9, maxrange = 20) #chlext
