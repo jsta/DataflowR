@@ -175,6 +175,7 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 #'logramp(n = 9, maxrange = 20) #chlext
 #'scales::show_col(viridis::viridis_pal()(9))
+#'grassmap(rnge = c(201509, 201512), params = "sal", numrow = 2, numcol = 1)
 #'}
 
 grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, numrow = NULL, numcol = NULL, fdir = getOption("fdir"), basin = "full", label_string = NULL, labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
@@ -382,7 +383,7 @@ diffsal,diffsalrules.file",
       close(fileConn)
     }
     
-    #browser()
+    label_string <- NULL
     
     rgrass7::execGRASS("ps.map", input = file.path(paste(fdir, "/QGIS_plotting", sep=""), "grassplot.file"), output = file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, ".pdf", sep = "")), flags = "overwrite")
 
@@ -416,11 +417,8 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       
       legend_xlim <- 300
       legend_crop_extent <- 2404
-      #legend_xlim <- 140
-      #legend_crop_extent <- 2188
     }
     
-    #browser()
     if(params == "diffsal"){
       paramxcoord <- 1960
       legendunits <- seq(from = -30, to = 35, by = 1)
@@ -429,18 +427,12 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       legend_xlim <- 270
       legend_crop_extent <- 2404 
     }
-    #print legend========================================================#
     
+    #print legend========================================================#
     legras <- raster::raster(tempras)
     legras[1:length(legras)] <- legendunits
-    #legras[1:(length(legendunits) + 1)] <- legendunits #old implementation
     tempras <- as(legras, "SpatialGridDataFrame")
     tempras.g <- rgrass7::writeRAST(tempras, "tempras", flags = c("overwrite"))
-    
-    #browser()
-    #hist(as.numeric(unlist(tempras@data)))
-    #print(legendunits)
-    #print(rulesfile)
     
     rgrass7::execGRASS("r.support", map = "tempras", units = legendname)
     rgrass7::execGRASS("g.region", raster = "tempras")
@@ -451,8 +443,7 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     
     rgrass7::execGRASS("ps.map", input = file.path(paste(fdir, "/QGIS_plotting", sep = ""), "legendplot.file"), output = file.path(paste(fdir, "/QGIS_plotting", sep = ""), "legend", paste("legend", ".pdf", sep = "")), flags = "overwrite")
     
-    #==================================================================#
-    #browser()
+    #make files================================================================#
     #system(paste("echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'single.txt'"))
     
     if(length(rlist) == 1){
@@ -483,8 +474,8 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
   
   #==================================================================#
   #browser()
-  system(paste(
-    "echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'multi.txt'"))
+#   system(paste(
+#     "echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'multi.txt'"))
   
   #assumes that all pdfs in QGIS_plotting are to be part of panel
   if(length(rlist) > 1){ # & !is.na(panel.dim)
