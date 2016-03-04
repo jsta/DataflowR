@@ -67,7 +67,7 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
     
     my.at <- unlist(eval(parse(text = as.character(brks[which(plist[i] == brks[,1]), 2]))))
       
-    print(rasterVis::levelplot(raster::raster(rlist[i]),ylim =yext, xlim = xext,par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn = file.path(fdir, "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE), fill="green",alpha=0.6)))
+    print(rasterVis::levelplot(raster::raster(rlist[i]),ylim =yext, xlim = xext,par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn = file.path("/home/jose/Documents/Science/Data/Dataflow", "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE), fill="green",alpha=0.6)))
     
     }
 }
@@ -150,17 +150,17 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'@param numrow numeric number of rows in a multipanel
 #'@param numcol numeric number of columns in a multipanel
 #'@param mapextent numeric vector of length 4
-#'@param basin character basin name
+#'@param basin character basin name from fathom_basins_proj.shp
 #'@param label_string character label
 #'@param print_track logical print dataflow track?
 #'@return output plots to the QGIS_plotting folder
-#'@details Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff.
+#'@details Probably need to implement this as a seperate package to improve portability. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff.
 #'@import rgrass7
 #'@import maptools
 #'@import rgeos
 #'@export
 #'@examples \dontrun{
-#'grassmap(rnge = c(201512), params = c("sal"), basin="Manatee Bay")
+#'grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 #'grassmap(rnge = c(201512), params = c("sal"))
 #'grassmap(rnge = c(201509, 201512), params = c("sal"))#'
 #'grassmap(rnge = c(201512), params = c("diffsal"))

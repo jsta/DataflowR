@@ -24,7 +24,7 @@ grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
 
 \item{fdir}{character file path to local data directory}
 
-\item{basin}{character basin name}
+\item{basin}{character basin name from fathom_basins_proj.shp}
 
 \item{label_string}{character label}
 
@@ -43,11 +43,11 @@ output plots to the QGIS_plotting folder
 not finished yet
 }
 \details{
-Probably need to implement this as a seperate package. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff.
+Probably need to implement this as a seperate package to improve portability. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff.
 }
 \examples{
 \dontrun{
-grassmap(rnge = c(201512), params = c("sal"), basin="Manatee Bay")
+grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 grassmap(rnge = c(201512), params = c("sal"))
 grassmap(rnge = c(201509, 201512), params = c("sal"))#'
 grassmap(rnge = c(201512), params = c("diffsal"))
@@ -62,6 +62,7 @@ grassmap(fpath = "/home/jose/Documents/Science/sfwmd_desktop/Presentations/2016-
 #create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 logramp(n = 9, maxrange = 20) #chlext
 scales::show_col(viridis::viridis_pal()(9))
+grassmap(rnge = c(201509, 201512), params = "sal", numrow = 2, numcol = 1)
 }
 }
 \author{
