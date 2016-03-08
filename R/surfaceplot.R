@@ -144,7 +144,8 @@ avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 
 #'@title Create file listing of rasters from a date range and parameter name
 #'@description Create file listing of rasters from a date range and parameter name
 #'@param rnge numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.
-#'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal#'@export
+#'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal
+#'@export
 #'@examples \dontrun{
 #'create_rlist(rnge = c(200808, 200910, 201002, 201004, 201007, 201102, 201105, 201206, 201209, 201212, 201305, 201308, 201311, 201404, 201407, 201410, 201502, 201505, 201507, 201509), params = 'chlext')
 #'}

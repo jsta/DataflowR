@@ -9,7 +9,7 @@ create_rlist(rnge, params)
 \arguments{
 \item{rnge}{numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.}
 
-\item{params}{character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal#'@export}
+\item{params}{character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal}
 }
 \description{
 Create file listing of rasters from a date range and parameter name
