@@ -57,7 +57,9 @@ grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6, 564517.
 grassmap(rnge = c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
-grassmap(fpath = "/home/jose/Documents/Science/sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring/pre.proj_mean.tif", params = "sal", label_string = "Pre C-111")
+grassmap(fpath = file.path("/home/jose/Documents/Science",
+"sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring",
+ "pre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")
 
 #create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 logramp(n = 9, maxrange = 20) #chlext

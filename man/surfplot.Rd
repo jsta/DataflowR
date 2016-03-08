@@ -27,7 +27,7 @@ accounts for corner case parameter spellings, variable specific contour breaks a
 }
 \examples{
 \dontrun{
-surfplot(rnge=c(200707), params = c("cdom"))
+surfplot(rnge = c(200707), params = c("cdom"))
 surfplot(201513, c("ph", "c6turbidity", "c6chl", "c6cdom"),
 yext = c(2786102, 2797996), xext = c(557217, 567415))
 }

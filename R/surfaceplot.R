@@ -15,7 +15,7 @@
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@export
 #'@examples \dontrun{
-#'surfplot(rnge=c(200707), params = c("cdom"))
+#'surfplot(rnge = c(200707), params = c("cdom"))
 #'surfplot(201513, c("ph", "c6turbidity", "c6chl", "c6cdom"),
 #' yext = c(2786102, 2797996), xext = c(557217, 567415))
 #'}
@@ -75,21 +75,23 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
 #'@name avmap
 #'@title create a difference map compared to average
 #'@param yearmon survey of interest to compare against average
-#'@param params variable name
-#'@param tofile logical save output to disk?
+#'@param params variable name generally choice of "sal" or "chlext"
+#'@param diffpath file.path to write output difference surface
+#'@param avpath file.path to write output average surface
 #'@param percentcov numeric account for the different raster extents by setting the percent of all surveys required before a pixel is included in difference from average computations
-#'@param tolerance numeric number of monts on either side of yearmon to include in the set of surfaces averaged . defaults to 1.
+#'@param tolerance numeric number of months on either side of yearmon to include in the set of surfaces averaged . defaults to 1.
 #'@param fdir character file path to local data directory 
 #'@description takes a survey date as input and searches the DF_Surfaces folder for maps of the same parameter within the range of 1-2 months from yearmon for each year. These surfaces are averaged and compared to the surface from yearmon. 
 #'@export
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@examples \dontrun{
-#'avmap(yearmon = 201505, params = "sal", tofile = FALSE,
-#' percentcov = 0.6, tolerance = 1, fdir = fdir)
-#'avmap(yearmon = 201505, params = "sal", tofile = FALSE)
+#'avmap(yearmon = 201505, params = "sal", diffpath = file.path(fdir,
+#' "DF_Surfaces", yearmon, paste0("diff", params, ".tif")),
+#'  percentcov = 0.6, tolerance = 1, fdir = fdir)
+#'avmap(yearmon = 201505, params = "sal")
 #'}
 
-avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 0.6, tolerance = 1, fdir = getOption("fdir")){
+avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 0.6, tolerance = 1, fdir = getOption("fdir")){
 
 #generate-flist=========================================================#
   flist.full <- list.files(file.path(fdir, "DF_Surfaces"), pattern = "*.grd", recursive = T, include.dirs = T, full.names = T)
@@ -127,11 +129,13 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
   sp::plot(cursurf - rmean, main = "Difference from Average")
 
 #save-to-file===========================================================#
-  if(tofile == TRUE){
-    #raster::writeRaster(rmean, "meansurf.tif", format = "GTiff", overwrite = T)
-    #raster::writeRaster(cursurf, "cursurf.tif", format = "GTiff", overwrite = T)
-    raster::writeRaster((cursurf - rmean), file.path(fdir, "DF_Surfaces", yearmon, paste0("diff", params, ".tif")), format = "GTiff", overwrite = T)
-  }
+    if(length(avpath) > 0){
+      raster::writeRaster(rmean, avpath, format = "GTiff", overwrite = T) 
+    }
+    
+    if(length(diffpath) > 0){
+      raster::writeRaster((cursurf - rmean), diffpath, format = "GTiff", overwrite = T)
+    }
   
   res
 }
@@ -170,7 +174,9 @@ avmap <- function(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 
 #'grassmap(rnge = c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 #'grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
-#'grassmap(fpath = "/home/jose/Documents/Science/sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring/pre.proj_mean.tif", params = "sal", label_string = "Pre C-111")
+#'grassmap(fpath = file.path("/home/jose/Documents/Science",
+#' "sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring",
+#'  "pre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")
 #'
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 #'logramp(n = 9, maxrange = 20) #chlext

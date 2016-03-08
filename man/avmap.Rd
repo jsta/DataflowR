@@ -4,19 +4,21 @@
 \alias{avmap}
 \title{create a difference map compared to average}
 \usage{
-avmap(yearmon = 201505, params = "sal", tofile = TRUE, percentcov = 0.6,
+avmap(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 0.6,
   tolerance = 1, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{survey of interest to compare against average}
 
-\item{params}{variable name}
+\item{params}{variable name generally choice of "sal" or "chlext"}
 
-\item{tofile}{logical save output to disk?}
+\item{diffpath}{file.path to write output difference surface}
+
+\item{avpath}{file.path to write output average surface}
 
 \item{percentcov}{numeric account for the different raster extents by setting the percent of all surveys required before a pixel is included in difference from average computations}
 
-\item{tolerance}{numeric number of monts on either side of yearmon to include in the set of surfaces averaged . defaults to 1.}
+\item{tolerance}{numeric number of months on either side of yearmon to include in the set of surfaces averaged . defaults to 1.}
 
 \item{fdir}{character file path to local data directory}
 }
@@ -25,9 +27,10 @@ takes a survey date as input and searches the DF_Surfaces folder for maps of the
 }
 \examples{
 \dontrun{
-avmap(yearmon = 201505, params = "sal", tofile = FALSE,
-percentcov = 0.6, tolerance = 1, fdir = fdir)
-avmap(yearmon = 201505, params = "sal", tofile = FALSE)
+avmap(yearmon = 201505, params = "sal", diffpath = file.path(fdir,
+"DF_Surfaces", yearmon, paste0("diff", params, ".tif")),
+ percentcov = 0.6, tolerance = 1, fdir = fdir)
+avmap(yearmon = 201505, params = "sal")
 }
 }
 
