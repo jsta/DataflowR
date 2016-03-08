@@ -140,6 +140,50 @@ avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 
   res
 }
 
+#'@name create_rlist
+#'@title Create file listing of rasters from a date range and parameter name
+#'@description Create file listing of rasters from a date range and parameter name
+#'@param rnge numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.
+#'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal#'@export
+#'@examples \dontrun{
+#'create_rlist(rnge = c(200808, 200910, 201002, 201004, 201007, 201102, 201105, 201206, 201209, 201212, 201305, 201308, 201311, 201404, 201407, 201410, 201502, 201505, 201507, 201509), params = 'chlext')
+#'}
+
+create_rlist <- function(rnge, params){
+  fdir <- getOption("fdir")
+  
+  if(length(rnge) == 1){
+    rnge <- c(rnge, rnge)
+  }
+  
+  namesalias <- read.table(text = "
+                           chlorophyll.a c6chl
+                           c6chla c6chl
+                           ")
+  
+  dirlist <- list.dirs(file.path(fdir, "DF_Surfaces"), recursive = F)
+  minrnge <- min(which(substring(basename(dirlist), 1, 6) >= rnge[1]))
+  maxrnge <- max(which(substring(basename(dirlist), 1, 6) <= rnge[2]))
+  rlist <- list.files(dirlist[minrnge:maxrnge], full.names = T, include.dirs = T, pattern = "\\.tif$")
+  plist <- tolower(sub("[.][^.]*$", "", basename(rlist)))
+  
+  for(n in 1:length(plist)){
+    if(any(plist[n] == namesalias[,1])){
+      plist[n] <- as.character(namesalias[which(plist[n] == namesalias[,1]), 2])
+    }
+  }
+  
+  if(length(rnge) > 2){
+    rnge <- rnge[order(rnge)]
+    rlist <- list.files(dirlist[which(substring(basename(dirlist), 1, 6) %in% rnge)], full.names = T, include.dirs = T, pattern = "\\.tif$")
+    plist <- tolower(sub("[.][^.]*$", "", basename(rlist)))
+  }
+  
+  rlist <- rlist[which(!is.na(match(plist, params)))]
+  plist <- plist[which(!is.na(match(plist, params)))]
+  list(rlist = rlist, plist = plist)
+}
+
 #'@name grassmap
 #'@title Publication quality maps with GRASS
 #'@description not finished yet
@@ -201,39 +245,6 @@ chlext_hi,chlextrules.file
 diffsal,diffsalrules.file",
   sep = ",", stringsAsFactors = FALSE)
   rulesfile <- paramkey[which(params == paramkey[,1]), 2]
-  
-  create_rlist <- function(rnge, params){
-    if(length(rnge) == 1){
-      rnge <- c(rnge, rnge)
-    }
-    
-    namesalias <- read.table(text = "
-                         chlorophyll.a c6chl
-                         c6chla c6chl
-                         ")
-    
-    dirlist <- list.dirs(file.path(fdir, "DF_Surfaces"), recursive = F)
-    minrnge <- min(which(substring(basename(dirlist), 1, 6) >= rnge[1]))
-    maxrnge <- max(which(substring(basename(dirlist), 1, 6) <= rnge[2]))
-    rlist <- list.files(dirlist[minrnge:maxrnge], full.names = T, include.dirs = T, pattern = "\\.tif$")
-    plist <- tolower(sub("[.][^.]*$", "", basename(rlist)))
-    
-    for(n in 1:length(plist)){
-      if(any(plist[n] == namesalias[,1])){
-        plist[n] <- as.character(namesalias[which(plist[n] == namesalias[,1]), 2])
-      }
-    }
-    
-    if(length(rnge) > 2){
-      rnge <- rnge[order(rnge)]
-      rlist <- list.files(dirlist[which(substring(basename(dirlist), 1, 6) %in% rnge)], full.names = T, include.dirs = T, pattern = "\\.tif$")
-      plist <- tolower(sub("[.][^.]*$", "", basename(rlist)))
-    }
-    
-    rlist <- rlist[which(!is.na(match(plist, params)))]
-    plist <- plist[which(!is.na(match(plist, params)))]
-    list(rlist = rlist, plist = plist)
-  }
   
   if(length(fpath) == 0){
     rlist <- create_rlist(rnge = rnge, params = params)$rlist
