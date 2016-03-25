@@ -227,117 +227,108 @@ streamclean <- function(yearmon, dfmmin = NA, c6mmin = NA, eummin = NA, exommin 
     
     #clean and merge C6 here=================================================####
     if(!is.na(c6mmin)){
-            c6dfmatch <- which(substring(basename(c6list),1,8)==substring(basename(dflist[i]),1,8))
-            #browser()
-            if(length(c6dfmatch) != 0){
-              c6<-read.csv(c6list[c6dfmatch],skip=12,header=F)[,1:9]
-              names(c6)<-c("datec","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","depth","c6temp")
-              if(!any(!is.na(c6[,"c6temp"]))){
-                c6<-c6[,-9]
-                names(c6)[8]<-"c6temp"
-              }else{
-                c6<-c6[,-8]
-              }
+      c6dfmatch <- which(substring(basename(c6list), 1, 8) == substring(basename(dflist[i]), 1, 8))
+        if(length(c6dfmatch) != 0){
+          c6 <- read.csv(c6list[c6dfmatch], skip = 12, header = F)[,1:9]
+          names(c6) <- c("datec", "brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "depth", "c6temp")
+          if(!any(!is.na(c6[,"c6temp"]))){
+            c6 <- c6[,-9]
+            names(c6)[8] <- "c6temp"
+          }else{
+            c6 <- c6[,-8]
+          }
                                         
-              #check for mismatched c6df measurement frequency
-              dtfreq<-max(dt$sec[2]-dt$sec[1],dt$sec[3]-dt$sec[2])
+          #check for mismatched c6df measurement frequency
+          dtfreq <- max(dt$sec[2] - dt$sec[1], dt$sec[3] - dt$sec[2])
               
-              #check for missing seconds information
-              if(all(is.na(as.POSIXct(strptime(c6$datec,"%m/%d/%y %H:%M:%S"))))){
-                c6sec <- unlist(lapply(rle(sapply(c6$datec, function(x) strftime(strptime(x, format = "%m/%d/%Y %H:%M"), format = "%M")))$lengths, function(x) seq(0, 60 - (60/x), length.out = x)))
-                c6$datec <- as.POSIXct(strptime(paste0(c6$datec, ":", c6sec), "%m/%d/%Y %H:%M:%S"))
-              }else{
-              c6$datec<-as.POSIXct(strptime(c6$datec,"%m/%d/%y %H:%M:%S"))
-              }
+          #check for missing seconds information
+          if(all(is.na(as.POSIXct(strptime(c6$datec, "%m/%d/%y %H:%M:%S"))))){
+            c6sec <- unlist(lapply(rle(sapply(c6$datec, function(x) strftime(strptime(x, format = "%m/%d/%Y %H:%M"), format = "%M")))$lengths, function(x) seq(0, 60 - (60/x), length.out = x)))
+            c6$datec <- as.POSIXct(strptime(paste0(c6$datec, ":", c6sec), "%m/%d/%Y %H:%M:%S"))
+          }else{
+            c6$datec <- as.POSIXct(strptime(c6$datec, "%m/%d/%y %H:%M:%S"))
+          }
               
-              if(!any(!is.na(c6$datec))){
-                c6<-read.csv(c6list[c6dfmatch],skip=12,header=F)[,1:9]
-                names(c6)<-c("datec","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","depth","c6temp")
-                if(!any(!is.na(c6[,"c6temp"]))){
-                c6<-c6[,-9]
-                names(c6)[8]<-"c6temp"
-                }else{
-                  c6<-c6[,-8]
-                }
+          if(!any(!is.na(c6$datec))){
+            c6 <- read.csv(c6list[c6dfmatch], skip = 12, header = F)[,1:9]
+            names(c6) <- c("datec", "brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "depth", "c6temp")
+            if(!any(!is.na(c6[,"c6temp"]))){
+              c6 <- c6[,-9]
+              names(c6)[8] <- "c6temp"
+            }else{
+              c6 <- c6[,-8]
+            }
                 
-                if(nchar(strsplit(as.character(c6[,"datec"]),"/")[[1]][1])==1){
-                  if(rle(as.character(c6[,"datec"]))$length[1]!=c6mmin){#account for less than full minute to start
-                    c6<-c6[c6$datec!=rle(as.character(c6[,"datec"]))$values[1],]
-                  }
-                  if(!exists("c6mmin")){
-                    c6mmin <- dfmmin
-                  }
+            if(nchar(strsplit(as.character(c6[,"datec"]), "/")[[1]][1]) == 1){
+              if(rle(as.character(c6[,"datec"]))$length[1] != c6mmin){#account for less than full minute to start
+                c6 <- c6[c6$datec != rle(as.character(c6[,"datec"]))$values[1],]
+              }
+              if(!exists("c6mmin")){
+                c6mmin <- dfmmin
+              }
                   
-                padm.addsec<-function(x,c6mmin){
-                    #x<-c6[,"datec"]
-                    #pad month
-                    x<-as.character(x)
-                    x<-paste("0",substring(x,0,1),substring(x,2,nchar(x)),sep="")
+              padm.addsec <- function(x, c6mmin){
+                #pad month
+                x <- as.character(x)
+                x <- paste("0", substring(x, 0, 1), substring(x, 2, nchar(x)), sep = "")
                     
-                    #add sec
-                    sseq<-seq(0,60-(60/c6mmin),60/c6mmin)
-                    sseq<-sapply(sseq,function(x) ifelse(nchar(x)==1,paste("0",x,sep=""),x))
-                    paste(x,":",sseq,sep="")
-                  }
-                  c6[,"datec"]<-padm.addsec(c6[,"datec"],c6mmin=c6mmin)
-                }
-                c6$datec<-as.POSIXct(strptime(c6$datec,"%m/%d/%Y %H:%M:%S"))
-                
+                #add sec
+                sseq <- seq(0, 60 - (60 / c6mmin), 60 / c6mmin)
+                sseq <- sapply(sseq, function(x) ifelse(nchar(x) == 1, paste("0", x, sep = ""), x))
+                paste(x, ":", sseq, sep = "")
               }
-              c6$sec<-as.numeric(format(c6$datec,'%S'))
-              c6freq<-c6$sec[2]-c6$sec[1]
-              c6$datec<-as.POSIXct(c6$datec)
-              c6zoo<-zoo::zoo(c6,c6$datec)
+              c6[,"datec"] <- padm.addsec(c6[,"datec"], c6mmin = c6mmin)
+              }
+              c6$datec <- as.POSIXct(strptime(c6$datec, "%m/%d/%Y %H:%M:%S"))
+                
+            }
+            c6$sec <- as.numeric(format(c6$datec, '%S'))
+            c6freq <- c6$sec[2] - c6$sec[1]
+            c6$datec <- as.POSIXct(c6$datec)
+            c6zoo <- zoo::zoo(c6, c6$datec)
               
-              #if true generate second-wise c6 zoo object
-              if(dtfreq!=c6freq){
-                seqexpand <- data.frame(seq(as.POSIXct(unique(as.Date(c6$datec))), as.POSIXct(unique(as.Date(c6$datec)) + 1), 1))
-                names(seqexpand)<-c("datec")
-                seqexpand <- zoo::zoo(seqexpand, seqexpand$datec)
-                seqexpand<-merge(seqexpand,c6zoo)
-                seqexpand<-seqexpand[min(which(!is.na(seqexpand[,"brighteners"]))):max(which(!is.na(seqexpand[,"brighteners"]))),3:ncol(seqexpand)]
-                idx<-colSums(!is.na(seqexpand))>1
-                alignset<-zoo::na.approx(seqexpand[,idx])
-              
+            #if true generate second-wise c6 zoo object
+            if(dtfreq != c6freq){
+              seqexpand <- data.frame(seq(as.POSIXct(unique(as.Date(c6$datec))), as.POSIXct(unique(as.Date(c6$datec)) + 1), 1))
+              names(seqexpand) <- c("datec")
+              seqexpand <- zoo::zoo(seqexpand, seqexpand$datec)
+              seqexpand <- merge(seqexpand,c6zoo)
+              seqexpand<-seqexpand[min(which(!is.na(seqexpand[,"brighteners"]))):max(which(!is.na(seqexpand[,"brighteners"]))),3:ncol(seqexpand)]
+              idx <- colSums(!is.na(seqexpand))>1
+              alignset <- zoo::na.approx(seqexpand[,idx])
               
               #align based on temp(not implemented yet)
-              alignset<-alignset[!is.na(alignset$c6cdom),]
-              
-              #dtsave<-dt
-              #c6save<-c6
-              
-              #merge c6 and df based on time stamp
-              c6<-data.frame(alignset,zoo::index(alignset),row.names=NULL)
-              names(c6)[ncol(c6)]<-"datetime"
-              #browser()
-              dt<-merge(dt,c6,by="datetime",all.x=T)
-              datetime<-dt[,"datetime"]
-              dt<-data.frame(apply(dt[,2:ncol(dt)],2,function(x) as.numeric(as.character(x))))
-              dt$datetime<-datetime                   
-              }else{
-                
-                #remove c6 rows with duplicate datetime stamps
-                #test<-c6[!duplicated(c6$datetime),]
+              alignset <- alignset[!is.na(alignset$c6cdom),]
+              c6 <- data.frame(alignset, zoo::index(alignset), row.names = NULL)
+              names(c6)[ncol(c6)] <- "datetime"
+        
+              #merge c6 and df based on time stamp####
+              dt <- merge(dt, c6, by = "datetime", all.x = T)
+              datetime <- dt[,"datetime"]
+              dt <- data.frame(apply(dt[,2:ncol(dt)], 2, function(x) as.numeric(as.character(x))))
+              dt$datetime <- datetime                   
+            }else{
+              #remove c6 rows with duplicate datetime stamps
+              #test<-c6[!duplicated(c6$datetime),]
                                 
-                datetime<-dt$datetime
-                names(c6)[names(c6)=="datec"]<-"datetime"
-                #browser()
-                dt<-merge(dt,c6,by="datetime",all.x=T)
+              datetime<-dt$datetime
+              names(c6)[names(c6)=="datec"]<-"datetime"
                 
-                dt<-data.frame(apply(dt[,2:ncol(dt)],2,function(x) as.numeric(as.character(x))))
-                dt$datetime<-datetime  
-              }
+              dt <- merge(dt,c6,by="datetime",all.x=T)
+              dt <- data.frame(apply(dt[,2:ncol(dt)], 2, function(x) as.numeric(as.character(x))))
+              dt$datetime <- datetime  
+            }
               
-              print(paste(basename(c6list[c6dfmatch]),"processed",sep=" "))
-              }else{
-                print("No C6 file detected, constructing empty data matrix")
-                emptyc6<-data.frame(matrix(NA,nrow=nrow(dt),ncol=20-ncol(dt)))
-                names(emptyc6)<-c("brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","c6temp","sec.y")
-                dt <- cbind(dt,emptyc6)
-                names(dt)[names(dt) == "sec"] <- "sec.x"
-                dt<-dt[,match(names(streamget(201505)),names(dt))[!is.na(match(names(streamget(201505)),names(dt)))]]
-              }
-    }
+            print(paste(basename(c6list[c6dfmatch]), "processed", sep = " "))
+          }else{
+            print("No C6 file detected, constructing empty data matrix")
+            emptyc6 <- data.frame(matrix(NA, nrow = nrow(dt), ncol = 20 - ncol(dt)))
+            names(emptyc6) <- c("brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "c6temp", "sec.y")
+            dt <- cbind(dt, emptyc6)
+            names(dt)[names(dt) == "sec"] <- "sec.x"
+            dt <- dt[,match(names(streamget(201505)), names(dt))[!is.na(match(names(streamget(201505)), names(dt)))]]
+          }
+      }
     
     #clean and merge eu here===============================================#
     if(!is.na(eummin)){
