@@ -2,13 +2,10 @@
 #'@title Cleaning raw streaming Dataflow output
 #'@description Cleaning raw streaming Dataflow, C6, Eureka-Manta, and YSI-Exo output
 #'@param yearmon numeric designation of survey date formatted as yyyymm
-#'@param mmin minimum measurement frequency (# measurements/min)
-#'@param c6mmin integer optional minimum c6 measurement frequency if different than mmin
-#'@param c6pres logical was C6 data collected?
-#'@param eummin integer optional minimum eureka measurement frequency if different than mmin
-#'@param eupres logical was eureka data collected?
-#'@param exommin integer optional minimum exo measurement frequency if different than mmin
-#'@param exopres logical was exo data collected?
+#'@param dfmmin integer optional minimum df measurement frequency (# measurements/min)
+#'@param c6mmin integer optional minimum c6 measurement frequency 
+#'@param eummin integer optional minimum eureka (manta) measurement frequency
+#'@param exommin integer optional minimum exo measurement frequency
 #'@param tofile logical save cleaned output to DF_FullDataSets?
 #'@param sep character optional predesignation of item seperation character in raw data files
 #'@param fdir character file path to local data directory
@@ -18,15 +15,14 @@
 #'@importFrom sp coordinates CRS spTransform
 #'@details Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. Bad DO columns must sometimes be removed manually. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon
 #'@examples \dontrun{
-#'dt <- streamclean(yearmon = 201505, mmin = 7, c6mmin = 10, tofile = FALSE, c6pres = TRUE)
-#'dt <- streamclean(yearmon = 201513, mmin = 7, c6pres = TRUE, c6mmin = 12,
-#' tofile = FALSE, exommin = 60, exopres = TRUE, eupres = TRUE, eummin = 12)
-#' 
-#' dt <- streamclean(yearmon = 201601, mmin = 12, c6pres = FALSE, eupres = TRUE, eummin = 12)
-#' 
+#'dt <- streamclean(yearmon = 201505, dfmmin = 7, c6mmin = 10,
+#' tofile = FALSE)
+#'dt <- streamclean(yearmon = 201513, dfmmin = 7, c6mmin = 12,
+#' tofile = FALSE, exommin = 60, eummin = 12)
+#'dt <- streamclean(yearmon = 201601, dfmmin = 12, eummin = 12)
 #'}
 
-streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, eupres = FALSE, exommin = NA, exopres = FALSE, tofile = FALSE, sep = ",", fdir = getOption("fdir")){
+streamclean <- function(yearmon, dfmmin = NA, c6mmin = NA, eummin = NA, exommin = NA, tofile = FALSE, sep = ",", fdir = getOption("fdir")){
   
   options(warn = -1)  
   fdir_fd <- file.path(fdir, "DF_FullDataSets", "Raw", "InstrumentOutput")
@@ -60,13 +56,7 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
     warning("Differing numbers of Dataflow and C6 input files")
   }
   
-  set_empty_to_NULL <- function(x) if(length(x) == 0){NULL}else{x}
-  dflist  <- set_empty_to_NULL(dflist)
-  eulist  <- set_empty_to_NULL(eulist)
-  exolist <- set_empty_to_NULL(exolist)
-  c6list  <- set_empty_to_NULL(c6list)  
-  
-  survey_days <- unique(substring(basename(c(dflist, eulist, exolist, c6list)[sapply(c(dflist, eulist, exolist, c6list), function(x) length(x))]), 1, 8))
+  survey_days <- unique(sapply(basename(c(dflist, eulist, exolist, c6list)), function(x) substring(basename(x), 1, 8)))
   
   reslist <- list()
   for(i in 1:length(survey_days)){
@@ -161,19 +151,19 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
         #j<-1
         curdat <- dt[dt$date == datelist[j],]
         gdata <- data.frame(table(curdat$time))
-        fdata <-as.numeric(as.character(gdata[gdata$Freq < mmin, 1]))#too few measurements
-        odata <- as.numeric(as.character(gdata[gdata$Freq > mmin, 1]))#too many measurements
+        fdata <-as.numeric(as.character(gdata[gdata$Freq < dfmmin, 1]))#too few measurements
+        odata <- as.numeric(as.character(gdata[gdata$Freq > dfmmin, 1]))#too many measurements
         if(length(odata) > 0){
           for(k in 1:length(odata)){
             #k<-1
             leng <- nrow(curdat[curdat$time == odata[k],])
-            remo <- sample(as.numeric(row.names(curdat[curdat$time == odata[k],])), leng - mmin)
+            remo <- sample(as.numeric(row.names(curdat[curdat$time == odata[k],])), leng - dfmmin)
             curdat <- curdat[-match(remo, as.numeric(row.names(curdat))),]
           }
         }
         curdat <- curdat[!curdat$time %in% fdata,]
         curdat <- curdat[!is.na(curdat$time),]
-        curdat$sec <- rep(round(seq(from = 0, to = 60 - 60 / mmin, by = 60 / mmin), 3), times = nrow(data.frame(table(curdat$time))))
+        curdat$sec <- rep(round(seq(from = 0, to = 60 - 60 / dfmmin, by = 60 / dfmmin), 3), times = nrow(data.frame(table(curdat$time))))
         
         reslist2[[j]] <- curdat
       }
@@ -223,15 +213,14 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
         dt$sal <- corsal
       }
     
-      print("test")
       print(paste(basename(dflist[i]), "processed", sep = " "))
       dt
     }
     dt <- clean_df(dt)
     
     #clean and merge C6 here=================================================####
-    if(c6pres == TRUE){
-            c6dfmatch<-which(substring(basename(c6list),1,8)==substring(basename(dflist[i]),1,8))
+    if(!is.na(c6mmin)){
+            c6dfmatch <- which(substring(basename(c6list),1,8)==substring(basename(dflist[i]),1,8))
             #browser()
             if(length(c6dfmatch) != 0){
               c6<-read.csv(c6list[c6dfmatch],skip=12,header=F)[,1:9]
@@ -269,7 +258,7 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
                     c6<-c6[c6$datec!=rle(as.character(c6[,"datec"]))$values[1],]
                   }
                   if(!exists("c6mmin")){
-                    c6mmin<-mmin
+                    c6mmin <- dfmmin
                   }
                   
                 padm.addsec<-function(x,c6mmin){
@@ -344,7 +333,7 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
     }
     
     #clean and merge eu here===============================================#
-    if(eupres == TRUE){
+    if(!is.na(eummin)){
       eudfmatch <- which(substring(basename(eulist), 1, 8) == substring(basename(dflist[i]), 1, 8))
       if(length(eudfmatch) != 0){
         eu <- read.csv(eulist[eudfmatch], header = TRUE, stringsAsFactors = FALSE)#[,c(1:13, 17:18)]
@@ -421,7 +410,7 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
     }
     
     #clean and merge exo here==============================================#
-    if(exopres == TRUE){
+    if(!is.na(exommin)){
       exodfmatch <- which(substring(basename(exolist), 1, 8) == substring(basename(dflist[i]), 1, 8))
       if(length(exodfmatch) != 0){
         exo <- read.csv(exolist[exodfmatch], header = T, skip = 12, stringsAsFactors = FALSE)

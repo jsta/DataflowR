@@ -4,26 +4,19 @@
 \alias{streamclean}
 \title{Cleaning raw streaming Dataflow output}
 \usage{
-streamclean(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA,
-  eupres = FALSE, exommin = NA, exopres = FALSE, tofile = FALSE,
-  sep = ",", fdir = getOption("fdir"))
+streamclean(yearmon, dfmmin = NA, c6mmin = NA, eummin = NA,
+  exommin = NA, tofile = FALSE, sep = ",", fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric designation of survey date formatted as yyyymm}
 
-\item{mmin}{minimum measurement frequency (# measurements/min)}
+\item{dfmmin}{integer optional minimum df measurement frequency (# measurements/min)}
 
-\item{c6mmin}{integer optional minimum c6 measurement frequency if different than mmin}
+\item{c6mmin}{integer optional minimum c6 measurement frequency}
 
-\item{c6pres}{logical was C6 data collected?}
+\item{eummin}{integer optional minimum eureka (manta) measurement frequency}
 
-\item{eummin}{integer optional minimum eureka measurement frequency if different than mmin}
-
-\item{eupres}{logical was eureka data collected?}
-
-\item{exommin}{integer optional minimum exo measurement frequency if different than mmin}
-
-\item{exopres}{logical was exo data collected?}
+\item{exommin}{integer optional minimum exo measurement frequency}
 
 \item{tofile}{logical save cleaned output to DF_FullDataSets?}
 
@@ -39,9 +32,11 @@ Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 
 }
 \examples{
 \dontrun{
-dt <- streamclean(yearmon = 201505, mmin = 7, c6mmin = 10, tofile = FALSE, c6pres = TRUE)
-dt <- streamclean(yearmon = 201513, mmin = 7, c6pres = TRUE, c6mmin = 12,
-tofile = FALSE, exommin = 60, exopres = TRUE, eupres = TRUE, eummin = 12)
+dt <- streamclean(yearmon = 201505, dfmmin = 7, c6mmin = 10,
+tofile = FALSE)
+dt <- streamclean(yearmon = 201513, dfmmin = 7, c6mmin = 12,
+tofile = FALSE, exommin = 60, eummin = 12)
+dt <- streamclean(yearmon = 201601, dfmmin = 12, eummin = 12)
 }
 }
 
