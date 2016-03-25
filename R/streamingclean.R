@@ -21,6 +21,9 @@
 #'dt <- streamclean(yearmon = 201505, mmin = 7, c6mmin = 10, tofile = FALSE, c6pres = TRUE)
 #'dt <- streamclean(yearmon = 201513, mmin = 7, c6pres = TRUE, c6mmin = 12,
 #' tofile = FALSE, exommin = 60, exopres = TRUE, eupres = TRUE, eummin = 12)
+#' 
+#' dt <- streamclean(yearmon = 201601, mmin = 12, c6pres = FALSE, eupres = TRUE, eummin = 12)
+#' 
 #'}
 
 streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, eupres = FALSE, exommin = NA, exopres = FALSE, tofile = FALSE, sep = ",", fdir = getOption("fdir")){
@@ -33,6 +36,9 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
   dflist <- list.files(flist, pattern = c("*.txt"), include.dirs = T, full.names = T)
   if(length(dflist) == 0){
     dflist <- list.files(flist, pattern = c("*.TXT"), include.dirs = T, full.names = T)
+  }
+  if(length(dflist) == 0){
+    dflist <- list.files(flist, pattern = c("*DF.csv"), include.dirs = T, full.names = T)
   }
   
   c6list <- list.files(flist, pattern = c("*C6.csv"), include.dirs = T, full.names = T)
@@ -53,11 +59,19 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
   if(length(c6list) != length(dflist)){
     warning("Differing numbers of Dataflow and C6 input files")
   }
-    
+  
+  set_empty_to_NULL <- function(x) if(length(x) == 0){NULL}else{x}
+  dflist  <- set_empty_to_NULL(dflist)
+  eulist  <- set_empty_to_NULL(eulist)
+  exolist <- set_empty_to_NULL(exolist)
+  c6list  <- set_empty_to_NULL(c6list)  
+  
+  survey_days <- unique(substring(basename(c(dflist, eulist, exolist, c6list)[sapply(c(dflist, eulist, exolist, c6list), function(x) length(x))]), 1, 8))
+  
   reslist <- list()
-  for(i in 1:length(dflist)){
-    sep<-","
-    dt <- read.csv(dflist[i],skip=0,header=F,sep=sep)#start with comma sep
+  for(i in 1:length(survey_days)){
+    sep <- ","
+    dt <- read.csv(dflist[i], skip = 0, header = F, sep = sep)#start with comma sep
         
     if(suppressWarnings(nchar(gsub("\t","",dt[1,]))<nchar(as.character(dt[1,])))){#switch to tab sep
       sep<-"\t"
@@ -464,7 +478,7 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
     }
     
               
-    #create basin designations here####
+    #create basin designations here
         
     #define projections
     projstr <- "+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
@@ -473,7 +487,7 @@ streamclean <- function(yearmon, mmin, c6mmin = NA, c6pres = TRUE, eummin = NA, 
     cerpbasins<-rgdal::readOGR(file.path(fdir,"DF_Basefile/fbfs_zones.shp"),layer="fbfs_zones",verbose=FALSE)
     selectiongrid<-rgdal::readOGR(file.path(fdir,"DF_Basefile/testgrid3.shp"),layer="testgrid3",verbose=FALSE)
     
-    #spatial join####
+    #spatial join
     dt<-dt[!is.na(dt$lat_dd)&!is.na(dt$lon_dd),]
     xy<-cbind(dt$lon_dd,dt$lat_dd)
     xy<-data.frame(xy)
