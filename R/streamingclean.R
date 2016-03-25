@@ -61,162 +61,169 @@ streamclean <- function(yearmon, dfmmin = NA, c6mmin = NA, eummin = NA, exommin 
   reslist <- list()
   for(i in 1:length(survey_days)){
     
-    sep <- ","
-    dt <- read.csv(dflist[i], skip = 0, header = F, sep = sep)#start with comma sep
+    if(!is.na(dfmmin)){
+      read_df <- function(dfpath){
+        #start with comma sep
+        sep <- ","
+        dt <- read.csv(dfpath, skip = 0, header = F, sep = sep)
+  
+        #switch to tab sep          
+        if(suppressWarnings(nchar(gsub("\t", "", dt[1,])) < nchar(as.character(dt[1,])))){
+          sep <- "\t"
+          dt <- read.csv(dfpath, skip = 0, header = F, sep = sep, stringsAsFactors = FALSE)
+        }
         
-    if(suppressWarnings(nchar(gsub("\t", "", dt[1,])) < nchar(as.character(dt[1,])))){#switch to tab sep
-      sep <- "\t"
-      dt <- read.csv(dflist[i], skip = 0, header = F, sep = sep, stringsAsFactors = FALSE)
-    }
-    
-    #detect beginning of measurements
-    fskip <- 1
-    while(!(!(class(dt[,1]) != "integer") | !(class(dt[,1]) != "numeric"))){
-      dt <- read.csv(dflist[i], skip = fskip, header = F, sep = sep, stringsAsFactors = FALSE)
-      #print(dt[1,1])
-      if(!any(!is.na(dt[,1])) | mean(nchar(as.character(dt[,1]))) < 1 | sum(is.na(dt[,1])) > (nrow(dt) / 2) | sum(nchar(gsub("_", "", as.character(dt[,1]))) - nchar(as.character(dt[,1]))) != 0){
-        dt <- dt[,-1]
-      }
-      fskip <- fskip + 1
-      if(fskip > 20){
-        stop(paste("Cannot find beginning of measurements!", dflist[i]))
-      }
-    }
-    
-    sep <- ","
-#==========================================================================#
-    
-    clean_df <- function(dt){
-      #remove bad columns
-      if(class(dt[,3]) == "integer"){
-        dt <- dt[,-3]
-        print("removing existing seconds column")
-      }#remove existing sec column
-      
-      #remove bad columns of all 0 or NA
-      if(ncol(dt) > 14){
-        dtno.na <- dt[complete.cases(dt[,1:12]),]
-        dt <- dt[,apply(dtno.na, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) != 0)]
-      }
-      
-      #temp should never be less than 10, these are likely 'bad' DO columns?
-      if(mean(as.numeric(dt[,4]), na.rm = T) < 10 & mean(as.numeric(dt[,5]), na.rm = T) < 10){
-        dt <- dt[,-4:-5]
-      }
-      
-      dt <- dt[,apply(dt, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) > 22)]#take out all 0 (22 or 38 is an arbitrary "tolerance" value)
-      ones <- apply(dt, 2, function(x) sd(as.numeric(x)[as.numeric(x) != 0 & !is.na(as.numeric(x))])) != 0
-      ones[is.na(ones)] <- TRUE
-      ones[1:2] <- TRUE
-      dt <- dt[,ones]
-      dt <- dt[,apply(dt, 2, function(x) mean(nchar(x), na.rm = T)) >= 3.0] #(3 is an arbitrary "tolerance" value)
-      dt <- dt[,apply(dt[,3:ncol(dt)], 2, function(x) length(unique(x)) != 3)]
-      names(dt) <- c("date", "time", "chla", "temp", "cond", "sal", "trans", "cdom", "lat_dd", "lon_dd")
-      
-      #convert factors to numeric
-      dt <- data.frame(as.matrix(dt))
-      factorToNumeric <- function(f) as.numeric(levels(f))[f]
-      #check to make sure that there are any factor class columns
-      if(any(sapply(dt,class) == "factor")){
-        dt <- data.frame(sapply(dt, factorToNumeric))  
-      }
-      
-      #fix lon lat formatting
-      if(mean(nchar(as.character(round(dt[,"lat_dd"])))) != 2){
-        lat <- dt[,"lat_dd"]
-        latdeg <- as.numeric(substr(lat, 0, 2))
-        latmin <- as.numeric(substr(lat, 3, 8))
-        dt[,"lat_dd"] <- latdeg + latmin / 60
-        lon <- dt[,"lon_dd"]
-        londeg <- as.numeric(substr(lon, 0, 2))
-        lonmin <- as.numeric(substr(lon, 3, 8))
-        dt[,"lon_dd"] <- (londeg + lonmin / 60) * -1
-      }
-      
-      dt$time <- as.numeric(dt$time)
-      dt$date <- as.numeric(dt$date)
-      
-      #remove rows of all NA values
-      dt <- dt[as.numeric(rowSums(is.na(dt))) < ncol(dt) - 1,]
-      dt <- dt[as.numeric(rowSums(is.na(dt[,c("lat_dd", "lon_dd")]))) < 2,]
-      
-      #remove unrealistic coordinates
-      dt <- dt[abs(dt$lat_dd) > 24.5 & abs(dt$lat_dd) < 25.5, ]
-      dt <- dt[abs(dt$lon_dd) > 80.1 & abs(dt$lon_dd) < 82, ]
-      
-      #check for incomplete minutes
-      datelist <- unique(dt$date)
-      reslist2 <- list()
-      for(j in 1:length(datelist)){
-        #j<-1
-        curdat <- dt[dt$date == datelist[j],]
-        gdata <- data.frame(table(curdat$time))
-        fdata <-as.numeric(as.character(gdata[gdata$Freq < dfmmin, 1]))#too few measurements
-        odata <- as.numeric(as.character(gdata[gdata$Freq > dfmmin, 1]))#too many measurements
-        if(length(odata) > 0){
-          for(k in 1:length(odata)){
-            #k<-1
-            leng <- nrow(curdat[curdat$time == odata[k],])
-            remo <- sample(as.numeric(row.names(curdat[curdat$time == odata[k],])), leng - dfmmin)
-            curdat <- curdat[-match(remo, as.numeric(row.names(curdat))),]
+        #detect beginning of measurements
+        fskip <- 1
+        while(!(!(class(dt[,1]) != "integer") | !(class(dt[,1]) != "numeric"))){
+          dt <- read.csv(dfpath, skip = fskip, header = F, sep = sep, stringsAsFactors = FALSE)
+          #print(dt[1,1])
+          if(!any(!is.na(dt[,1])) | mean(nchar(as.character(dt[,1]))) < 1 | sum(is.na(dt[,1])) > (nrow(dt) / 2) | sum(nchar(gsub("_", "", as.character(dt[,1]))) - nchar(as.character(dt[,1]))) != 0){
+            dt <- dt[,-1]
+          }
+          fskip <- fskip + 1
+          if(fskip > 20){
+            stop(paste("Cannot find beginning of measurements!", dfpath))
           }
         }
-        curdat <- curdat[!curdat$time %in% fdata,]
-        curdat <- curdat[!is.na(curdat$time),]
-        curdat$sec <- rep(round(seq(from = 0, to = 60 - 60 / dfmmin, by = 60 / dfmmin), 3), times = nrow(data.frame(table(curdat$time))))
         
-        reslist2[[j]] <- curdat
+        sep <- ","
+        dt
       }
-      dt <- do.call("rbind", reslist2)
+      dt <- read_df(dfpath = dflist[i])
       
-      #detect when dt is measured at fractional seconds
-      if(!identical(round(dt$sec), dt$sec)){
-        dt$sec <- round(dt$sec)
-      }
-      
-      #create POSIXct datetime column
-      yr <- substring(dt$date, nchar(dt$date) - 1, nchar(dt$date))
-      day <- substring(dt$date, nchar(dt$date) - 3, nchar(dt$date) - 2)
-      mon <- substring(dt$date, 1, nchar(dt$date) - 4)
-      hr <- substring(dt$time, 1, nchar(dt$time) - 2)
-      min <- substring(dt$time, nchar(dt$time) - 1, nchar(dt$time))
-      
-      if(mean(nchar(mon)) == 1){mon <- paste("0", mon, sep = "")}
-      dt$datetime <- paste(yr, "-", mon, "-", day, "-", hr, "-", min, "-", dt$sec, sep = "")
-      rm(min)
-      dt$datetime <- as.POSIXct(strptime(dt$datetime, format = "%y-%m-%d-%H-%M-%S"))
+      clean_df <- function(dt){
+        #remove bad columns
+        if(class(dt[,3]) == "integer"){
+          dt <- dt[,-3]
+          print("removing existing seconds column")
+        }#remove existing sec column
+        
+        #remove bad columns of all 0 or NA
+        if(ncol(dt) > 14){
+          dtno.na <- dt[complete.cases(dt[,1:12]),]
+          dt <- dt[,apply(dtno.na, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) != 0)]
+        }
+        
+        #temp should never be less than 10, these are likely 'bad' DO columns?
+        if(mean(as.numeric(dt[,4]), na.rm = T) < 10 & mean(as.numeric(dt[,5]), na.rm = T) < 10){
+          dt <- dt[,-4:-5]
+        }
+        
+        dt <- dt[,apply(dt, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) > 22)]#take out all 0 (22 or 38 is an arbitrary "tolerance" value)
+        ones <- apply(dt, 2, function(x) sd(as.numeric(x)[as.numeric(x) != 0 & !is.na(as.numeric(x))])) != 0
+        ones[is.na(ones)] <- TRUE
+        ones[1:2] <- TRUE
+        dt <- dt[,ones]
+        dt <- dt[,apply(dt, 2, function(x) mean(nchar(x), na.rm = T)) >= 3.0] #(3 is an arbitrary "tolerance" value)
+        dt <- dt[,apply(dt[,3:ncol(dt)], 2, function(x) length(unique(x)) != 3)]
+        names(dt) <- c("date", "time", "chla", "temp", "cond", "sal", "trans", "cdom", "lat_dd", "lon_dd")
+        
+        #convert factors to numeric
+        dt <- data.frame(as.matrix(dt))
+        factorToNumeric <- function(f) as.numeric(levels(f))[f]
+        #check to make sure that there are any factor class columns
+        if(any(sapply(dt,class) == "factor")){
+          dt <- data.frame(sapply(dt, factorToNumeric))  
+        }
+        
+        #fix lon lat formatting
+        if(mean(nchar(as.character(round(dt[,"lat_dd"])))) != 2){
+          lat <- dt[,"lat_dd"]
+          latdeg <- as.numeric(substr(lat, 0, 2))
+          latmin <- as.numeric(substr(lat, 3, 8))
+          dt[,"lat_dd"] <- latdeg + latmin / 60
+          lon <- dt[,"lon_dd"]
+          londeg <- as.numeric(substr(lon, 0, 2))
+          lonmin <- as.numeric(substr(lon, 3, 8))
+          dt[,"lon_dd"] <- (londeg + lonmin / 60) * -1
+        }
+        
+        dt$time <- as.numeric(dt$time)
+        dt$date <- as.numeric(dt$date)
+        
+        #remove rows of all NA values
+        dt <- dt[as.numeric(rowSums(is.na(dt))) < ncol(dt) - 1,]
+        dt <- dt[as.numeric(rowSums(is.na(dt[,c("lat_dd", "lon_dd")]))) < 2,]
+        
+        #remove unrealistic coordinates
+        dt <- dt[abs(dt$lat_dd) > 24.5 & abs(dt$lat_dd) < 25.5, ]
+        dt <- dt[abs(dt$lon_dd) > 80.1 & abs(dt$lon_dd) < 82, ]
+        
+        #check for incomplete minutes
+        datelist <- unique(dt$date)
+        reslist2 <- list()
+        for(j in 1:length(datelist)){
+          #j<-1
+          curdat <- dt[dt$date == datelist[j],]
+          gdata <- data.frame(table(curdat$time))
+          fdata <-as.numeric(as.character(gdata[gdata$Freq < dfmmin, 1]))#too few measurements
+          odata <- as.numeric(as.character(gdata[gdata$Freq > dfmmin, 1]))#too many measurements
+          if(length(odata) > 0){
+            for(k in 1:length(odata)){
+              #k<-1
+              leng <- nrow(curdat[curdat$time == odata[k],])
+              remo <- sample(as.numeric(row.names(curdat[curdat$time == odata[k],])), leng - dfmmin)
+              curdat <- curdat[-match(remo, as.numeric(row.names(curdat))),]
+            }
+          }
+          curdat <- curdat[!curdat$time %in% fdata,]
+          curdat <- curdat[!is.na(curdat$time),]
+          curdat$sec <- rep(round(seq(from = 0, to = 60 - 60 / dfmmin, by = 60 / dfmmin), 3), times = nrow(data.frame(table(curdat$time))))
           
-      #clean data frame
-      #trim beginning and end based on when data is all zeros
-      trimdt <- function(dt){
-        j <- 1  
-        for(i in 1:nrow(dt)){
-          if(dt[i,1:9][order(dt[i,1:9])][2] > 0){
-            break
-          }
-          j <- i + 1
+          reslist2[[j]] <- curdat
         }
-        k <- nrow(dt)
-        for(i in nrow(dt):1){
-          if(!is.na(min(dt[i, 1:9])) > 0){
-            break
-          }
-          k <- i - 1
+        dt <- do.call("rbind", reslist2)
+        
+        #detect when dt is measured at fractional seconds
+        if(!identical(round(dt$sec), dt$sec)){
+          dt$sec <- round(dt$sec)
         }
-        dt[j:k,]
-      }
-      dt <- trimdt(dt)
+        
+        #create POSIXct datetime column
+        yr <- substring(dt$date, nchar(dt$date) - 1, nchar(dt$date))
+        day <- substring(dt$date, nchar(dt$date) - 3, nchar(dt$date) - 2)
+        mon <- substring(dt$date, 1, nchar(dt$date) - 4)
+        hr <- substring(dt$time, 1, nchar(dt$time) - 2)
+        min <- substring(dt$time, nchar(dt$time) - 1, nchar(dt$time))
+        
+        if(mean(nchar(mon)) == 1){mon <- paste("0", mon, sep = "")}
+        dt$datetime <- paste(yr, "-", mon, "-", day, "-", hr, "-", min, "-", dt$sec, sep = "")
+        rm(min)
+        dt$datetime <- as.POSIXct(strptime(dt$datetime, format = "%y-%m-%d-%H-%M-%S"))
+            
+        #clean data frame
+        #trim beginning and end based on when data is all zeros
+        trimdt <- function(dt){
+          j <- 1  
+          for(i in 1:nrow(dt)){
+            if(dt[i,1:9][order(dt[i,1:9])][2] > 0){
+              break
+            }
+            j <- i + 1
+          }
+          k <- nrow(dt)
+          for(i in nrow(dt):1){
+            if(!is.na(min(dt[i, 1:9])) > 0){
+              break
+            }
+            k <- i - 1
+          }
+          dt[j:k,]
+        }
+        dt <- trimdt(dt)
+        
+        #check for correct cond to salinity calculations
+        corsal <- DataflowR::cond2sal(dt$cond * 1000, dt$temp)
+        if((lm(corsal ~ dt$sal)$coefficients[2] - 1) > 0.02){
+          dt$sal <- corsal
+        }
       
-      #check for correct cond to salinity calculations
-      corsal <- DataflowR::cond2sal(dt$cond * 1000, dt$temp)
-      if((lm(corsal ~ dt$sal)$coefficients[2] - 1) > 0.02){
-        dt$sal <- corsal
+        print(paste(basename(dflist[i]), "processed", sep = " "))
+        dt
       }
-    
-      print(paste(basename(dflist[i]), "processed", sep = " "))
-      dt
+      dt <- clean_df(dt)
     }
-    dt <- clean_df(dt)
     
     #clean and merge C6 here=================================================####
     if(!is.na(c6mmin)){
