@@ -2,7 +2,7 @@
 #'@title Cleaning raw streaming Dataflow output
 #'@description Cleaning raw streaming Dataflow, C6, Eureka-Manta, and YSI-Exo output
 #'@param yearmon numeric designation of survey date formatted as yyyymm
-#'@param target_frequency integer number of seconds expected between measurements. Set this value to match the frequency of dataset containing the best GPS measurements.
+#'@param gps character dataset to use for GPS alignment of other data streams. Choice of "df", "c6", "eu", or "exo".
 #'@param dfmmin integer optional minimum df measurement frequency (# measurements/min)
 #'@param c6mmin integer optional minimum c6 measurement frequency 
 #'@param eummin integer optional minimum eureka (manta) measurement frequency
@@ -22,10 +22,12 @@
 #' tofile = FALSE, exommin = 60, eummin = 12)
 #'dt <- streamclean(yearmon = 201601, dfmmin = 12, eummin = 12, tofile = FALSE)
 #'
-#'dt <- streamclean(yearmon = 201512, dfmmin = )
+#'#working
+#'dt <- streamclean(yearmon = 201512, gps = "df", c6mmin = 6, dfmmin = 7)
+#'
 #'}
 
-streamclean <- function(yearmon, target_frequency, dfmmin = NA, c6mmin = NA, eummin = NA, exommin = NA, tofile = FALSE, sep = ",", fdir = getOption("fdir")){
+streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exommin = NA, tofile = FALSE, sep = ",", fdir = getOption("fdir")){
   
   options(warn = -1)  
   fdir_fd <- file.path(fdir, "DF_FullDataSets", "Raw", "InstrumentOutput")
@@ -60,12 +62,11 @@ streamclean <- function(yearmon, target_frequency, dfmmin = NA, c6mmin = NA, eum
   # }
   
   survey_days <- unique(sapply(basename(c(dflist, eulist, exolist, c6list)), function(x) substring(basename(x), 1, 8)))
-  iterate_days <- function(survey_days, file_listing, reading_function, cleaning_function){
+  iterate_days_load <- function(survey_days, file_listing, reading_function, cleaning_function){
     reslist <- list()
     for(i in 1:length(survey_days)){
       day_data <- reading_function(file_listing[i])
       day_data <- cleaning_function(day_data)
-      day_data <- align_frequency(day_data, target_frequency)
       reslist[[i]] <- day_data
     }
     do.call("rbind", reslist)
@@ -252,34 +253,35 @@ streamclean <- function(yearmon, target_frequency, dfmmin = NA, c6mmin = NA, eum
       c6$datetime <- as.POSIXct(strptime(c6$datetime, "%m/%d/%y %H:%M:%S"))
     }
     
-    if(!any(!is.na(c6$datetime))){
-      c6 <- read.csv(c6list[c6dfmatch], skip = 12, header = F)[,1:9]
-      names(c6) <- c("datetime", "brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "depth", "c6temp")
-      if(!any(!is.na(c6[,"c6temp"]))){
-        c6 <- c6[,-9]
-        names(c6)[8] <- "c6temp"
-      }else{
-        c6 <- c6[,-8]
-      }
-      
-      if(nchar(strsplit(as.character(c6[,"datetime"]), "/")[[1]][1]) == 1){
-        if(rle(as.character(c6[,"datetime"]))$length[1] != c6mmin){#account for less than full minute to start
-          c6 <- c6[c6$datetime != rle(as.character(c6[,"datetime"]))$values[1],]
-        }
-        
-        padm_addsec <- function(x, c6mmin){
-          #pad month
-          x <- as.character(x)
-          x <- paste("0", substring(x, 0, 1), substring(x, 2, nchar(x)), sep = "")
-          #add sec
-          sseq <- seq(0, 60 - (60 / c6mmin), 60 / c6mmin)
-          sseq <- sapply(sseq, function(x) ifelse(nchar(x) == 1, paste("0", x, sep = ""), x))
-          paste(x, ":", sseq, sep = "")
-        }
-        c6[,"datetime"] <- padm_addsec(c6[,"datetime"], c6mmin = c6mmin)
-      }
-      c6$datetime <- as.POSIXct(strptime(c6$datetime, "%m/%d/%Y %H:%M:%S"))
-    }
+    # if(!any(!is.na(c6$datetime))){
+    #   c6 <- read.csv(c6list[c6dfmatch], skip = 12, header = F)[,1:9]
+    #   names(c6) <- c("datetime", "brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "depth", "c6temp")
+    #   if(!any(!is.na(c6[,"c6temp"]))){
+    #     c6 <- c6[,-9]
+    #     names(c6)[8] <- "c6temp"
+    #   }else{
+    #     c6 <- c6[,-8]
+    #   }
+    #   
+    #   if(nchar(strsplit(as.character(c6[,"datetime"]), "/")[[1]][1]) == 1){
+    #     if(rle(as.character(c6[,"datetime"]))$length[1] != c6mmin){#account for less than full minute to start
+    #       c6 <- c6[c6$datetime != rle(as.character(c6[,"datetime"]))$values[1],]
+    #     }
+    #     
+    #     padm_addsec <- function(x, c6mmin){
+    #       #pad month
+    #       x <- as.character(x)
+    #       x <- paste("0", substring(x, 0, 1), substring(x, 2, nchar(x)), sep = "")
+    #       #add sec
+    #       sseq <- seq(0, 60 - (60 / c6mmin), 60 / c6mmin)
+    #       sseq <- sapply(sseq, function(x) ifelse(nchar(x) == 1, paste("0", x, sep = ""), x))
+    #       paste(x, ":", sseq, sep = "")
+    #     }
+    #     c6[,"datetime"] <- padm_addsec(c6[,"datetime"], c6mmin = c6mmin)
+    #   }
+    #   c6$datetime <- as.POSIXct(strptime(c6$datetime, "%m/%d/%Y %H:%M:%S"))
+    # }
+    
     c6$sec <- as.numeric(format(c6$datetime, '%S'))
     c6freq <- c6$sec[2] - c6$sec[1]
     c6$datetime <- as.POSIXct(c6$datetime)
@@ -321,206 +323,117 @@ streamclean <- function(yearmon, target_frequency, dfmmin = NA, c6mmin = NA, eum
     exo
   }
   
-  #check for instrument frequency against frequency target####
-  align_frequency <- function(dt, target_frequency){
-    raw_freq <- Mode(diff(as.numeric(format(dt$datetime,  '%S'))))
-    if(raw_freq != target_frequency){
-      stop("Need to implement frequency alignment in `align_frequency`")
-      dtzoo <- zoo::zoo(dt, dt$datetime)
+  if(!is.na(dfmmin)){
+    df <- iterate_days_load(survey_days, dflist, read_df, clean_df)
+  }
+  if(!is.na(c6mmin)){
+    c6 <- iterate_days_load(survey_days, c6list, read_c6, clean_c6)
+  }
+  if(!is.na(eummin)){
+    eu <- iterate_days_load(survey_days, eulist, read_eu, clean_eu)
+  }
+  if(!is.na(exommin)){
+    exo <- iterate_days_load(survey_days, exolist, read_exo, clean_exo)
+  }
+  
+  #=======================================================================#
+  streams <- c("df", "c6", "eu", "exo")
+  streams <- streams[sapply(streams, function(x) exists(x))]
+  stream_mmin <- c("dfmmin", "c6mmin", "eummin", "exommin")
+  target <- eval(as.symbol(gps))
+  target_mmin <- eval(as.symbol(stream_mmin[grep(gps, stream_mmin)]))
+  
+  detect_mmin <- function(dt){
+    round(60/Mode(diff(as.numeric(format(dt$datetime,  '%S')))))
+  }
+  
+  check_correct_mmin <- function(dt, target, target_mmin){
+    dt_mmin <- detect_mmin(dt)
+    if(dt_mmin != target_mmin){
+      #create second-wise zoo object
+      dt_zoo <- zoo::zoo(dt, dt$datetime)
+      dt_zoo_full <- data.frame(
+        seq(
+          as.POSIXct(as.Date(unique(strftime(min(dt$datetime), format = "%Y-%m-%d"))[1])),
+          as.POSIXct(as.Date(unique(strftime(max(dt$datetime), format = "%Y-%m-%d"))[1]) + 1), 1
+        )
+      )
+      names(dt_zoo_full) <- "datetime"
+      dt_zoo_full <- zoo::zoo(dt_zoo_full, dt_zoo_full$datetime)
+      dt_zoo_full <- merge(dt_zoo_full, dt_zoo)
+      dt_zoo_full <- dt_zoo_full[min(which(!is.na(dt_zoo_full[,2]))):max(which(!is.na(dt_zoo_full[,2]))),]#trim to the datetime range of non-NA
+      
+      #select columns to interpolate
+      is_interp_column <- colSums(!is.na(dt_zoo_full)) < nrow(dt_zoo_full)
+      is_interp_column[c(1:3)] <- FALSE
+      # is_interp_column[c(1:3, (ncol(dt_zoo_full) - 1), ncol(dt_zoo_full))] <- FALSE #need to make this not dataset-specific
+      
+      dt_zoo_full <- zoo::na.approx(dt_zoo_full[,is_interp_column])
+      dt <- data.frame(dt_zoo_full, zoo::index(dt_zoo_full), row.names = NULL)
+      names(dt)[ncol(dt)] <- "datetime"
+      
+      #filter based on target time-stamps
+      dt_names <- names(dt)
+      dt <- merge(target, dt, by = "datetime", all.x = T)
+      dt[, dt_names[dt_names %in% names(dt)]]
     }else{
       dt
     }
   }
   
-  if(!is.na(dfmmin)){
-    dt <- iterate_days(survey_days, dflist, read_df, clean_df)
+  #loop through contributing streams
+  if(!is.na(c6mmin) & (gps != "c6")){
+    c6 <- check_correct_mmin(c6, target, target_mmin)
   }
-  if(!is.na(c6mmin)){
-    c6 <- iterate_days(survey_days, c6list, read_c6, clean_c6)
+  if(!is.na(dfmmin) & (gps != "df")){
+    df <- check_correct_mmin(df, target, target_mmin)
   }
-  if(!is.na(eummin)){
-    eu <- iterate_days(survey_days, eulist, read_eu, clean_eu)
+  if(!is.na(eummin) & (gps != "eu")){
+    eu <- check_correct_mmin(eu, target, target_mmin)
   }
-  if(!is.na(exommin)){
-    exo <- iterate_days(survey_days, exolist, read_exo, clean_exo)
+  if(!is.na(exommin) & (gps != "exo")){
+    exo <- check_correct_mmin(exo, target, target_mmin)
   }
-    
   
+  #merge contributing streams into target
+  contributing_streams <- streams[!(streams %in% gps)]
+  dt <- target
+  for(i in contributing_streams){
+    dt <- merge(dt, eval(as.symbol(i)), all.x = TRUE)
+  }
   
-  # browser()
-  #   
-  #       #check for mismatched exodf measurement frequency
-  #       dtfreq <- max(dt$sec.x[2] - dt$sec.x[1], dt$sec.x[3] - dt$sec.x[2])
-  #       
-  #       exofreq <- Mode(diff(as.numeric(format(exo$datetime, '%S'))))
-  #       exozoo <- zoo::zoo(exo, exo$datetime)
-  #       
-  #       #if true generate second-wise exo zoo object
-  #       if(dtfreq != exofreq){
-  #         
-  #         seqexpand <- data.frame(
-  #           seq(
-  #             as.POSIXct(as.Date(unique(strftime(exo$datetime, format = "%Y-%m-%d"))[1])),
-  #             as.POSIXct(as.Date(unique(strftime(exo$datetime, format = "%Y-%m-%d"))[1]) + 1), 1)
-  #         )
-  #         
-  #         names(seqexpand) <- c("datetime")
-  #         seqexpand <- zoo::zoo(seqexpand, seqexpand$datetime)
-  #         seqexpand <- merge(seqexpand, exozoo)
-  #         seqexpand <- seqexpand[min(which(!is.na(seqexpand[,2]))):max(which(!is.na(seqexpand[,2]))),]
-  #         idx <- colSums(!is.na(seqexpand)) < nrow(seqexpand)
-  #         idx[c(1:3, (ncol(seqexpand) - 1), ncol(seqexpand))] <- FALSE
-  #         
-  #         alignset <- zoo::na.approx(seqexpand[,idx])
-  #         exo <- data.frame(alignset, zoo::index(alignset),
-  #                           row.names = NULL)
-  #         names(exo)[ncol(exo)]<-"datetime"
-  #         
-  #         dt <- merge(dt, exo, by = "datetime", all.x = T)
-  #         datetime <- dt[,"datetime"]
-  #         dt <- data.frame(apply(dt[,2:ncol(dt)],2,function(x) as.numeric(as.character(x))))
-  #         dt$datetime <- datetime
-  #       }else{
-  #         stop("not implemented yet")
-  #       }
-  #       
-  #       print(paste(basename(exolist[exodfmatch]),"processed",sep=" "))
-  #     
-  #   
-  #   
-  #     
-  #       #check for mismatched eu-df measurement frequency
-  #       dtfreq <- max(dt$sec.x[2] - dt$sec.x[1], dt$sec.x[3] - dt$sec.x[2])
-  #       eufreq <- Mode(diff(as.numeric(format(eu$datetime, '%S'))))
-  #       eu$datetime <- as.POSIXct(eu$datetime)
-  #       #browser()
-  #       euzoo <- zoo::zoo(eu, eu$datetime)
-  #       
-  #       #if true generate second-wise c6 zoo object
-  #       if(dtfreq != eufreq){
-  #         #eu <- eu[strftime(eu$datetime, format = "%Y-%m-%d") == unique(strftime(eu$datetime, format = "%Y-%m-%d"))[1],]
-  #         
-  #         seqexpand <- data.frame(
-  #           seq(
-  #             as.POSIXct(as.Date(unique(strftime(eu$datetime, format = "%Y-%m-%d"))[1])),
-  #             as.POSIXct(as.Date(unique(strftime(eu$datetime, format = "%Y-%m-%d"))[1]) + 1), 1))
-  #         
-  #         names(seqexpand) <- c("datetime")
-  #         seqexpand <- zoo::zoo(seqexpand, seqexpand$datetime)
-  #         seqexpand <- merge(seqexpand, euzoo)
-  #         seqexpand <- seqexpand[min(which(!is.na(seqexpand[,2]))) : max(which(!is.na(seqexpand[,2]))),]
-  #         idx <- colSums(!is.na(seqexpand)) < nrow(seqexpand)
-  #         idx[c(1:3, ncol(seqexpand))] <- FALSE
-  #         if(any(colSums(!is.na(seqexpand)) == 0)){
-  #           idx[which(colSums(!is.na(seqexpand)) == 0)] <- FALSE
-  #         }
-  #         
-  #         alignset <- zoo::na.approx(seqexpand[,idx])
-  #         
-  #         #merge eu and df based on time stamp
-  #         eu <- data.frame(alignset, zoo::index(alignset), row.names = NULL)
-  #         names(eu)[ncol(eu)] <- "datetime"
-  #         dt <- merge(dt, eu, by = "datetime", all.x = T)
-  #         datetime <- dt[,"datetime"]
-  #         dt <- data.frame(apply(dt[,2:ncol(dt)], 2, function(x) as.numeric(as.character(x))))
-  #         dt$datetime <- datetime                   
-  #       }else{
-  #       
-  #     #print(paste(basename(eulist[eudfmatch]),"processed",sep=" "))
-  #       }
-  #   
-  #   
-  #   
-  #     
-  #     browser()
-  #     
-  #     
-  #                                       
-  #       
-  #       
-  #         
-  #         #check for mismatched c6df measurement frequency
-  #         dtfreq <- max(dt$sec[2] - dt$sec[1], dt$sec[3] - dt$sec[2])      
-  #         #if true generate second-wise c6 zoo object
-  #         if(dtfreq != c6freq){
-  #           c6zoo <- zoo::zoo(c6, c6$datec)
-  #           seqexpand <- data.frame(seq(as.POSIXct(unique(as.Date(c6$datec))), as.POSIXct(unique(as.Date(c6$datec)) + 1), 1))
-  #           names(seqexpand) <- c("datec")
-  #           seqexpand <- zoo::zoo(seqexpand, seqexpand$datec)
-  #           seqexpand <- merge(seqexpand, c6zoo)
-  #           seqexpand <- seqexpand[min(which(!is.na(seqexpand[,"brighteners"]))):max(which(!is.na(seqexpand[,"brighteners"]))), 3:ncol(seqexpand)]
-  #           idx <- colSums(!is.na(seqexpand)) > 1
-  #           alignset <- zoo::na.approx(seqexpand[,idx])
-  #             
-  #           #align based on temp(not implemented yet)
-  #           alignset <- alignset[!is.na(alignset$c6cdom),]
-  #           c6 <- data.frame(alignset, zoo::index(alignset), row.names = NULL)
-  #           names(c6)[ncol(c6)] <- "datetime"
-  #       
-  #           #merge c6 and df based on time stamp####
-  #           dt <- merge(dt, c6, by = "datetime", all.x = T)
-  #           datetime <- dt[,"datetime"]
-  #           dt <- data.frame(apply(dt[,2:ncol(dt)], 2, function(x) as.numeric(as.character(x))))
-  #           dt$datetime <- datetime                   
-  #         }else{
-  #           #remove c6 rows with duplicate datetime stamps
-  #           #test<-c6[!duplicated(c6$datetime),]
-  #                               
-  #           datetime<-dt$datetime
-  #           names(c6)[names(c6)=="datec"]<-"datetime"
-  #               
-  #           dt <- merge(dt,c6,by="datetime",all.x=T)
-  #           dt <- data.frame(apply(dt[,2:ncol(dt)], 2, function(x) as.numeric(as.character(x))))
-  #           dt$datetime <- datetime  
-  #         }
-  #             
-  #         print(paste(basename(c6list[c6dfmatch]), "processed", sep = " "))
-  #         # }else{
-  #         #   print("No C6 file detected, constructing empty data matrix")
-  #         #   emptyc6 <- data.frame(matrix(NA, nrow = nrow(dt), ncol = 20 - ncol(dt)))
-  #         #   names(emptyc6) <- c("brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "c6temp", "sec.y")
-  #         #   dt <- cbind(dt, emptyc6)
-  #         #   names(dt)[names(dt) == "sec"] <- "sec.x"
-  #         #   dt <- dt[,match(names(streamget(201505)), names(dt))[!is.na(match(names(streamget(201505)), names(dt)))]]
-  #         # }
-  #     #}
-    
-    
-    
-    #create basin designations here####
-        
-    #define projections
-    projstr <- "+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
-    latlonproj <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-    fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
-    cerpbasins <- rgdal::readOGR(file.path(fdir,"DF_Basefile/fbfs_zones.shp"),layer="fbfs_zones", verbose = FALSE)
-    selectiongrid<-rgdal::readOGR(file.path(fdir,"DF_Basefile/testgrid3.shp"),layer="testgrid3",verbose=FALSE)
-    
-    #spatial join
-    dt<-dt[!is.na(dt$lat_dd)&!is.na(dt$lon_dd),]
-    xy<-cbind(dt$lon_dd,dt$lat_dd)
-    xy<-data.frame(xy)
-    sp::coordinates(dt)<-~lon_dd+lat_dd#will throw error if latlon has NA
-    sp::proj4string(dt)<-sp::CRS(latlonproj)
-    dt<-sp::spTransform(dt,sp::CRS(projstr))
-    fulldataset<-dt
-    
-    fulldataset.over<-sp::over(fulldataset,selectiongrid)
-    fulldataset.over2<-sp::over(fulldataset,fathombasins[,1:2])
-    fulldataset.over3<-sp::over(fulldataset,cerpbasins[,2])
-    fulldataset.over<-cbind(data.frame(fulldataset),data.frame(fulldataset.over),data.frame(fulldataset.over2),data.frame(fulldataset.over3))
-    fulldataset.over$lon_dd<-xy[,1]
-    fulldataset.over$lat_dd<-xy[,2]
-    
-    fulldataset.over<-fulldataset.over[,names(fulldataset.over)!="NA."]
-    reslist[[i]]<-fulldataset.over
-  
-  dt <- do.call("rbind", reslist)
+  create_basin_labels <- function(dt){
+      #define projections
+      projstr <- "+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
+      latlonproj <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+      fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fathom_basins_proj.shp"), layer = "fathom_basins_proj", verbose = FALSE)
+      cerpbasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fbfs_zones.shp"), layer = "fbfs_zones", verbose = FALSE)
+      selectiongrid <- rgdal::readOGR(file.path(fdir, "DF_Basefile/testgrid3.shp"), layer = "testgrid3", verbose = FALSE)
+      
+      #spatial join
+      dt <- dt[!is.na(dt$lat_dd) & !is.na(dt$lon_dd),]
+      xy <- cbind(dt$lon_dd, dt$lat_dd)
+      xy <- data.frame(xy)
+      sp::coordinates(dt) <- ~lon_dd+lat_dd # will throw error if latlon has NA
+      sp::proj4string(dt) <- sp::CRS(latlonproj)
+      dt <- sp::spTransform(dt, sp::CRS(projstr))
+      fulldataset <- dt
+      
+      fulldataset.over  <- sp::over(fulldataset, selectiongrid)
+      fulldataset.over2 <- sp::over(fulldataset, fathombasins[,1:2])
+      fulldataset.over3 <- sp::over(fulldataset,cerpbasins[,2])
+      fulldataset.over  <- cbind(data.frame(fulldataset), data.frame(fulldataset.over), data.frame(fulldataset.over2), data.frame(fulldataset.over3))
+      fulldataset.over$lon_dd <- xy[,1]
+      fulldataset.over$lat_dd <- xy[,2]
+      
+      fulldataset.over[,names(fulldataset.over) != "NA."]
+    }
+  dt <- create_basin_labels(dt)    
   names(dt) <- tolower(names(dt))
 
   if(tofile == TRUE){
-  #add check to verify yearmon before overwriting
-    dtname <- file.path(fdir,.Platform$file.sep,"DF_FullDataSets",.Platform$file.sep,substring(basename(dflist[1]), 1, 6), "j.csv", fsep = "")
+    #add check to verify yearmon before overwriting####
+    dtname <- file.path(fdir, .Platform$file.sep, "DF_FullDataSets", .Platform$file.sep, substring(basename(dflist[1]), 1, 6), "j.csv", fsep = "")
     if(!file.exists(dtname)){
       write.csv(dt, dtname, row.names = FALSE)
     }else{

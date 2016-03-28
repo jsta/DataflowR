@@ -4,11 +4,13 @@
 \alias{streamclean}
 \title{Cleaning raw streaming Dataflow output}
 \usage{
-streamclean(yearmon, dfmmin = NA, c6mmin = NA, eummin = NA,
+streamclean(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA,
   exommin = NA, tofile = FALSE, sep = ",", fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric designation of survey date formatted as yyyymm}
+
+\item{gps}{character dataset to use for GPS alignment of other data streams. Choice of "df", "c6", "eu", or "exo".}
 
 \item{dfmmin}{integer optional minimum df measurement frequency (# measurements/min)}
 
@@ -36,7 +38,11 @@ dt <- streamclean(yearmon = 201505, dfmmin = 7, c6mmin = 10,
 tofile = FALSE)
 dt <- streamclean(yearmon = 201513, dfmmin = 7, c6mmin = 12,
 tofile = FALSE, exommin = 60, eummin = 12)
-dt <- streamclean(yearmon = 201601, dfmmin = 12, eummin = 12)
+dt <- streamclean(yearmon = 201601, dfmmin = 12, eummin = 12, tofile = FALSE)
+
+#working
+dt <- streamclean(yearmon = 201512, gps = "df", c6mmin = 6, dfmmin = 7)
+
 }
 }
 
