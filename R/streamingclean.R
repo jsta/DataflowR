@@ -52,293 +52,287 @@ streamclean <- function(yearmon, dfmmin = NA, c6mmin = NA, eummin = NA, exommin 
     exolist <- list.files(flist, pattern = c("*exo.CSV"), include.dirs = T, full.names = T)
   }
   
-  if(length(c6list) != length(dflist)){
-    warning("Differing numbers of Dataflow and C6 input files")
+  # if(length(c6list) != length(dflist)){
+  #   warning("Differing numbers of Dataflow and C6 input files")
+  # }
+  
+  survey_days <- unique(sapply(basename(c(dflist, eulist, exolist, c6list)), function(x) substring(basename(x), 1, 8)))
+  iterate_days <- function(survey_days, file_listing, reading_function, cleaning_function){
+    reslist <- list()
+    for(i in 1:length(survey_days)){
+      day_data <- reading_function(file_listing[i])
+      day_data <- cleaning_function(day_data)
+      reslist[[i]] <- day_data
+    }
+    do.call("rbind", reslist)
   }
   
-  #define iterate_days here####
-  survey_days <- unique(sapply(basename(c(dflist, eulist, exolist, c6list)), function(x) substring(basename(x), 1, 8)))
+  read_df  <- function(dfpath){
+    #start with comma sep
+    sep <- ","
+    dt <- read.csv(dfpath, skip = 0, header = F, sep = sep)
+
+    #switch to tab sep          
+    if(suppressWarnings(nchar(gsub("\t", "", dt[1,])) < nchar(as.character(dt[1,])))){
+      sep <- "\t"
+      dt <- read.csv(dfpath, skip = 0, header = F, sep = sep, stringsAsFactors = FALSE)
+    }
+    
+    #detect beginning of measurements
+    fskip <- 1
+    while(!(!(class(dt[,1]) != "integer") | !(class(dt[,1]) != "numeric"))){
+      dt <- read.csv(dfpath, skip = fskip, header = F, sep = sep, stringsAsFactors = FALSE)
+      #print(dt[1,1])
+      if(!any(!is.na(dt[,1])) | mean(nchar(as.character(dt[,1]))) < 1 | sum(is.na(dt[,1])) > (nrow(dt) / 2) | sum(nchar(gsub("_", "", as.character(dt[,1]))) - nchar(as.character(dt[,1]))) != 0){
+        dt <- dt[,-1]
+      }
+      fskip <- fskip + 1
+      if(fskip > 20){
+        stop(paste("Cannot find beginning of measurements!", dfpath))
+      }
+    }
+    
+    sep <- ","
+    dt
+  }
+  clean_df <- function(dt){
+    #remove bad columns
+    if(class(dt[,3]) == "integer"){
+      dt <- dt[,-3]
+      print("removing existing seconds column")
+    }#remove existing sec column
+    
+    #remove bad columns of all 0 or NA
+    if(ncol(dt) > 14){
+      dtno.na <- dt[complete.cases(dt[,1:12]),]
+      dt <- dt[,apply(dtno.na, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) != 0)]
+    }
+    
+    #temp should never be less than 10, these are likely 'bad' DO columns?
+    if(mean(as.numeric(dt[,4]), na.rm = T) < 10 & mean(as.numeric(dt[,5]), na.rm = T) < 10){
+      dt <- dt[,-4:-5]
+    }
+    
+    dt <- dt[,apply(dt, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) > 22)]#take out all 0 (22 or 38 is an arbitrary "tolerance" value)
+    ones <- apply(dt, 2, function(x) sd(as.numeric(x)[as.numeric(x) != 0 & !is.na(as.numeric(x))])) != 0
+    ones[is.na(ones)] <- TRUE
+    ones[1:2] <- TRUE
+    dt <- dt[,ones]
+    dt <- dt[,apply(dt, 2, function(x) mean(nchar(x), na.rm = T)) >= 3.0] #(3 is an arbitrary "tolerance" value)
+    dt <- dt[,apply(dt[,3:ncol(dt)], 2, function(x) length(unique(x)) != 3)]
+    names(dt) <- c("date", "time", "chla", "temp", "cond", "sal", "trans", "cdom", "lat_dd", "lon_dd")
+    
+    #convert factors to numeric
+    dt <- data.frame(as.matrix(dt))
+    factorToNumeric <- function(f) as.numeric(levels(f))[f]
+    #check to make sure that there are any factor class columns
+    if(any(sapply(dt,class) == "factor")){
+      dt <- data.frame(sapply(dt, factorToNumeric))  
+    }
+    
+    #fix lon lat formatting
+    if(mean(nchar(as.character(round(dt[,"lat_dd"])))) != 2){
+      lat <- dt[,"lat_dd"]
+      latdeg <- as.numeric(substr(lat, 0, 2))
+      latmin <- as.numeric(substr(lat, 3, 8))
+      dt[,"lat_dd"] <- latdeg + latmin / 60
+      lon <- dt[,"lon_dd"]
+      londeg <- as.numeric(substr(lon, 0, 2))
+      lonmin <- as.numeric(substr(lon, 3, 8))
+      dt[,"lon_dd"] <- (londeg + lonmin / 60) * -1
+    }
+    
+    dt$time <- as.numeric(dt$time)
+    dt$date <- as.numeric(dt$date)
+    
+    #remove rows of all NA values
+    dt <- dt[as.numeric(rowSums(is.na(dt))) < ncol(dt) - 1,]
+    dt <- dt[as.numeric(rowSums(is.na(dt[,c("lat_dd", "lon_dd")]))) < 2,]
+    
+    #remove unrealistic coordinates
+    dt <- dt[abs(dt$lat_dd) > 24.5 & abs(dt$lat_dd) < 25.5, ]
+    dt <- dt[abs(dt$lon_dd) > 80.1 & abs(dt$lon_dd) < 82, ]
+    
+    #check for incomplete minutes
+    datelist <- unique(dt$date)
+    reslist2 <- list()
+    for(j in 1:length(datelist)){
+      #j<-1
+      curdat <- dt[dt$date == datelist[j],]
+      gdata <- data.frame(table(curdat$time))
+      fdata <-as.numeric(as.character(gdata[gdata$Freq < dfmmin, 1]))#too few measurements
+      odata <- as.numeric(as.character(gdata[gdata$Freq > dfmmin, 1]))#too many measurements
+      if(length(odata) > 0){
+        for(k in 1:length(odata)){
+          #k<-1
+          leng <- nrow(curdat[curdat$time == odata[k],])
+          remo <- sample(as.numeric(row.names(curdat[curdat$time == odata[k],])), leng - dfmmin)
+          curdat <- curdat[-match(remo, as.numeric(row.names(curdat))),]
+        }
+      }
+      curdat <- curdat[!curdat$time %in% fdata,]
+      curdat <- curdat[!is.na(curdat$time),]
+      curdat$sec <- rep(round(seq(from = 0, to = 60 - 60 / dfmmin, by = 60 / dfmmin), 3), times = nrow(data.frame(table(curdat$time))))
+      
+      reslist2[[j]] <- curdat
+    }
+    dt <- do.call("rbind", reslist2)
+    
+    #detect when dt is measured at fractional seconds
+    if(!identical(round(dt$sec), dt$sec)){
+      dt$sec <- round(dt$sec)
+    }
+    
+    #create POSIXct datetime column
+    yr <- substring(dt$date, nchar(dt$date) - 1, nchar(dt$date))
+    day <- substring(dt$date, nchar(dt$date) - 3, nchar(dt$date) - 2)
+    mon <- substring(dt$date, 1, nchar(dt$date) - 4)
+    hr <- substring(dt$time, 1, nchar(dt$time) - 2)
+    min <- substring(dt$time, nchar(dt$time) - 1, nchar(dt$time))
+    
+    if(mean(nchar(mon)) == 1){mon <- paste("0", mon, sep = "")}
+    dt$datetime <- paste(yr, "-", mon, "-", day, "-", hr, "-", min, "-", dt$sec, sep = "")
+    rm(min)
+    dt$datetime <- as.POSIXct(strptime(dt$datetime, format = "%y-%m-%d-%H-%M-%S"))
+        
+    #clean data frame
+    #trim beginning and end based on when data is all zeros
+    trimdt <- function(dt){
+      j <- 1  
+      for(i in 1:nrow(dt)){
+        if(dt[i,1:9][order(dt[i,1:9])][2] > 0){
+          break
+        }
+        j <- i + 1
+      }
+      k <- nrow(dt)
+      for(i in nrow(dt):1){
+        if(!is.na(min(dt[i, 1:9])) > 0){
+          break
+        }
+        k <- i - 1
+      }
+      dt[j:k,]
+    }
+    dt <- trimdt(dt)
+    
+    #check for correct cond to salinity calculations
+    corsal <- DataflowR::cond2sal(dt$cond * 1000, dt$temp)
+    if((lm(corsal ~ dt$sal)$coefficients[2] - 1) > 0.02){
+      dt$sal <- corsal
+    }
   
-  reslist <- list()
-  for(i in 1:length(survey_days)){
+    #print(paste(basename(dflist[i]), "processed", sep = " "))
+    dt
+  }
+  read_c6  <- function(c6path){
+    read.csv(c6path, skip = 12, header = F)[,1:9]
+  }
+  clean_c6 <- function(c6){
+    names(c6) <- c("datec", "brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "depth", "c6temp")
+    if(!any(!is.na(c6[,"c6temp"]))){
+      c6 <- c6[,-9]
+      names(c6)[8] <- "c6temp"
+    }else{
+      c6 <- c6[,-8]
+    }
     
-    if(!is.na(dfmmin)){
-      read_df <- function(dfpath){
-        #start with comma sep
-        sep <- ","
-        dt <- read.csv(dfpath, skip = 0, header = F, sep = sep)
+    #check for missing seconds information
+    if(all(is.na(as.POSIXct(strptime(c6$datec, "%m/%d/%y %H:%M:%S"))))){
+      c6sec <- unlist(lapply(rle(sapply(c6$datec, function(x) strftime(strptime(x, format = "%m/%d/%Y %H:%M"), format = "%M")))$lengths, function(x) seq(0, 60 - (60/x), length.out = x)))
+      c6$datec <- as.POSIXct(strptime(paste0(c6$datec, ":", c6sec), "%m/%d/%Y %H:%M:%S"))
+    }else{
+      c6$datec <- as.POSIXct(strptime(c6$datec, "%m/%d/%y %H:%M:%S"))
+    }
+    
+    if(!any(!is.na(c6$datec))){
+      c6 <- read.csv(c6list[c6dfmatch], skip = 12, header = F)[,1:9]
+      names(c6) <- c("datec", "brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "depth", "c6temp")
+      if(!any(!is.na(c6[,"c6temp"]))){
+        c6 <- c6[,-9]
+        names(c6)[8] <- "c6temp"
+      }else{
+        c6 <- c6[,-8]
+      }
+      
+      if(nchar(strsplit(as.character(c6[,"datec"]), "/")[[1]][1]) == 1){
+        if(rle(as.character(c6[,"datec"]))$length[1] != c6mmin){#account for less than full minute to start
+          c6 <- c6[c6$datec != rle(as.character(c6[,"datec"]))$values[1],]
+        }
+        if(!exists("c6mmin")){
+          c6mmin <- dfmmin
+        }
+        
+        padm_addsec <- function(x, c6mmin){
+          #pad month
+          x <- as.character(x)
+          x <- paste("0", substring(x, 0, 1), substring(x, 2, nchar(x)), sep = "")
+          #add sec
+          sseq <- seq(0, 60 - (60 / c6mmin), 60 / c6mmin)
+          sseq <- sapply(sseq, function(x) ifelse(nchar(x) == 1, paste("0", x, sep = ""), x))
+          paste(x, ":", sseq, sep = "")
+        }
+        c6[,"datec"] <- padm_addsec(c6[,"datec"], c6mmin = c6mmin)
+      }
+      c6$datec <- as.POSIXct(strptime(c6$datec, "%m/%d/%Y %H:%M:%S"))
+    }
+    c6$sec <- as.numeric(format(c6$datec, '%S'))
+    c6freq <- c6$sec[2] - c6$sec[1]
+    c6$datec <- as.POSIXct(c6$datec)
+    
+    return(c6)
+  }
+  read_eu  <- function(eupath){
+    read.csv(eulist[i], header = TRUE, stringsAsFactors = FALSE)#[,c(1:13, 17:18)]
+  }
+  clean_eu <- function(eu){
+    names(eu) <- tolower(make.names(names(eu)))
+    eu$datetime <- paste(sapply(eu$date, function(x) mdy2mmyyyy(x)), eu$time)
+    
+    #check for missing seconds information
+    if(all(is.na(as.POSIXct(strptime(eu$datetime, "%m/%d/%Y %H:%M:%S"))))){
+      eusec <- unlist(lapply(rle(sapply(eu$date, function(x) strftime(strptime(x, format = "%m/%d/%Y %H:%M"), format = "%M")))$lengths, function(x) seq(0, 60 - (60 / x), length.out = x)))
+      eu$date <- as.POSIXct(strptime(paste0(eu$date, ":", eusec), "%m/%d/%Y %H:%M:%S"))
+    }else{
+      eu$datetime <- as.POSIXct(strptime(eu$datetime,"%m/%d/%Y %H:%M:%S"))
+      eu$datetime <- as.POSIXct(strptime(eu$datetime, "%Y-%m-%d %H:%M:%S"))
+      eu <- eu[!is.na(eu$datetime) & nchar(eu$datetime) == 10,]
+    }
+    return(eu)
+  }
+  read_exo <- function(exopath){
+    read.csv(exolist[i], header = T, skip = 12, stringsAsFactors = FALSE)
+  }
+  clean_exo <- function(exo){
+    names(exo) <- tolower(gsub("\\.", "", names(exo)))
+    exo <- exo[,!(names(exo) %in% c("timefractsec", "sitename","x"))]
+    exo$datetime <- as.POSIXct(strptime(paste(
+      exo[,grep("date", names(exo))],
+      exo[,grep("time", names(exo))]), format = "%m/%d/%Y %H:%M:%S")
+    )
+    exo$sec <- strftime(exo$datetime, "%S")
+    exo <- exo[which(!duplicated(exo$datetime)),]
+    exo[,"longitudedegrees"] <- exo[,"longitudedegrees"] * -1
+    exo <- exo[exo$latitudedegrees > 24,]
+    exo
+  }
   
-        #switch to tab sep          
-        if(suppressWarnings(nchar(gsub("\t", "", dt[1,])) < nchar(as.character(dt[1,])))){
-          sep <- "\t"
-          dt <- read.csv(dfpath, skip = 0, header = F, sep = sep, stringsAsFactors = FALSE)
-        }
-        
-        #detect beginning of measurements
-        fskip <- 1
-        while(!(!(class(dt[,1]) != "integer") | !(class(dt[,1]) != "numeric"))){
-          dt <- read.csv(dfpath, skip = fskip, header = F, sep = sep, stringsAsFactors = FALSE)
-          #print(dt[1,1])
-          if(!any(!is.na(dt[,1])) | mean(nchar(as.character(dt[,1]))) < 1 | sum(is.na(dt[,1])) > (nrow(dt) / 2) | sum(nchar(gsub("_", "", as.character(dt[,1]))) - nchar(as.character(dt[,1]))) != 0){
-            dt <- dt[,-1]
-          }
-          fskip <- fskip + 1
-          if(fskip > 20){
-            stop(paste("Cannot find beginning of measurements!", dfpath))
-          }
-        }
-        
-        sep <- ","
-        dt
-      }
-      dt <- read_df(dfpath = dflist[i])
-      
-      clean_df <- function(dt){
-        #remove bad columns
-        if(class(dt[,3]) == "integer"){
-          dt <- dt[,-3]
-          print("removing existing seconds column")
-        }#remove existing sec column
-        
-        #remove bad columns of all 0 or NA
-        if(ncol(dt) > 14){
-          dtno.na <- dt[complete.cases(dt[,1:12]),]
-          dt <- dt[,apply(dtno.na, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) != 0)]
-        }
-        
-        #temp should never be less than 10, these are likely 'bad' DO columns?
-        if(mean(as.numeric(dt[,4]), na.rm = T) < 10 & mean(as.numeric(dt[,5]), na.rm = T) < 10){
-          dt <- dt[,-4:-5]
-        }
-        
-        dt <- dt[,apply(dt, 2, function(x) abs(sum(as.numeric(x), na.rm = T)) > 22)]#take out all 0 (22 or 38 is an arbitrary "tolerance" value)
-        ones <- apply(dt, 2, function(x) sd(as.numeric(x)[as.numeric(x) != 0 & !is.na(as.numeric(x))])) != 0
-        ones[is.na(ones)] <- TRUE
-        ones[1:2] <- TRUE
-        dt <- dt[,ones]
-        dt <- dt[,apply(dt, 2, function(x) mean(nchar(x), na.rm = T)) >= 3.0] #(3 is an arbitrary "tolerance" value)
-        dt <- dt[,apply(dt[,3:ncol(dt)], 2, function(x) length(unique(x)) != 3)]
-        names(dt) <- c("date", "time", "chla", "temp", "cond", "sal", "trans", "cdom", "lat_dd", "lon_dd")
-        
-        #convert factors to numeric
-        dt <- data.frame(as.matrix(dt))
-        factorToNumeric <- function(f) as.numeric(levels(f))[f]
-        #check to make sure that there are any factor class columns
-        if(any(sapply(dt,class) == "factor")){
-          dt <- data.frame(sapply(dt, factorToNumeric))  
-        }
-        
-        #fix lon lat formatting
-        if(mean(nchar(as.character(round(dt[,"lat_dd"])))) != 2){
-          lat <- dt[,"lat_dd"]
-          latdeg <- as.numeric(substr(lat, 0, 2))
-          latmin <- as.numeric(substr(lat, 3, 8))
-          dt[,"lat_dd"] <- latdeg + latmin / 60
-          lon <- dt[,"lon_dd"]
-          londeg <- as.numeric(substr(lon, 0, 2))
-          lonmin <- as.numeric(substr(lon, 3, 8))
-          dt[,"lon_dd"] <- (londeg + lonmin / 60) * -1
-        }
-        
-        dt$time <- as.numeric(dt$time)
-        dt$date <- as.numeric(dt$date)
-        
-        #remove rows of all NA values
-        dt <- dt[as.numeric(rowSums(is.na(dt))) < ncol(dt) - 1,]
-        dt <- dt[as.numeric(rowSums(is.na(dt[,c("lat_dd", "lon_dd")]))) < 2,]
-        
-        #remove unrealistic coordinates
-        dt <- dt[abs(dt$lat_dd) > 24.5 & abs(dt$lat_dd) < 25.5, ]
-        dt <- dt[abs(dt$lon_dd) > 80.1 & abs(dt$lon_dd) < 82, ]
-        
-        #check for incomplete minutes
-        datelist <- unique(dt$date)
-        reslist2 <- list()
-        for(j in 1:length(datelist)){
-          #j<-1
-          curdat <- dt[dt$date == datelist[j],]
-          gdata <- data.frame(table(curdat$time))
-          fdata <-as.numeric(as.character(gdata[gdata$Freq < dfmmin, 1]))#too few measurements
-          odata <- as.numeric(as.character(gdata[gdata$Freq > dfmmin, 1]))#too many measurements
-          if(length(odata) > 0){
-            for(k in 1:length(odata)){
-              #k<-1
-              leng <- nrow(curdat[curdat$time == odata[k],])
-              remo <- sample(as.numeric(row.names(curdat[curdat$time == odata[k],])), leng - dfmmin)
-              curdat <- curdat[-match(remo, as.numeric(row.names(curdat))),]
-            }
-          }
-          curdat <- curdat[!curdat$time %in% fdata,]
-          curdat <- curdat[!is.na(curdat$time),]
-          curdat$sec <- rep(round(seq(from = 0, to = 60 - 60 / dfmmin, by = 60 / dfmmin), 3), times = nrow(data.frame(table(curdat$time))))
-          
-          reslist2[[j]] <- curdat
-        }
-        dt <- do.call("rbind", reslist2)
-        
-        #detect when dt is measured at fractional seconds
-        if(!identical(round(dt$sec), dt$sec)){
-          dt$sec <- round(dt$sec)
-        }
-        
-        #create POSIXct datetime column
-        yr <- substring(dt$date, nchar(dt$date) - 1, nchar(dt$date))
-        day <- substring(dt$date, nchar(dt$date) - 3, nchar(dt$date) - 2)
-        mon <- substring(dt$date, 1, nchar(dt$date) - 4)
-        hr <- substring(dt$time, 1, nchar(dt$time) - 2)
-        min <- substring(dt$time, nchar(dt$time) - 1, nchar(dt$time))
-        
-        if(mean(nchar(mon)) == 1){mon <- paste("0", mon, sep = "")}
-        dt$datetime <- paste(yr, "-", mon, "-", day, "-", hr, "-", min, "-", dt$sec, sep = "")
-        rm(min)
-        dt$datetime <- as.POSIXct(strptime(dt$datetime, format = "%y-%m-%d-%H-%M-%S"))
-            
-        #clean data frame
-        #trim beginning and end based on when data is all zeros
-        trimdt <- function(dt){
-          j <- 1  
-          for(i in 1:nrow(dt)){
-            if(dt[i,1:9][order(dt[i,1:9])][2] > 0){
-              break
-            }
-            j <- i + 1
-          }
-          k <- nrow(dt)
-          for(i in nrow(dt):1){
-            if(!is.na(min(dt[i, 1:9])) > 0){
-              break
-            }
-            k <- i - 1
-          }
-          dt[j:k,]
-        }
-        dt <- trimdt(dt)
-        
-        #check for correct cond to salinity calculations
-        corsal <- DataflowR::cond2sal(dt$cond * 1000, dt$temp)
-        if((lm(corsal ~ dt$sal)$coefficients[2] - 1) > 0.02){
-          dt$sal <- corsal
-        }
-      
-        print(paste(basename(dflist[i]), "processed", sep = " "))
-        dt
-      }
-      dt <- clean_df(dt)
-    }
+  if(!is.na(dfmmin)){
+    dt <- iterate_days(survey_days, dflist, read_df, clean_df)
+  }
+  if(!is.na(c6mmin)){
+    c6 <- iterate_days(survey_days, c6list, read_c6, clean_c6)
+  }
+  if(!is.na(eummin)){
+    eu <- iterate_days(survey_days, eulist, read_eu, clean_eu)
+  }
+  if(!is.na(exommin)){
+    exo <- iterate_days(survey_days, exolist, read_exo, clean_exo)
+  }
     
-    if(!is.na(c6mmin)){
-      #c6path <- c6list[which(substring(basename(c6list), 1, 8) == survey_days[i])]
-      read_c6 <- function(c6path){
-        read.csv(c6path, skip = 12, header = F)[,1:9]
-      }
-      c6 <- read_c6(c6path = c6list[i])
-      
-      clean_c6 <- function(c6){
-        names(c6) <- c("datec", "brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "depth", "c6temp")
-        if(!any(!is.na(c6[,"c6temp"]))){
-          c6 <- c6[,-9]
-          names(c6)[8] <- "c6temp"
-        }else{
-          c6 <- c6[,-8]
-        }
-        
-        #check for missing seconds information
-        if(all(is.na(as.POSIXct(strptime(c6$datec, "%m/%d/%y %H:%M:%S"))))){
-          c6sec <- unlist(lapply(rle(sapply(c6$datec, function(x) strftime(strptime(x, format = "%m/%d/%Y %H:%M"), format = "%M")))$lengths, function(x) seq(0, 60 - (60/x), length.out = x)))
-          c6$datec <- as.POSIXct(strptime(paste0(c6$datec, ":", c6sec), "%m/%d/%Y %H:%M:%S"))
-        }else{
-          c6$datec <- as.POSIXct(strptime(c6$datec, "%m/%d/%y %H:%M:%S"))
-        }
-        
-        if(!any(!is.na(c6$datec))){
-          c6 <- read.csv(c6list[c6dfmatch], skip = 12, header = F)[,1:9]
-          names(c6) <- c("datec", "brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "depth", "c6temp")
-          if(!any(!is.na(c6[,"c6temp"]))){
-            c6 <- c6[,-9]
-            names(c6)[8] <- "c6temp"
-          }else{
-            c6 <- c6[,-8]
-          }
-          
-          if(nchar(strsplit(as.character(c6[,"datec"]), "/")[[1]][1]) == 1){
-            if(rle(as.character(c6[,"datec"]))$length[1] != c6mmin){#account for less than full minute to start
-              c6 <- c6[c6$datec != rle(as.character(c6[,"datec"]))$values[1],]
-            }
-            if(!exists("c6mmin")){
-              c6mmin <- dfmmin
-            }
-            
-            padm_addsec <- function(x, c6mmin){
-              #pad month
-              x <- as.character(x)
-              x <- paste("0", substring(x, 0, 1), substring(x, 2, nchar(x)), sep = "")
-              #add sec
-              sseq <- seq(0, 60 - (60 / c6mmin), 60 / c6mmin)
-              sseq <- sapply(sseq, function(x) ifelse(nchar(x) == 1, paste("0", x, sep = ""), x))
-              paste(x, ":", sseq, sep = "")
-            }
-            c6[,"datec"] <- padm_addsec(c6[,"datec"], c6mmin = c6mmin)
-          }
-          c6$datec <- as.POSIXct(strptime(c6$datec, "%m/%d/%Y %H:%M:%S"))
-        }
-        c6$sec <- as.numeric(format(c6$datec, '%S'))
-        c6freq <- c6$sec[2] - c6$sec[1]
-        c6$datec <- as.POSIXct(c6$datec)
-        
-        return(c6)
-      }
-      c6 <- clean_c6(c6)
-    }
-    
-    if(!is.na(eummin)){
-      #eupath <- eulist[which(substring(basename(eulist), 1, 8) == survey_days[i])]
-      read_eu <- function(eupath){
-        read.csv(eulist[i], header = TRUE, stringsAsFactors = FALSE)#[,c(1:13, 17:18)]
-      }
-      eu <- read_eu(eupath = eulist[i])
-      
-      clean_eu <- function(eu){
-        names(eu) <- tolower(make.names(names(eu)))
-        eu$datetime <- paste(sapply(eu$date, function(x) mdy2mmyyyy(x)), eu$time)
-        
-        #check for missing seconds information
-        if(all(is.na(as.POSIXct(strptime(eu$datetime, "%m/%d/%Y %H:%M:%S"))))){
-          eusec <- unlist(lapply(rle(sapply(eu$date, function(x) strftime(strptime(x, format = "%m/%d/%Y %H:%M"), format = "%M")))$lengths, function(x) seq(0, 60 - (60 / x), length.out = x)))
-          eu$date <- as.POSIXct(strptime(paste0(eu$date, ":", eusec), "%m/%d/%Y %H:%M:%S"))
-        }else{
-          eu$datetime <- as.POSIXct(strptime(eu$datetime,"%m/%d/%Y %H:%M:%S"))
-          eu$datetime <- as.POSIXct(strptime(eu$datetime, "%Y-%m-%d %H:%M:%S"))
-          eu <- eu[!is.na(eu$datetime) & nchar(eu$datetime) == 10,]
-        }
-        return(eu)
-      }
-      eu <- clean_eu(eu)
-    }
-    
-    if(!is.na(exommin)){
-      #exopath <- exolist[which(substring(basename(exolist), 1, 8) == survey_days[i])]
-      read_exo <- function(exopath){
-        read.csv(exolist[i], header = T, skip = 12, stringsAsFactors = FALSE)
-      }
-      exo <- read_exo(exopath = exolist[i])
-      
-      clean_exo <- function(exo){
-        names(exo) <- tolower(gsub("\\.", "", names(exo)))
-        exo <- exo[,!(names(exo) %in% c("timefractsec", "sitename","x"))]
-        exo$datetime <- as.POSIXct(strptime(paste(
-          exo[,grep("date", names(exo))],
-          exo[,grep("time", names(exo))]), format = "%m/%d/%Y %H:%M:%S")
-        )
-        exo$sec <- strftime(exo$datetime, "%S")
-        exo <- exo[which(!duplicated(exo$datetime)),]
-        exo[,"longitudedegrees"] <- exo[,"longitudedegrees"] * -1
-        exo <- exo[exo$latitudedegrees > 24,]
-        exo
-      }
-      exo <- clean_exo(exo)
-    }
-    
-    browser()
+  browser()
+  
+  #check for instrument frequency against frequency target####
     
         #check for mismatched exodf measurement frequency
         dtfreq <- max(dt$sec.x[2] - dt$sec.x[1], dt$sec.x[3] - dt$sec.x[2])
@@ -505,7 +499,6 @@ streamclean <- function(yearmon, dfmmin = NA, c6mmin = NA, eummin = NA, exommin 
     
     fulldataset.over<-fulldataset.over[,names(fulldataset.over)!="NA."]
     reslist[[i]]<-fulldataset.over
-  }
   
   dt <- do.call("rbind", reslist)
   names(dt) <- tolower(names(dt))
