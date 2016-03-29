@@ -441,7 +441,7 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
 
   if(tofile == TRUE){
     #add check to verify yearmon before overwriting####
-    dtname <- file.path(fdir, .Platform$file.sep, "DF_FullDataSets", .Platform$file.sep, substring(basename(dflist[1]), 1, 6), "j.csv", fsep = "")
+    dtname <- file.path(fdir, .Platform$file.sep, "DF_FullDataSets", .Platform$file.sep, substring(survey_days[1], 1, 6), "j.csv", fsep = "")
     if(!file.exists(dtname)){
       write.csv(dt, dtname, row.names = FALSE)
     }else{
@@ -461,8 +461,8 @@ dt
 #'@param qa logical strip flagged data?
 #'@export
 #'@examples \dontrun{
-#'yearmon<-201311
-#'dt<-streamget(yearmon)
+#'yearmon <- 201311
+#'dt <- streamget(yearmon)
 #'}
 
 streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
