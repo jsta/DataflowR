@@ -40,9 +40,9 @@ streaminterp <- function(dt, paramlist, yearmon, trim_rstack = TRUE, costrasname
   
   #remove entries from paramlist that have many NA
   naparam <- lapply(paramlist, function(x)length(which(is.na(data.frame(dt[,x])))))
-  if(any(which(naparam > (nrow(dt)/(1/missprop))))){
+  if(any(which(naparam > (nrow(dt) / (1 / missprop))))){
     paramlist <- paramlist[-which(naparam > (nrow(dt) * missprop))]
-    warning(paste(-which(naparam>(nrow(dt)*missprop)),"has many missing values."))
+    warning(paste(-which(naparam > (nrow(dt) * missprop)), "has many missing values."))
   }
   
   if(length(paramlist) == 0){
@@ -50,16 +50,16 @@ streaminterp <- function(dt, paramlist, yearmon, trim_rstack = TRUE, costrasname
   }
 
   if(is.na(tname) & is.na(vname)){
-    tname<-file.path(fdir,"/DF_Subsets/",yearmon,"s.csv",fsep="")
-    vname<-file.path(fdir,"/DF_Validation/",yearmon,"s.csv",fsep="")
+    tname <- file.path(fdir, "/DF_Subsets/", yearmon, "s.csv", fsep = "")
+    vname <- file.path(fdir, "/DF_Validation/", yearmon, "s.csv", fsep = "")
   }
 
   if(!file.exists(tname) & !file.exists(vname)){
   
     fulldataset.over <- dt
-    gridlev <-unique(fulldataset.over$gridcode)
+    gridlev <- unique(fulldataset.over$gridcode)
     for(i in 1:length(gridlev)){
-      activesub <- subset(fulldataset.over,fulldataset.over$gridcode == gridlev[i])
+      activesub <- subset(fulldataset.over, fulldataset.over$gridcode == gridlev[i])
       selectnum <- gdata::resample(1:nrow(activesub), 1)
       if(i == 1){
         training <- activesub[selectnum,]
@@ -70,14 +70,12 @@ streaminterp <- function(dt, paramlist, yearmon, trim_rstack = TRUE, costrasname
     }
   
   validate <- fulldataset.over[!(row.names(fulldataset.over) %in% row.names(training)),]
-  #validate<-validate[!is.na(validate$LAT_DD)&!is.na(validate$LON_DD),]
   xy <- cbind(validate$lon_dd, validate$lat_dd)
   validate <- sp::SpatialPointsDataFrame(xy, validate)
 
-  #training<-training[!is.na(training$LAT_DD)&!is.na(training$LON_DD),]
   training <- training[!is.na(training$lat_dd),]
-  xy <- cbind(training$lon_dd,training$lat_dd)
-  training <- sp::SpatialPointsDataFrame(xy,training)
+  xy <- cbind(training$lon_dd, training$lat_dd)
+  training <- sp::SpatialPointsDataFrame(xy, training)
   
   write.csv(training, tname)
   write.csv(validate, vname)
@@ -91,28 +89,24 @@ streaminterp <- function(dt, paramlist, yearmon, trim_rstack = TRUE, costrasname
   training <- sp::spTransform(training, sp::CRS(projstr))
 
 ##start interpolation==============================================#
-  #a<-Sys.time()
   rstack <- ipdw::pathdistGen(training, costras, 3750, yearmon = yearmon)
 
   if(trim_rstack == TRUE){
     rstack <- raster::mask(rstack, rgeos::gConvexHull(coordinatize(streamget(yearmon), latname = "lat_dd", lonname = "lon_dd")), inverse = FALSE)
   }
 
-#a-Sys.time()
-#b<-Sys.time()
   dir.create(file.path(fdir, "/DF_Surfaces/", yearmon))
   
   for(j in 1:length(paramlist)){
-    finalras<-ipdw::ipdwInterp(training,rstack,paramlist[j],overlapped=TRUE,yearmon=yearmon)
-    rf<-raster::writeRaster(finalras,filename=file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".grd",sep="")),overwrite=T)
-    rf<-raster::writeRaster(finalras,filename=file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".tif",sep="")),overwrite=T,format="GTiff")
+    finalras <- ipdw::ipdwInterp(training, rstack, paramlist[j], overlapped = TRUE, yearmon = yearmon)
+    rf <- raster::writeRaster(finalras, filename = file.path(fdir, "DF_Surfaces", yearmon, paste(paramlist[j], ".grd", sep = "")), overwrite = T)
+    rf <- raster::writeRaster(finalras, filename = file.path(fdir, "DF_Surfaces", yearmon, paste(paramlist[j], ".tif", sep = "")), overwrite = T, format = "GTiff")
   }
   
-#b-Sys.time()
-  for(i in 1:length(paramlist)){
-    test<-raster::raster(file.path(fdir,"DF_Surfaces",yearmon,paste(paramlist[j],".tif",sep="")))
-  #sp::plot(test)
-  }
+  # for(i in 1:length(paramlist)){
+  #   test <- raster::raster(file.path(fdir, "DF_Surfaces", yearmon, paste(paramlist[j], ".tif", sep = "")))
+  #   sp::plot(test)
+  # }
 }
 
 #subset a particular basin
