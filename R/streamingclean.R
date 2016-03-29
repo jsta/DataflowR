@@ -407,7 +407,14 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
     dt <- merge(dt, eval(as.symbol(i)), all.x = TRUE)
   }
   
-  create_basin_labels <- function(dt){
+  detect_coord_names <- function(x){
+    lat_name <- names(x)[grep("lat", names(x))]
+    lon_name <- names(x)[grep("lon", names(x))]
+    c(lat_name, lon_name)
+  }
+  coord_names <- detect_coord_names(eval(as.symbol(gps)))
+  
+  create_basin_labels <- function(dt, coord_names){
       #define projections
       projstr <- "+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
       latlonproj <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
@@ -416,13 +423,9 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
       selectiongrid <- rgdal::readOGR(file.path(fdir, "DF_Basefile/testgrid3.shp"), layer = "testgrid3", verbose = FALSE)
       
       #spatial join
-      dt <- dt[!is.na(dt$lat_dd) & !is.na(dt$lon_dd),]
-      xy <- cbind(dt$lon_dd, dt$lat_dd)
+      xy <- cbind(dt[,coord_names[2]], dt[,coord_names[1]])
       xy <- data.frame(xy)
-      sp::coordinates(dt) <- ~lon_dd+lat_dd # will throw error if latlon has NA
-      sp::proj4string(dt) <- sp::CRS(latlonproj)
-      dt <- sp::spTransform(dt, sp::CRS(projstr))
-      fulldataset <- dt
+      fulldataset <- coordinatize(dt, latname = coord_names[1], lonname = coord_names[2])
       
       fulldataset.over  <- sp::over(fulldataset, selectiongrid)
       fulldataset.over2 <- sp::over(fulldataset, fathombasins[,1:2])
@@ -433,7 +436,7 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
       
       fulldataset.over[,names(fulldataset.over) != "NA."]
     }
-  dt <- create_basin_labels(dt)    
+  dt <- create_basin_labels(dt, coord_names)    
   names(dt) <- tolower(names(dt))
 
   if(tofile == TRUE){
