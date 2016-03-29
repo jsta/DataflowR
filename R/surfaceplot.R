@@ -228,6 +228,7 @@ create_rlist <- function(rnge, params){
 #'
 #'#print survey track and zoom to Manatee + Barnes
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
+#'grassmap(rnge = 201512, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996))
 #'grassmap(rnge = 201513, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996))
 #'grassmap(rnge = 201601, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996))
 #'grassmap(rnge = 201603, params = "salpsu", mapextent = c(557217, 567415, 2786102, 2797996))

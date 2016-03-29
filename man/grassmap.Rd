@@ -55,15 +55,16 @@ grassmap(rnge = c(201407), params = c("chlext"))
 #multiple survey dates
 grassmap(rnge = c(201509, 201512), params = c("sal"))
 
-#zoom to Manatee + Barnes
-grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
+#exclude Card Sound
 grassmap(rnge = c(201507), params = c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6,
-564517.2, 2758908, 2799640))
-grassmap(rnge = c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 
-#print survey track
+#print survey track and zoom to Manatee + Barnes
 grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
+grassmap(rnge = 201512, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996))
+grassmap(rnge = 201513, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996))
+grassmap(rnge = 201601, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996))
+grassmap(rnge = 201603, params = "salpsu", mapextent = c(557217, 567415, 2786102, 2797996))
+grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 
 #specify raster file directly
 grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
