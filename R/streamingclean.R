@@ -16,11 +16,15 @@
 #'@importFrom sp coordinates CRS spTransform
 #'@details Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. Bad DO columns must sometimes be removed manually. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon
 #'@examples \dontrun{
+#'#old
 #'dt <- streamclean(yearmon = 201505, dfmmin = 7, c6mmin = 10,
 #' tofile = FALSE)
 #'dt <- streamclean(yearmon = 201513, dfmmin = 7, c6mmin = 12,
 #' tofile = FALSE, exommin = 60, eummin = 12)
 #'dt <- streamclean(yearmon = 201601, dfmmin = 12, eummin = 12, tofile = FALSE)
+#'
+#'#testing
+#'dt <- streamclean(yearmon = 201601, gps = "eu", eummin = 12)
 #'
 #'#working
 #'dt <- streamclean(yearmon = 201512, gps = "df", c6mmin = 6, dfmmin = 7)
@@ -289,7 +293,7 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
     return(c6)
   }
   read_eu  <- function(eupath){
-    read.csv(eulist[i], header = TRUE, stringsAsFactors = FALSE)#[,c(1:13, 17:18)]
+    read.csv(eupath, header = TRUE, stringsAsFactors = FALSE)#[,c(1:13, 17:18)]
   }
   clean_eu <- function(eu){
     names(eu) <- tolower(make.names(names(eu)))
@@ -307,7 +311,7 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
     return(eu)
   }
   read_exo <- function(exopath){
-    read.csv(exolist[i], header = T, skip = 12, stringsAsFactors = FALSE)
+    read.csv(exopath, header = T, skip = 12, stringsAsFactors = FALSE)
   }
   clean_exo <- function(exo){
     names(exo) <- tolower(gsub("\\.", "", names(exo)))
@@ -339,6 +343,7 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
   #=======================================================================#
   streams <- c("df", "c6", "eu", "exo")
   streams <- streams[sapply(streams, function(x) exists(x))]
+  streams <- streams[sapply(streams, function(x) is.data.frame(eval(as.symbol(x))))]
   stream_mmin <- c("dfmmin", "c6mmin", "eummin", "exommin")
   target <- eval(as.symbol(gps))
   target_mmin <- eval(as.symbol(stream_mmin[grep(gps, stream_mmin)]))
