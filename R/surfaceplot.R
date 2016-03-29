@@ -147,7 +147,9 @@ avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 
 #'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal
 #'@export
 #'@examples \dontrun{
-#'create_rlist(rnge = c(200808, 200910, 201002, 201004, 201007, 201102, 201105, 201206, 201209, 201212, 201305, 201308, 201311, 201404, 201407, 201410, 201502, 201505, 201507, 201509), params = 'chlext')
+#'create_rlist(rnge = c(200808, 200910, 201002, 201004, 201007, 201102, 201105,
+#' 201206, 201209, 201212, 201305, 201308, 201311, 201404, 201407, 201410,
+#'  201502, 201505, 201507, 201509), params = 'chlext')
 #'}
 
 create_rlist <- function(rnge, params){
@@ -215,7 +217,8 @@ create_rlist <- function(rnge, params){
 #'grassmap(rnge = c(201512), params = c("diffsal"))
 #'grassmap(rnge = c(201407), params = c("chlext"))
 #'grassmap(rnge = c(201507), params = c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-#'grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6,
+#' 564517.2, 2758908, 2799640))
 #'grassmap(rnge = c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 #'grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")

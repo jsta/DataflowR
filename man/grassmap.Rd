@@ -53,7 +53,8 @@ grassmap(rnge = c(201509, 201512), params = c("sal"))#'
 grassmap(rnge = c(201512), params = c("diffsal"))
 grassmap(rnge = c(201407), params = c("chlext"))
 grassmap(rnge = c(201507), params = c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6,
+564517.2, 2758908, 2799640))
 grassmap(rnge = c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
