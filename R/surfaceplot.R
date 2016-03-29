@@ -23,14 +23,15 @@
 surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir = getOption("fdir"), yext = c(2772256, 2798000), xext = c(518000.2, 566000)){
   print(fdir)
 
-  fbcoast <- rgdal::readOGR(dsn = file.path(fdir, "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE)
+  #fbcoast <- rgdal::readOGR(dsn = file.path(fdir, "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE)
   
   if(length(rnge) == 1){
     rnge <- c(rnge, rnge)
   }
-  namesalias <- read.table(text="
+  namesalias <- read.table(text = "
                        chlorophyll.a c6chl
                        c6chla c6chl
+                       salinity.pss sal  
                        ")
   #define breaks
   brks <- read.table(text = "
@@ -45,22 +46,23 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
         ph list(seq(7.3,8.1,0.1))
         c6turbidity list(seq(0,45,5))")
   
-  dirlist<-list.dirs(file.path(fdir,"DF_Surfaces"),recursive=F)
+  dirlist <- list.dirs(file.path(fdir, "DF_Surfaces"), recursive = F)
   
-  minrnge<-min(which(substring(basename(dirlist),1,6)>=rnge[1]))
-  maxrnge<-max(which(substring(basename(dirlist),1,6)<=rnge[2]))
-  rlist<-list.files(dirlist[minrnge:maxrnge],full.names=T,include.dirs=T,pattern="\\.tif$")
-  plist <- tolower(sub("[.][^.]*$","",basename(rlist)))
+  minrnge <- min(which(substring(basename(dirlist), 1, 6) >= rnge[1]))
+  maxrnge <- max(which(substring(basename(dirlist), 1, 6) <= rnge[2]))
+  rlist <- list.files(dirlist[minrnge:maxrnge], full.names = T, include.dirs = T, pattern = "\\.tif$")
+  plist <- tolower(sub("[.][^.]*$", "", basename(rlist)))
   
   for(n in 1:length(plist)){
-    if(any(plist[n]==namesalias[,1])){
-      plist[n]<-as.character(namesalias[which(plist[n]==namesalias[,1]),2])
+    if(any(plist[n] == namesalias[,1])){
+      plist[n] <- as.character(namesalias[which(plist[n] == namesalias[,1]), 2])
       #print(names(dt)[n])
     }
   }
   
-  rlist<-rlist[which(!is.na(match(plist,params)))]
-  plist<-plist[which(!is.na(match(plist,params)))]
+  browser()
+  #rlist <- rlist[which(!is.na(match(plist, params)))]
+  #plist <- plist[which(!is.na(match(plist, params)))]
   
   for(i in 1:length(rlist)){
     #i<-1
