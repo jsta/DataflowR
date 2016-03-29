@@ -223,15 +223,15 @@ create_rlist <- function(rnge, params){
 #'#multiple survey dates
 #'grassmap(rnge = c(201509, 201512), params = c("sal"))
 #'
-#'#zoom to Manatee + Barnes
-#'grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
+#'#exclude Card Sound
 #'grassmap(rnge = c(201507), params = c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
-#'grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6,
-#' 564517.2, 2758908, 2799640))
-#'grassmap(rnge = c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'
-#'#print survey track
+#'#print survey track and zoom to Manatee + Barnes
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
+#'grassmap(rnge = 201513, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996))
+#'grassmap(rnge = 201601, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996))
+#'grassmap(rnge = 201603, params = "salpsu", mapextent = c(557217, 567415, 2786102, 2797996))
+#'grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 #'
 #'#specify raster file directly
 #'grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
@@ -258,6 +258,8 @@ grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, numrow 
   
   paramkey <- read.table(text = "
 sal,salrules.file
+salpsu,salrules.file
+salinity.pss,salrules.file
 chlext,chlextrules.file
 chlext_low,chlextrules.file
 chlext_hi,chlextrules.file
@@ -295,7 +297,15 @@ diffsal,diffsalrules.file",
     }else{
       tempras <- raster::raster(rlist[i])
     }
-
+    
+    # if(!is.na(mapextent)){
+    #   browser()
+    #   firstras <- raster::crop(firstras, mapextent)
+    # }
+    # if(!is.na(mapextent)){
+    #   tempras <- raster::crop(tempras, mapextent)
+    # }
+      
     #create raster outline====================================================#
     #browser()
     if(length(label_string) == 0){
@@ -324,10 +334,10 @@ diffsal,diffsalrules.file",
     loc <- rgrass7::initGRASS("/usr/lib/grass70", home = file.path(fdir, "QGIS_plotting"), override = TRUE)
     
     #raster
-    firstras <- as(firstras, "SpatialGridDataFrame")
+    firstras   <- as(firstras, "SpatialGridDataFrame")
     firstras.g <- rgrass7::writeRAST(firstras, "firstras", flags = c("overwrite", "quiet"))
     
-    tempras <- as(tempras, "SpatialGridDataFrame")
+    tempras   <- as(tempras, "SpatialGridDataFrame")
     tempras.g <- rgrass7::writeRAST(tempras, "tempras", flags = c("overwrite"))
     rgrass7::execGRASS("g.region", raster = "tempras")
     
@@ -348,7 +358,7 @@ diffsal,diffsalrules.file",
       fboutline <- raster::crop(fboutline, mapextent)
     }
     fbvec.g <- rgrass7::writeVECT(fboutline, "fbvec", v.in.ogr_flags = c("o"))
-    #rgrass7::execGRASS("g.region",vector="fbvec")
+    rgrass7::execGRASS("g.region", vector = "fbvec")
     rgrass7::execGRASS("v.colors", map = "fbvec", column = "cat", color = "grey")
     
     #survey track
@@ -406,7 +416,7 @@ diffsal,diffsalrules.file",
       close(fileConn)
     }
     }else{
-      fileConn<-file(file.path(fdir,"QGIS_plotting","grassplot.file"))
+      fileConn <- file(file.path(fdir,"QGIS_plotting","grassplot.file"))
       writeLines(c("raster tempras2",
                    "vlines outvec",
                    "        color black",
@@ -429,13 +439,15 @@ diffsal,diffsalrules.file",
 chlext_low,Chlorophyll (ug/L)
 chlext_hi,Chlorophyll (ug/L)
 sal,Salinity
+salpsu,Salinity
+salinity.pss,Salinity
 diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     
     legendname <- legendalias[which(params == legendalias[,1]), 2]
     
-    if(params == "sal"){
+    if(params %in% c("sal", "salinity.pss", "salpsu")){
       paramxcoord <- 2160
-      legendunits<-seq(from = 5,to = 54,by = 0.1)
+      legendunits<-seq(from = 5,to = 54, by = 0.1)
       legendunits_print <- "'5 10 15 20 25 30 35 40'"
       legendunits_spacing <- 220
       legend_xlim <- 270
@@ -509,9 +521,8 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
   }
   
   #==================================================================#
-  #browser()
-#   system(paste(
-#     "echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'multi.txt'"))
+  #   system(paste(
+  #     "echo", "'", legendname, substring(legendunits_print, 2, nchar(legendunits_print) - 1), legendunits_spacing, legend_xlim, legend_crop_extent, "'", ">> 'multi.txt'"))
   
   #assumes that all pdfs in QGIS_plotting are to be part of panel
   if(length(rlist) > 1){ # & !is.na(panel.dim)
