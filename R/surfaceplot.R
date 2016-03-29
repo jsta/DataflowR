@@ -21,7 +21,7 @@
 #'}
 
 surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir = getOption("fdir"), yext = c(2772256, 2798000), xext = c(518000.2, 566000)){
-  print(fdir)
+  #print(fdir)
 
   #fbcoast <- rgdal::readOGR(dsn = file.path(fdir, "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE)
   
@@ -36,6 +36,7 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
   brks <- read.table(text = "
         sal list(seq(0,40,2))
         salinity.pss list(seq(0,40,2))
+        salpsu list(seq(0,40,2))
         c6chl list(seq(50,200,10))
         chlext list(seq(0,5,0.5),seq(10,30,5))
         chlext_hi list(seq(0,5,0.5),seq(10,30,5))
@@ -214,17 +215,28 @@ create_rlist <- function(rnge, params){
 #'@import rgeos
 #'@export
 #'@examples \dontrun{
-#'grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
+#'#list supported parameters
 #'grassmap(rnge = c(201512), params = c("sal"))
-#'grassmap(rnge = c(201509, 201512), params = c("sal"))#'
 #'grassmap(rnge = c(201512), params = c("diffsal"))
 #'grassmap(rnge = c(201407), params = c("chlext"))
+#'
+#'#multiple survey dates
+#'grassmap(rnge = c(201509, 201512), params = c("sal"))
+#'
+#'#zoom to Manatee + Barnes
+#'grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 #'grassmap(rnge = c(201507), params = c("sal"), mapextent = c(494952.6, 564517.2, 2758908, 2799640))
 #'grassmap(rnge = c(201509), params = c("chlext"), mapextent = c(494952.6,
 #' 564517.2, 2758908, 2799640))
 #'grassmap(rnge = c(201512), params = "diffsal", mapextent = c(494952.6, 564517.2, 2758908, 2799640))
+#'
+#'#print survey track
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
+#'
+#'#specify raster file directly
 #'grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
+#'
+#'#specify label string
 #'grassmap(fpath = file.path("/home/jose/Documents/Science",
 #' "sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring",
 #'  "pre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")

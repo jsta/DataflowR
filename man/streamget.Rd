@@ -18,8 +18,8 @@ Retrieve previously cleaned full streaming datasets
 }
 \examples{
 \dontrun{
-yearmon<-201311
-dt<-streamget(yearmon)
+yearmon <- 201311
+dt <- streamget(yearmon)
 }
 }
 
