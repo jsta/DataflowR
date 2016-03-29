@@ -21,14 +21,11 @@
 #' tofile = FALSE)
 #'dt <- streamclean(yearmon = 201513, dfmmin = 7, c6mmin = 12,
 #' tofile = FALSE, exommin = 60, eummin = 12)
-#'dt <- streamclean(yearmon = 201601, dfmmin = 12, eummin = 12, tofile = FALSE)
-#'
-#'#testing
-#'dt <- streamclean(yearmon = 201601, gps = "eu", eummin = 12)
 #'
 #'#working
 #'dt <- streamclean(yearmon = 201512, gps = "df", c6mmin = 6, dfmmin = 7)
-#'
+#'dt <- streamclean(yearmon = 201601, gps = "eu", eummin = 12)
+#'dt <- streamclean(yearmon = 201603, gps = "exo", exommin = 40, c6mmin = 12)
 #'}
 
 streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exommin = NA, tofile = FALSE, sep = ",", fdir = getOption("fdir")){
@@ -311,7 +308,11 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
     return(eu)
   }
   read_exo <- function(exopath){
-    read.csv(exopath, header = T, skip = 12, stringsAsFactors = FALSE)
+    exo <- read.csv(exopath, header = T, skip = 12, stringsAsFactors = FALSE)
+    if(substring(names(exo)[1], 1, 4) != "Date"){
+      exo <- read.csv(exopath, header = T, skip = 24, stringsAsFactors = FALSE)
+    }
+    exo
   }
   clean_exo <- function(exo){
     names(exo) <- tolower(gsub("\\.", "", names(exo)))
