@@ -31,11 +31,11 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
   namesalias <- read.table(text = "
                        chlorophyll.a c6chl
                        c6chla c6chl
-                       salinity.pss sal  
                        ")
   #define breaks
   brks <- read.table(text = "
         sal list(seq(0,40,2))
+        salinity.pss list(seq(0,40,2))
         c6chl list(seq(50,200,10))
         chlext list(seq(0,5,0.5),seq(10,30,5))
         chlext_hi list(seq(0,5,0.5),seq(10,30,5))
@@ -60,9 +60,10 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
     }
   }
   
-  browser()
-  #rlist <- rlist[which(!is.na(match(plist, params)))]
-  #plist <- plist[which(!is.na(match(plist, params)))]
+  rlist <- rlist[which(!is.na(
+    match(plist, params)
+    ))]
+  plist <- plist[which(!is.na(match(plist, params)))]
   
   for(i in 1:length(rlist)){
     #i<-1
