@@ -2,7 +2,7 @@
 #'@title Cleaning raw streaming Dataflow output
 #'@description Cleaning raw streaming Dataflow, C6, Eureka-Manta, and YSI-Exo output
 #'@param yearmon numeric designation of survey date formatted as yyyymm
-#'@param gps character dataset to use for GPS alignment of other data streams. Choice of "df", "c6", "eu", or "exo".
+#'@param gps character dataset to use for GPS alignment of other data streams. Choice of "df", "eu", or "exo".
 #'@param dfmmin integer optional minimum df measurement frequency (# measurements/min)
 #'@param c6mmin integer optional minimum c6 measurement frequency 
 #'@param eummin integer optional minimum eureka (manta) measurement frequency
@@ -352,7 +352,6 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
   detect_mmin <- function(dt){
     round(60/Mode(diff(as.numeric(format(dt$datetime,  '%S')))))
   }
-  
   check_correct_mmin <- function(dt, target, target_mmin){
     dt_mmin <- detect_mmin(dt)
     if(dt_mmin != target_mmin){

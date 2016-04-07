@@ -10,7 +10,7 @@ streamclean(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA,
 \arguments{
 \item{yearmon}{numeric designation of survey date formatted as yyyymm}
 
-\item{gps}{character dataset to use for GPS alignment of other data streams. Choice of "df", "c6", "eu", or "exo".}
+\item{gps}{character dataset to use for GPS alignment of other data streams. Choice of "df", "eu", or "exo".}
 
 \item{dfmmin}{integer optional minimum df measurement frequency (# measurements/min)}
 
