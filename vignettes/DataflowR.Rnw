@@ -155,8 +155,8 @@ Incoming streaming data should be placed in \verb|DF_FullDataSets|\texttt{/Raw/I
 .4 Raw.
 .5 InstrumentOutput.
 .6 201502.
-.7 20150211\_DF021115.txt.
-.7 20150211\_C6\_11FEB.csv.
+.7 20150211\_DF021115\_DF.csv.
+.7 20150211\_C6\_11FEB\_C6.csv.
 .7 20150211\_11FEB\_eu.csv.
 .7 20150211\_11FEB\_exo.csv.
 .7 ....
@@ -166,19 +166,18 @@ When working in a non-Windows environment, \texttt{.csv} files created under Win
 \end{warning}
 
 \vspace{15pt}
-Cleaning is accomplished via the \nohyphens{\texttt{streamclean}} function. The example below shows how to specify inputs to clean the data for the February 2015 survey. For this example we set the \texttt{tofile} parameter to \texttt{FALSE} but setting it to \texttt{TRUE} will save the cleaned output to \verb|DF_FullDataSets| as a \texttt{.csv} file. The \texttt{streamclean} function will gather all the Dataflow records, merge them with the C6 data, remove leading and trailing records of all zeros, format GPS coordinates, check that conductivity to salinity calculations are correct (recalculate if neccesary), and classify records based on fathom and CERP basin designations. Variable names and column ordering are formatted consistently and a machine readable (POSIX) date-time stamp is created.   
+Cleaning is accomplished via the \nohyphens{\texttt{streamclean}} function. The example below shows how to specify inputs to clean the data for the February 2015 survey. For this example we set the \texttt{tofile} parameter to \texttt{FALSE} but setting it to \texttt{TRUE} will save the cleaned output to \verb|DF_FullDataSets| as a \texttt{.csv} file. The first parameter to consider is \texttt{gps}. The current version of \texttt{DataflowR} supports a setting of \textit{df}, \textit{eu}, or \textit{exo}. The \texttt{streamclean} function will gather all the records associated with the remaining streams, merge them with the \texttt{gps} target, remove leading and trailing records of all zeros, format GPS coordinates, check that conductivity to salinity calculations are correct (recalculate if neccesary), and classify records based on fathom and CERP basin designations. Variable names and column ordering are formatted consistently and a machine readable (POSIX) date-time stamp is created.   
 
 <<eval=FALSE>>=
-dt <- streamclean(yearmon = 201502, mmin = 7, c6pres = TRUE,
+dt <- streamclean(yearmon = 201502, gps = "df", dfmmin = 7, c6mmin = 7,
                   tofile = FALSE, sep = ",")
 @
 
-If the survey includes Eureka (Manata) or Exo output, this can be included by setting \texttt{eupres} and(or) \texttt{exopres} to \texttt{TRUE} as in the following example:
+All datastreams that have a corresponding \texttt{mmin} argument specified will be included in the final file.
 
 <<eval=FALSE>>=
-dt <- streamclean(yearmon = 201513, mmin = 7, c6pres = TRUE,
-                  c6mmin = 12, tofile = FALSE, exommin = 60,
-                  exopres = TRUE, eupres = TRUE, eummin = 12)
+dt <- streamclean(yearmon = 201513, gps = "df", dfmmin = 7, c6mmin = 12,
+                  exommin = 60, eummin = 12, tofile = FALSE)
 @
 
 Some older Dataflow surveys have undergone a "hand-cleaning" and are missing the raw inputs neccessary to run \texttt{streamclean}. In these instances, the \texttt{streamparse} function can be used to align the formatting of these files to resemble the output of \texttt{streamclean}. Specifically, the function creates a POSIX compliant date field, and reproduces the column names and ordering of a \texttt{streamclean} output. 
