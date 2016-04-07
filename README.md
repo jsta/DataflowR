@@ -18,7 +18,8 @@ git clone git@gitlab.com:jsta/DataflowR.git
 
 cd DataflowR
 
-`install.packages(c("rasterVis", "raster", "maptools", "rgeos", "rgrass7", "scales", "viridis", "MASS", "car", "gdata", "ipdw", "latticeExtra", "rgdal", "sp", "zoo"))`
+`install.packages(c("rasterVis", "raster", "maptools", "rgeos", "rgrass7",`
+`"scales", "viridis", "MASS", "car", "gdata", "ipdw", "latticeExtra", "rgdal", "sp", "zoo"))`
 
 Ctrl + Shift + B
 
