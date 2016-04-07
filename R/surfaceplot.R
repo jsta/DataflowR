@@ -228,10 +228,13 @@ create_rlist <- function(rnge, params){
 #'
 #'#print survey track and zoom to Manatee + Barnes
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
-#'grassmap(rnge = 201512, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996))
-#'grassmap(rnge = 201513, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996))
-#'grassmap(rnge = 201601, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996))
-#'grassmap(rnge = 201603, params = "salpsu", mapextent = c(557217, 567415, 2786102, 2797996))
+#'
+#'grassmap(rnge = 201512, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2015-12-01")
+#'grassmap(rnge = 201513, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2015-12-16")
+#'grassmap(rnge = 201601, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2016-01-12")
+#'grassmap(rnge = 201603, params = "salpsu", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2016-03-08")
+#'grassmap(rnge = 201604, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2016-04-05")
+#'
 #'grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 #'
 #'#specify raster file directly
@@ -308,16 +311,23 @@ diffsal,diffsalrules.file",
     # }
       
     #create raster outline====================================================#
-    #browser()
-    if(length(label_string) == 0){
-      label_string <- rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
+    #no fpath
+    if(length(fpath) == 0){
+    #no fpath but label_string
+      if(length(label_string) == 0){
+        label_string <- rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
+      }else{
+        rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
+      }
       raspath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, ".tif", sep = ""))
       outpath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, "poly.shp" ,sep = ""))
     }else{
+      #fpath & label_string
       rasname <- paste0(strsplit(basename(fpath), "\\.")[[1]][-(length(strsplit(basename(fpath), "\\.")[[1]]))], collapse = "")
       raspath <- file.path(paste0(fdir, "/QGIS_plotting", sep = ""), basename(fpath))
       outpath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, "poly.shp" ,sep = ""))
     }
+    #=============================================================#
     
     raster::writeRaster(tempras, raspath, format = "GTiff", overwrite = TRUE)
     shellcmds = paste("gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
@@ -385,7 +395,7 @@ diffsal,diffsalrules.file",
                  "vareas fbvec",
                  "        masked y",
                  "        end",
-                 paste("text 17% 85% ", label_string, sep = ""),
+                 paste("text 20% 87% ", label_string, sep = ""),
                  "        fontsize 35",
                  "        background white",
                  "        border black",
