@@ -43,7 +43,7 @@ output plots to the QGIS_plotting folder
 not finished yet
 }
 \details{
-Probably need to implement this as a seperate package to improve portability. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff.
+Probably need to implement this as a seperate package to improve portability. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff. This function can be called from the commandline using Rscript by loading the methods package and creating/loading a python 2 environment using the commands conda create --name python2 python=2 and source activate python2.
 }
 \examples{
 \dontrun{
@@ -62,10 +62,6 @@ grassmap(rnge = c(201507), params = c("sal"), mapextent = c(494952.6, 564517.2, 
 grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 
 grassmap(rnge = 201512, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2015-12-01")
-grassmap(rnge = 201513, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2015-12-16")
-grassmap(rnge = 201601, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2016-01-12")
-grassmap(rnge = 201603, params = "salpsu", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2016-03-08")
-grassmap(rnge = 201604, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2016-04-05")
 
 grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 

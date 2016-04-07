@@ -209,7 +209,7 @@ create_rlist <- function(rnge, params){
 #'@param label_string character label
 #'@param print_track logical print dataflow track?
 #'@return output plots to the QGIS_plotting folder
-#'@details Probably need to implement this as a seperate package to improve portability. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff.
+#'@details Probably need to implement this as a seperate package to improve portability. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff. This function can be called from the commandline using Rscript by loading the methods package and creating/loading a python 2 environment using the commands conda create --name python2 python=2 and source activate python2.
 #'@import rgrass7
 #'@import maptools
 #'@import rgeos
@@ -230,10 +230,6 @@ create_rlist <- function(rnge, params){
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 #'
 #'grassmap(rnge = 201512, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2015-12-01")
-#'grassmap(rnge = 201513, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2015-12-16")
-#'grassmap(rnge = 201601, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2016-01-12")
-#'grassmap(rnge = 201603, params = "salpsu", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2016-03-08")
-#'grassmap(rnge = 201604, params = "salinity.pss", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2016-04-05")
 #'
 #'grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 #'
@@ -295,6 +291,7 @@ diffsal,diffsalrules.file",
       firstras <- raster::raster(rlist[i])
     }
     
+    # browser()
     if(basin != "full"){
       tempras <- raster::raster(rlist[i])
       tempras <- raster::crop(tempras, fathombasins[fathombasins$NAME == basin,])
@@ -330,9 +327,11 @@ diffsal,diffsalrules.file",
     #=============================================================#
     
     raster::writeRaster(tempras, raspath, format = "GTiff", overwrite = TRUE)
-    shellcmds = paste("gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
+    shellcmds = paste("/usr/bin/gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
+    # browser()
     system(shellcmds)
     outpoly <- rgdal::readOGR(dsn = outpath, layer = paste(rasname, "poly", sep = ""), verbose = TRUE)
+    print(class(outpoly))
     #requireNamespace("maptools")
     require("rgeos")
     require("maptools")#cannot seem to execute below without call to require
