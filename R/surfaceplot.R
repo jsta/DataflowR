@@ -86,6 +86,7 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
 #'@param tolerance numeric number of months on either side of yearmon to include in the set of surfaces averaged . defaults to 1.
 #'@param fdir character file path to local data directory 
 #'@description takes a survey date as input and searches the DF_Surfaces folder for maps of the same parameter within the range of 1-2 months from yearmon for each year. These surfaces are averaged and compared to the surface from yearmon. 
+#'@details resulting surfaces are written to disk if the avpath or diffpath arguments are specified
 #'@export
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@examples \dontrun{
@@ -117,20 +118,27 @@ avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 
   }
 
 #stack-and-calculate====================================================#
-  rstack <- raster::stack(flist)
-  rstack <- raster::reclassify(rstack, c(-Inf, 0, NA))
-  rmean <- raster::calc(rstack, fun = mean, na.rm = T)
-  rlen <- sum(!is.na(rstack))
+  average_rlist <- function(flist, percentcov){
+    rstack <- raster::stack(flist)
+    rstack <- raster::reclassify(rstack, c(-Inf, 0, NA))
+    rmean <- raster::calc(rstack, fun = mean, na.rm = T)
+    rlen <- sum(!is.na(rstack))
   
-  rmean[rlen < (percentcov * length(flist))] <- NA
-  res <- cursurf - rmean
+    rmean[rlen < (percentcov * length(flist))] <- NA
+    rmean
+    #res <- cursurf - rmean
+    #list(rstack = rstack, rmean = rmean, rlen = rlen, res = res)
+  }
+  
+  rmean <- average_rlist(flist, percentcov)
+  rmean_diff <- cursurf - rmean
   
 #plotting===============================================================#
   sdates <- data.frame(matrix(unlist(strsplit(dirname(flist), "/")), nrow = length(flist), byrow = T))
   sdates <- substring(sdates[,ncol(sdates)], 1, 6)
   
   sp::plot(rmean, main = paste("Average", params, sdates[1], "-", sdates[length(sdates)], sep = " "))
-  sp::plot(cursurf - rmean, main = "Difference from Average")
+  sp::plot(rmean_diff, main = "Difference from Average")
 
 #save-to-file===========================================================#
     if(length(avpath) > 0){
@@ -138,10 +146,10 @@ avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 
     }
     
     if(length(diffpath) > 0){
-      raster::writeRaster((cursurf - rmean), diffpath, format = "GTiff", overwrite = T)
+      raster::writeRaster(rmean_diff, diffpath, format = "GTiff", overwrite = T)
     }
   
-  res
+  rmean_diff
 }
 
 #'@name create_rlist
@@ -291,7 +299,6 @@ diffsal,diffsalrules.file",
       firstras <- raster::raster(rlist[i])
     }
     
-    # browser()
     if(basin != "full"){
       tempras <- raster::raster(rlist[i])
       tempras <- raster::crop(tempras, fathombasins[fathombasins$NAME == basin,])
@@ -395,7 +402,7 @@ diffsal,diffsalrules.file",
                  "        masked y",
                  "        end",
                  paste("text 20% 87% ", label_string, sep = ""),
-                 "        fontsize 35",
+                 "        fontsize 21",
                  "        background white",
                  "        border black",
                  "        end",
