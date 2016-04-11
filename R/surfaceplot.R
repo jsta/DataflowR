@@ -147,6 +147,8 @@ avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 
 #'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal
 #'@export
 #'@examples \dontrun{
+#'create_rlist(rnge = 201509, params = "sal")
+#'create_rlist(rnge = c(201509, 201605), params = c("sal", "salinity.pss", "salpsu"))
 #'create_rlist(rnge = c(200808, 200910, 201002, 201004, 201007, 201102, 201105,
 #' 201206, 201209, 201212, 201305, 201308, 201311, 201404, 201407, 201410,
 #'  201502, 201505, 201507, 201509), params = 'chlext')
@@ -165,6 +167,7 @@ create_rlist <- function(rnge, params){
                            ")
   
   dirlist <- list.dirs(file.path(fdir, "DF_Surfaces"), recursive = F)
+  datelist <- sapply(list.dirs(dirlist[minrnge:maxrnge]), function(x) substring(x, nchar(x) - 5))
   minrnge <- min(which(substring(basename(dirlist), 1, 6) >= rnge[1]))
   maxrnge <- max(which(substring(basename(dirlist), 1, 6) <= rnge[2]))
   rlist <- list.files(dirlist[minrnge:maxrnge], full.names = T, include.dirs = T, pattern = "\\.tif$")
@@ -184,7 +187,7 @@ create_rlist <- function(rnge, params){
   
   rlist <- rlist[which(!is.na(match(plist, params)))]
   plist <- plist[which(!is.na(match(plist, params)))]
-  list(rlist = rlist, plist = plist)
+  list(rlist = rlist, plist = plist, datelist = datelist)
 }
 
 #'@name grassmap
@@ -323,7 +326,6 @@ diffsal,diffsalrules.file",
     
     raster::writeRaster(tempras, raspath, format = "GTiff", overwrite = TRUE)
     shellcmds = paste("/usr/bin/gdal_polygonize.py", raspath, "-f","'ESRI Shapefile'", outpath) 
-    # browser()
     system(shellcmds)
     outpoly <- rgdal::readOGR(dsn = outpath, layer = paste(rasname, "poly", sep = ""), verbose = TRUE)
     print(class(outpoly))
@@ -564,7 +566,7 @@ average_rlist <- function(flist, percentcov){
   rstack <- raster::stack(flist)
   rstack <- raster::reclassify(rstack, c(-Inf, 0, NA))
   rmean <- raster::calc(rstack, fun = mean, na.rm = T)
-  rlen <- sum(!is.na(rstack))
+  rlen <- raster::calc(!is.na(rstack), fun = sum)
   
   rmean[rlen < (percentcov * length(flist))] <- NA
   rmean

@@ -16,6 +16,8 @@ Create file listing of rasters from a date range and parameter name
 }
 \examples{
 \dontrun{
+create_rlist(rnge = 201509, params = "sal")
+create_rlist(rnge = c(201509, 201605), params = c("sal", "salinity.pss", "salpsu"))
 create_rlist(rnge = c(200808, 200910, 201002, 201004, 201007, 201102, 201105,
 201206, 201209, 201212, 201305, 201308, 201311, 201404, 201407, 201410,
  201502, 201505, 201507, 201509), params = 'chlext')
