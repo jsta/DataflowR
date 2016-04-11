@@ -118,18 +118,6 @@ avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 
   }
 
 #stack-and-calculate====================================================#
-  average_rlist <- function(flist, percentcov){
-    rstack <- raster::stack(flist)
-    rstack <- raster::reclassify(rstack, c(-Inf, 0, NA))
-    rmean <- raster::calc(rstack, fun = mean, na.rm = T)
-    rlen <- sum(!is.na(rstack))
-  
-    rmean[rlen < (percentcov * length(flist))] <- NA
-    rmean
-    #res <- cursurf - rmean
-    #list(rstack = rstack, rmean = rmean, rlen = rlen, res = res)
-  }
-  
   rmean <- average_rlist(flist, percentcov)
   rmean_diff <- cursurf - rmean
   
@@ -564,6 +552,24 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     rmlist <- list.files(file.path(paste(fdir,"/QGIS_plotting", sep = "")), pattern = paste("out", "*", sep = ""), include.dirs = TRUE, full.names = TRUE)
     file.remove(rmlist)
   }
+}
+
+#'@name average_rlist
+#'@title Create an average raster from a raster list 
+#'@param flist character file.list
+#'@param percentcov numeric tolerance to include a stacked pixel based on percent NA
+#'@description Create an average raster from a raster list 
+#'@export
+average_rlist <- function(flist, percentcov){
+  rstack <- raster::stack(flist)
+  rstack <- raster::reclassify(rstack, c(-Inf, 0, NA))
+  rmean <- raster::calc(rstack, fun = mean, na.rm = T)
+  rlen <- sum(!is.na(rstack))
+  
+  rmean[rlen < (percentcov * length(flist))] <- NA
+  rmean
+  #res <- cursurf - rmean
+  #list(rstack = rstack, rmean = rmean, rlen = rlen, res = res)
 }
 
 # #create florida inset

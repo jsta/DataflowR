@@ -25,6 +25,9 @@ avmap(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 0.6,
 \description{
 takes a survey date as input and searches the DF_Surfaces folder for maps of the same parameter within the range of 1-2 months from yearmon for each year. These surfaces are averaged and compared to the surface from yearmon.
 }
+\details{
+resulting surfaces are written to disk if the avpath or diffpath arguments are specified
+}
 \examples{
 \dontrun{
 avmap(yearmon = 201505, params = "sal", diffpath = file.path(fdir,
