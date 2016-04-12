@@ -167,9 +167,9 @@ create_rlist <- function(rnge, params){
                            ")
   
   dirlist <- list.dirs(file.path(fdir, "DF_Surfaces"), recursive = F)
-  datelist <- sapply(list.dirs(dirlist[minrnge:maxrnge]), function(x) substring(x, nchar(x) - 5))
   minrnge <- min(which(substring(basename(dirlist), 1, 6) >= rnge[1]))
   maxrnge <- max(which(substring(basename(dirlist), 1, 6) <= rnge[2]))
+  datelist <- sapply(list.dirs(dirlist[minrnge:maxrnge]), function(x) substring(x, nchar(x) - 5))
   rlist <- list.files(dirlist[minrnge:maxrnge], full.names = T, include.dirs = T, pattern = "\\.tif$")
   plist <- tolower(sub("[.][^.]*$", "", basename(rlist)))
   
