@@ -228,7 +228,8 @@ create_rlist <- function(rnge, params){
 #'#print survey track and zoom to Manatee + Barnes
 #'grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 #'
-#'grassmap(rnge = 201512, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2015-12-01")
+#'grassmap(rnge = 201512, params = "sal", mapextent = c(557217,
+#' 567415, 2786102, 2797996), label_string = "2015-12-01")
 #'
 #'grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 #'
@@ -524,7 +525,8 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       rmlist <- list.files(file.path(paste(fdir, "/QGIS_plotting", sep = "")), pattern = paste(rasname, "*", sep = ""), include.dirs = TRUE, full.names = TRUE)
       rmlist <- rmlist[-grep("*.pdf", rmlist)]
       file.remove(rmlist)
-    }    
+    }
+    browser()
   }
   
   #==================================================================#

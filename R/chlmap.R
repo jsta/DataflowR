@@ -9,6 +9,7 @@
 #'@param fdir file.path to data folder
 #'@return An extracted chlorophyll surface and an updated FullDataSet file
 #'@author Joseph Stachelek
+#'@importFrom utils read.table
 #'@export
 #'@examples 
 #'\dontrun{

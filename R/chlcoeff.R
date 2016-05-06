@@ -14,6 +14,9 @@
 #'@export
 #'@importFrom MASS stepAIC
 #'@importFrom car vif
+#'@importFrom stats complete.cases as.formula cor fitted lm pf
+#'@importFrom utils read.csv write.csv
+#'@importFrom graphics abline
 #'@examples 
 #'\dontrun{
 #'chlcoef(201308)
@@ -21,10 +24,10 @@
 
 chlcoef <- function(yearmon, remove.flags = TRUE, overwrite = FALSE, fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7, streamcov = 0.5, checkvif = TRUE, logtransform = FALSE){
 
-dt<-grabget(yearmon, remove.flags = remove.flags)
+dt <- grabget(yearmon, remove.flags = remove.flags)
 
-if(logtransform==TRUE){
-  dt[,"chla"]<-log(dt[,"chla"])  
+if(logtransform == TRUE){
+  dt[,"chla"] <- log(dt[,"chla"])  
 }
 
 #if(remove.flags==TRUE){
@@ -36,8 +39,8 @@ if(logtransform==TRUE){
 #dt2<-dt[!is.na(dt$chla),]#partial incomplete
 
 #choose variables
-varlist<-c("chla","cdom","chlaiv","phycoe","c6chl","phycoc","c6cdom")
-varlist<-varlist[sapply(varlist,function(x) sum(!is.na(dt[,x]))>1)]
+varlist <- c("chla", "cdom", "chlaiv", "phycoe", "c6chl", "phycoc", "c6cdom")
+varlist <- varlist[sapply(varlist, function(x) sum(!is.na(dt[,x])) > 1)]
 
 #exclude variables with streaming data less than streamcov
 streamdata<-streamget(yearmon = yearmon, qa = TRUE)
@@ -49,13 +52,13 @@ streamvarlist<-streamvarlist[-1]
 streamvarlist<-streamvarlist[sapply(streamvarlist,function(x) sum(!is.na(streamdata[,x]))/nrow(streamdata))>0.74]
 
 if(length(varlist)>2){
-  cormat<-cor(dt[,varlist],use="complete")[-1,1]
+  cormat <- cor(dt[,varlist],use="complete")[-1,1]
   varlist<-names(cormat[abs(cormat) > corcut])
 }
 
 if(!length(varlist)>0){stop("linear correlations too low")}
 lmeq <- as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
-fit <- lm(lmeq,data=dt[complete.cases(dt[,varlist]),])
+fit <- lm(lmeq,data = dt[complete.cases(dt[,varlist]),])
 
 if(length(varlist)>1){
   dt<-dt[apply(dt[,match(varlist,names(dt))],1,function(x) !all(is.na(x))),]
@@ -186,7 +189,7 @@ abline(0,1)
 
 #retrieve chla coefficients####
 
-coeflist<-read.csv(file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"),header=T,na.strings="NA")[,-1]
+coeflist <- read.csv(file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"),header=T,na.strings="NA")[,-1]
 names(coeflist)<-tolower(names(coeflist))
 vartemplate<-c("yearmon","survey","date","cdom","chlaiv","phycoe","c6chl","c6cdom","phycoc","cdom2","chlaiv2","phycoe2","c6chl2","c6cdom2","phycoc2","intercept","rsquared","pvalue","model","notes")
 outtemp<-data.frame(matrix(NA,nrow=1,ncol=length(vartemplate)))
@@ -214,7 +217,7 @@ outtemp[,"rsquared"]<-summary(fit)$r.squared
 lmp <- function (modelobject) {
   if (class(modelobject) != "lm") stop("Not an object of class 'lm' ")
   f <- summary(modelobject)$fstatistic
-  p <- pf(f[1],f[2],f[3],lower.tail=F)
+  p <- pf(f[1], f[2], f[3], lower.tail = F)
   attributes(p) <- NULL
   return(p)
 }
@@ -238,7 +241,7 @@ if(any(outtemp[,"yearmon"]==coeflist[,"yearmon"],na.rm=T)&overwrite==FALSE){
   warning("Fit already exists for this survey. Specify overwrite =TRUE or open file and delete in order to replace.")
 }else{
   coeflist<-rbind(coeflist,outtemp)
-  write.csv(coeflist,file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"))
+  write.csv(coeflist,file.path(fdir, "DF_GrabSamples", "extractChlcoef2.csv"))
 }
 fit
 }

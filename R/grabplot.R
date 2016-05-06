@@ -20,7 +20,7 @@ grabplot<-function(rnge=c(201407,201410),params=c("sal","chla"),plottype="permit
  } 
 }
 
-permitbarplot<-function(dt,params){
+permitbarplot <- function(dt, params){
   #params <- c("salt","chl.a","tss","pp","tp","tdp","po4","toc","doc","tkn","tdkn","chla","temp","cond","sal","trans","cdom","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","c6temp")
   #ylab <- "Chl"
   dt$datecode<-cutree(hclust(dist(dt$date)),h=1000)#may need to adjust h
@@ -57,7 +57,7 @@ permitbarplot<-function(dt,params){
   }
   datelabs<-as.character(unlist(labs))
   #legend(locator(1),datelabs,fill=terrain.colors(5),cex=0.7)
-  legend("topleft",datelabs,fill=terrain.colors(length(unique(dt$datecode))),cex=0.7)
+  legend("topleft", datelabs, fill = terrain.colors(length(unique(dt$datecode))), cex = 0.7)
   }
   
 }

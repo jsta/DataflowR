@@ -152,7 +152,8 @@ coordinatize <- function(dt, latname = "latdec", lonname = "londec"){
 #'@description Create a log scaled color ramp for the grassmap function
 #'@export
 #'@import viridis
-#'@import scales 
+#'@import scales
+#'@importFrom grDevices col2rgb 
 #'@param n integer number of breaks
 #'@param maxrange integer maximum range
 #'n <- 9

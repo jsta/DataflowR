@@ -61,7 +61,8 @@ grassmap(rnge = c(201507), params = c("sal"), mapextent = c(494952.6, 564517.2, 
 #print survey track and zoom to Manatee + Barnes
 grassmap(201513, "chlext", mapextent = c(557217, 567415, 2786102, 2797996), print_track = TRUE)
 
-grassmap(rnge = 201512, params = "sal", mapextent = c(557217, 567415, 2786102, 2797996), label_string = "2015-12-01")
+grassmap(rnge = 201512, params = "sal", mapextent = c(557217,
+567415, 2786102, 2797996), label_string = "2015-12-01")
 
 grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 
