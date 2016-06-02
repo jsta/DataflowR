@@ -39,8 +39,8 @@ permitbarplot <- function(dt, params){
     if(paste(param, ".1", sep = "") %in% colnames(dt)){
       stdev <- tapply(dt[,paste(param, ".1", sep = "")], list(dt$datecode, dt$location), function (x) mean(x, na.rm = T))
       standardErrors <-(stdev / sqrt(2))
-      standardErrors <- standardErrors[,apply(standardErrors, 2, function(x) !any(is.na(x)))]#temporary until I fix "$location" errors
-      plotTop <- max(means+standardErrors*2,na.rm=TRUE)
+      #standardErrors <- standardErrors[,apply(standardErrors, 2, function(x) !any(is.na(x)))]#temporary until I fix "$location" errors
+      plotTop <- max(means + standardErrors * 2, na.rm = TRUE)
       nosd <- FALSE
     }else{
       plotTop <- max(means, na.rm = TRUE)

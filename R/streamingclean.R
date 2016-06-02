@@ -461,11 +461,11 @@ dt
 #'@param qa logical strip flagged data?
 #'@export
 #'@examples \dontrun{
-#'yearmon <- 201311
+#'yearmon <- 201212
 #'dt <- streamget(yearmon)
 #'}
 
-streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
+streamget <- function(yearmon, qa = TRUE, fdir = getOption("fdir")){
   fdir_fd <- file.path(fdir, "DF_FullDataSets")
   flist <- list.files(fdir_fd, include.dirs = T, full.names = T)
   flist <- flist[substring(basename(flist),1,6) == yearmon]
@@ -473,16 +473,16 @@ streamget<-function(yearmon,qa=TRUE,fdir=getOption("fdir")){
   
   if(qa == TRUE && file.exists(file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = ""))) && identical(dim(dt), dim(read.csv(file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = "")))))){
     
-    qafile<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))
+    qafile <- read.csv(file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = "")))
     
-    if(!any(names(qafile)=="chlext")&any(names(dt)=="chlext")){
-      qafile$chlext<-NA
+    if(!any(names(qafile) == "chlext") & any(names(dt) == "chlext")){
+      qafile$chlext <- NA
     }
     
-    if(!(identical(dim(qafile),dim(dt)))){
+    if(!(identical(dim(qafile), dim(dt)))){
       warning("QA file dimensions do not match data dimensions")
     }
-    dt[!is.na(qafile)]<-NA
+    dt[!is.na(qafile)] <- NA
   }
   dt
 }

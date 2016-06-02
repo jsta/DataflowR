@@ -9,6 +9,7 @@
 #'@examples \dontrun{
 #'res <- grabclean(yearmon = 201402, tofile = FALSE)
 #'res <- grabclean(yearmon = 200808, tofile = FALSE)
+#'res <- grabclean(yearmon = 201212, tofile = FALSE)
 #'res <- grabclean(yearmon = 201007, tofile = FALSE)
 #'res <- grabclean(yearmon = 201004, tofile = FALSE)
 #'}
