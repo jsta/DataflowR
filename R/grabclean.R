@@ -307,33 +307,33 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   }
   
   namestemp <- c("date","time","location","salt","chla","chla.1","tss","tss.1","pp","pp.1","tp","tdp","po4","toc","doc","tkn","tdkn","chlaiv","temp","cond","sal","trans","cdom","brighteners","phycoe","phycoc","c6chl","c6cdom","c6turbidity","c6temp","lon_dd","lat_dd")
-  nseq <- seq(1,length(namestemp),1)
+  nseq <- seq(1, length(namestemp), 1)
   
-  namesalias <- read.table(text="chlorophyll.a,c6chl
+  namesalias <- read.table(text = "chlorophyll.a,c6chl
 c6chla,c6chl
 spcondms,spcond
-turbidity,c6turbidity",sep=",")
-  namesalias<-apply(namesalias,2,function(x) as.character(x))
+turbidity,c6turbidity", sep = ",")
+  namesalias <- apply(namesalias, 2, function(x) as.character(x))
   
   #match dt names to a template that includes all possible columns####
   for(n in 1:ncol(grabsfull)){
-    if(any(names(grabsfull)[n]==namesalias[,1])){
-      names(grabsfull)[n]<-namesalias[which(names(grabsfull)[n]==namesalias[,1]),2]
+    if(any(names(grabsfull)[n] == namesalias[,1])){
+      names(grabsfull)[n] <- namesalias[which(names(grabsfull)[n] == namesalias[,1]), 2]
     }
   }
   
   #trim extra columns and match order to template
-  nmiss<-nseq[!(nseq %in% match(names(grabsfull),namestemp))]
-  if(length(nmiss)>0){
+  nmiss <- nseq[!(nseq %in% match(names(grabsfull),namestemp))]
+  if(length(nmiss) > 0){
     for(j in 1:length(nmiss)){
-      grabsfull[,ncol(grabsfull)+1]<-NA
-      names(grabsfull)[ncol(grabsfull)]<-namestemp[nmiss[j]]
+      grabsfull[,ncol(grabsfull) + 1] <- NA
+      names(grabsfull)[ncol(grabsfull)] <- namestemp[nmiss[j]]
     }
   }
-  grabsfull<-grabsfull[,match(namestemp,names(grabsfull))]#sort to match order of namestemp
+  grabsfull <- grabsfull[,match(namestemp, names(grabsfull))]#sort to match order of namestemp
   
-  grabsfull[,5:ncol(grabsfull)]<-suppressWarnings(apply(grabsfull[,5:ncol(grabsfull)],2,function(x) as.numeric(x)))
-  grabsfull$flags<-NA
+  grabsfull[,5:ncol(grabsfull)] <- suppressWarnings(apply(grabsfull[,5:ncol(grabsfull)], 2, function(x) as.numeric(x)))
+  grabsfull$flags <- NA
   
   grabsfull
   }
@@ -363,12 +363,12 @@ turbidity,c6turbidity",sep=",")
     #fdir<-getOption("fdir")
   
     #LOAD FILES####
-    fdir_fd<-file.path(fdir,"DF_FullDataSets")
-    flist<-list.files(fdir_fd,include.dirs=T,full.names=T)
-    streamingdata<-streamget(yearmon)
-    fdir_fd<-file.path(fdir,"DF_GrabSamples","Raw")
-    flist<-list.files(fdir_fd,include.dirs=T,full.names=T,pattern=".csv")
-    sumpath<-suppressWarnings(flist[which(as.numeric(substring(basename(flist),1,6))==yearmon)])
+    fdir_fd <- file.path(fdir,"DF_FullDataSets")
+    flist <- list.files(fdir_fd, include.dirs = T, full.names = T)
+    streamingdata <- streamget(yearmon)
+    fdir_fd <- file.path(fdir, "DF_GrabSamples", "Raw")
+    flist <- list.files(fdir_fd, include.dirs = T, full.names = T, pattern = ".csv")
+    sumpath <- suppressWarnings(flist[which(as.numeric(substring(basename(flist), 1, 6)) == yearmon)])
     
     #todo: add check that sumpath only returns one file path
     
@@ -384,8 +384,8 @@ turbidity,c6turbidity",sep=",")
     
     grabsfull$location <- consistentlocations(grabsfull) 
   
-    if(tofile==TRUE){
-      write.csv(grabsfull,file.path(fdir,"DF_GrabSamples",paste(yearmon,"j.csv",sep="")))
+    if(tofile == TRUE){
+      write.csv(grabsfull, file.path(fdir, "DF_GrabSamples", paste(yearmon, "j.csv", sep = "")))
     }
     
     return(grabsfull)
