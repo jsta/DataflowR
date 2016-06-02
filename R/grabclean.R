@@ -15,7 +15,6 @@
 #'
 grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   
-  #FORMAT COLUMN NAMES##################################
   formatcolnames <- function(sumpath){
     
     datacol <- NA
@@ -115,7 +114,6 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   list(nms.full, datacol)
   }
   
-  #CLEAN GRABS############################
   cleangrabdata <- function(sumpath, nsmfull, datacol){
     grabdata <- read.csv(sumpath, sep = ",", skip = 5, header = F, stringsAsFactors = F, na.strings = "", strip.white = T)
     
@@ -294,26 +292,33 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   #add back in grabs with missing streaming data
   if(any(!is.na(nostream[1,]))){
     nostream <- nostream[!is.na(nostream[,4]),]
-  if((ncol(grabsfull) - ncol(nostream)) != 0){
-    padna <- data.frame(matrix(NA, nrow = nrow(nostream), ncol = (ncol(grabsfull) - ncol(nostream))))
-  #if(any(match(names(nostream),names(grabsfull))[1:ncol(nostream)]!=1:ncol(nostream))){
-  #  stop("problem with column names")
-  #}
-  nostream <- cbind(nostream, padna)
-  }
-  names(nostream) <- names(grabsfull)
-  test <- rbind(grabsfull[1,], nostream)
-  grabsfull <- rbind(grabsfull, nostream)
+    if((ncol(grabsfull) - ncol(nostream)) != 0){
+      padna <- data.frame(matrix(NA, nrow = nrow(nostream), ncol = (ncol(grabsfull) - ncol(nostream))))
+      #if(any(match(names(nostream),names(grabsfull))[1:ncol(nostream)]!=1:ncol(nostream))){
+    # stop("problem with column names")
+    #}
+      nostream <- cbind(nostream, padna)
+    }
+    names(nostream) <- names(grabsfull)
+    test <- rbind(grabsfull[1,], nostream)
+    grabsfull <- rbind(grabsfull, nostream)
   }
   
-  namestemp <- c("date","time","location","salt","chla","chla.1","tss","tss.1","pp","pp.1","tp","tdp","po4","toc","doc","tkn","tdkn","chlaiv","temp","cond","sal","trans","cdom","brighteners","phycoe","phycoc","c6chl","c6cdom","c6turbidity","c6temp","lon_dd","lat_dd")
+  namestemp <- c("date", "time", "location", "salt", "chla", "chla.1", "tss", "tss.1", "n.num", "no3um", "no2um", "nh4um", "tinum", "srpum", "pp", "pp.1", "tp", "tdp", "po4", "toc", "doc", "tkn", "tdkn", "chlaiv", "temp", "cond", "sal", "trans", "cdom", "brighteners", "phycoe", "phycoc", "c6chl", "c6cdom", "c6turbidity", "c6temp", "lon_dd", "lat_dd")
   nseq <- seq(1, length(namestemp), 1)
   
   namesalias <- read.table(text = "chlorophyll.a,c6chl
 c6chla,c6chl
 spcondms,spcond
-turbidity,c6turbidity", sep = ",")
+turbidity,c6turbidity
+n+num,n.num", sep = ",")
   namesalias <- apply(namesalias, 2, function(x) as.character(x))
+  
+  # cbind(data.frame(names(grabsfull)), data.frame(make.names(names(grabsfull))))
+  
+  #names(grabsfull) <- make.names(grabsfull)
+  
+  
   
   #match dt names to a template that includes all possible columns####
   for(n in 1:ncol(grabsfull)){
@@ -323,13 +328,15 @@ turbidity,c6turbidity", sep = ",")
   }
   
   #trim extra columns and match order to template
-  nmiss <- nseq[!(nseq %in% match(names(grabsfull),namestemp))]
+  nmiss <- nseq[!(nseq %in% match(names(grabsfull), namestemp))]
+  
   if(length(nmiss) > 0){
     for(j in 1:length(nmiss)){
       grabsfull[,ncol(grabsfull) + 1] <- NA
       names(grabsfull)[ncol(grabsfull)] <- namestemp[nmiss[j]]
     }
   }
+  
   grabsfull <- grabsfull[,match(namestemp, names(grabsfull))]#sort to match order of namestemp
   
   grabsfull[,5:ncol(grabsfull)] <- suppressWarnings(apply(grabsfull[,5:ncol(grabsfull)], 2, function(x) as.numeric(x)))
@@ -356,13 +363,13 @@ turbidity,c6turbidity", sep = ",")
     }
   
   
-  #EXECUTION BLOCK
+  #EXECUTION BLOCK####
   
     #TEST INPUTS
     #yearmon<-201402
     #fdir<-getOption("fdir")
   
-    #LOAD FILES####
+    #load files####
     fdir_fd <- file.path(fdir,"DF_FullDataSets")
     flist <- list.files(fdir_fd, include.dirs = T, full.names = T)
     streamingdata <- streamget(yearmon)
