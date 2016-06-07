@@ -6,6 +6,7 @@
 #'@param fdir file.path to data folder
 #'@param tolerance numeric number of days pre/post streaming to search for in DBHYDRO
 #'@param dbfile file.path pointing at a cleaned database of dbhydro measurements
+#'@import dbhydroR
 #'@examples \dontrun{
 #'dbfile <- file.path("/home","jose","Documents","Science","Data","ENP_MMN","WQSuM_2015.csv")
 #'validdbhydro("201502",params="chlext",tolerance=10, dbfile=dbfile)

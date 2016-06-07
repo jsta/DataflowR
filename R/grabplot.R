@@ -2,6 +2,7 @@
 #'@title plotting grab data
 #'@description Plot discrete grab data
 #'@export
+#'@import grDevices
 #'@param rnge list of length two specifying date range in yyyymm format
 #'@param params character list of parameters to plot
 #'@param plottype character choice of plot type 

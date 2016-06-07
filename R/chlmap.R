@@ -7,6 +7,7 @@
 #'@param remove.flags logical Use QA'd grab data?
 #'@param stream.qa logical Use QA'd streaming data?
 #'@param fdir file.path to data folder
+#'@import stats
 #'@return An extracted chlorophyll surface and an updated FullDataSet file
 #'@author Joseph Stachelek
 #'@importFrom utils read.table

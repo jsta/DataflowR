@@ -498,11 +498,12 @@ streamget <- function(yearmon, qa = TRUE, fdir = getOption("fdir")){
 #'@details loop through parameters giving the opportunity to trim measurement ends, set entire variables to NA, remove variables above/below a threshold
 #'@return a matrix of the same size/shape of the fulldataset, with entries specifying where to set to NA, saved to DF_FullDataSets/Raw/IntrumentOutput
 #'@export
+#'@import graphics
 #'@examples \dontrun{
 #'dt<-streamqa(yearmon=201410)
 #'}
 
-streamqa<-function(yearmon,setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOption("fdir")){
+streamqa <- function(yearmon, setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOption("fdir")){
   #yearmon=200904
   dt<-streamget(yearmon)
   

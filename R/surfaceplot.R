@@ -152,6 +152,8 @@ avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 
 #'create_rlist(rnge = c(200808, 200910, 201002, 201004, 201007, 201102, 201105,
 #' 201206, 201209, 201212, 201305, 201308, 201311, 201404, 201407, 201410,
 #'  201502, 201505, 201507, 201509), params = 'chlext')
+#'  
+# rlist <- create_rlist(good_years, "chlext")
 #'}
 
 create_rlist <- function(rnge, params){
@@ -212,6 +214,7 @@ create_rlist <- function(rnge, params){
 #'@import rgrass7
 #'@import maptools
 #'@import rgeos
+#'@import methods
 #'@export
 #'@examples \dontrun{
 #'#list supported parameters
@@ -574,6 +577,30 @@ average_rlist <- function(flist, percentcov){
   rmean
   #res <- cursurf - rmean
   #list(rstack = rstack, rmean = rmean, rlen = rlen, res = res)
+}
+
+#'@name cv_rlist
+#'@title Create a variability raster from a raster list 
+#'@param flist character file.list
+#'@param percentcov numeric tolerance to include a stacked pixel based on percent NA
+#'@description Create a variability raster from a raster list. Divide sd by mean.
+#'@export
+#'@examples \dontrun{
+#' rlist <- create_rlist(good_years$x, "chlext")
+#' cv_rlist(rlist$rlist, 0.8)
+#'}
+cv_rlist <- function(flist, percentcov){
+  rstack <- raster::stack(flist)
+  rstack <- raster::reclassify(rstack, c(-Inf, 0, NA))
+  
+  rmean <- raster::calc(rstack, fun = mean, na.rm = T)
+  rsd <- raster::calc(rstack, fun = sd, na.rm = T)
+  
+  rlen <- raster::calc(!is.na(rstack), fun = sum)
+  rmean[rlen < (percentcov * length(flist))] <- NA
+  rsd[rlen < (percentcov * length(flist))] <- NA
+  
+  rsd / rmean
 }
 
 # #create florida inset
