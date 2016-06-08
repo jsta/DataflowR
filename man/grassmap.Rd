@@ -72,7 +72,7 @@ grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"
 #specify label string
 grassmap(fpath = file.path("/home/jose/Documents/Science",
 "sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring",
- "pre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")
+ "salpre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")
 
 #create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 logramp(n = 9, maxrange = 20) #chlext

@@ -198,7 +198,7 @@ create_rlist <- function(rnge, params){
 #'@author Joseph Stachelek
 #'@param fpath file.path to geotiff file
 #'@param rnge numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.
-#'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal
+#'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, phycoc, and diffsal
 #'@param fdir character file path to local data directory
 #'@param cleanup logical remove intermediate rasters and shapefiles?
 #'@param rotated logical rotate canvas to fit Florida Bay more squarely? This requires the i.rotate extension to be installed and addons configured (not working).
@@ -242,12 +242,17 @@ create_rlist <- function(rnge, params){
 #'#specify label string
 #'grassmap(fpath = file.path("/home/jose/Documents/Science",
 #' "sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring",
-#'  "pre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")
+#'  "salpre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")
 #'
 #'#create a new color ramp by editing DF_Basefile/*.file and update figure makefile
-#'logramp(n = 9, maxrange = 20) #chlext
+#'logramp(n = 8, maxrange = 20) #chlext
 #'scales::show_col(viridis::viridis_pal()(9))
+#'logramp(n = 8, minrange = 10, maxrange = 65) #phycoc
+#'
 #'grassmap(rnge = c(201509, 201512), params = "sal", numrow = 2, numcol = 1)
+#'
+#'grassmap(rnge = 201509, params = "phycoc", label_string = "phycoc test")
+#'
 #'}
 
 grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, numrow = NULL, numcol = NULL, fdir = getOption("fdir"), basin = "full", label_string = NULL, labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
@@ -266,6 +271,7 @@ salinity.pss,salrules.file
 chlext,chlextrules.file
 chlext_low,chlextrules.file
 chlext_hi,chlextrules.file
+phycoc,phycocrules.file
 diffsal,diffsalrules.file",
   sep = ",", stringsAsFactors = FALSE)
   rulesfile <- paramkey[which(params == paramkey[,1]), 2]
@@ -352,7 +358,7 @@ diffsal,diffsalrules.file",
     tempras.g <- rgrass7::writeRAST(tempras, "tempras", flags = c("overwrite"))
     rgrass7::execGRASS("g.region", raster = "tempras")
     
-     if(params %in% c("chlext", "chlext_low", "chlext_hi")){
+     if(params %in% c("chlext", "chlext_low", "chlext_hi", "phycoc")){
        if(length(grep("_log", rulesfile)) != 0){
          rulesfile <- gsub("_log", "", rulesfile)
        }
@@ -452,6 +458,7 @@ chlext_hi,Chlorophyll (ug/L)
 sal,Salinity
 salpsu,Salinity
 salinity.pss,Salinity
+phycoc,Phycocyanin (RFU)
 diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
     
     legendname <- legendalias[which(params == legendalias[,1]), 2]
@@ -468,6 +475,20 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       paramxcoord <- 1980
       legendunits <- log(seq(from = 0, to = 13.5, by = 0.1) + 1)
       legendunits_print <- "'0.0 0.7 2.0 4.0 7.0 13.0'"
+      legendunits_spacing <- 275
+      
+      if(length(grep("_log", rulesfile)) == 0){
+        rulesfile <- paste0(rulesfile,"_log")
+      }
+      
+      legend_xlim <- 300
+      legend_crop_extent <- 2404
+    }
+    
+    if(params %in% c("phycoc")){
+      paramxcoord <- 1980
+      legendunits <- log(seq(from = 9, to = 65, by = 0.1) + 1)
+      legendunits_print <- "'9.0 12.1 16.2 21.5 28.4 37.5'"
       legendunits_spacing <- 275
       
       if(length(grep("_log", rulesfile)) == 0){
@@ -529,7 +550,7 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       rmlist <- rmlist[-grep("*.pdf", rmlist)]
       file.remove(rmlist)
     }
-    browser()
+    #browser()
   }
   
   #==================================================================#
