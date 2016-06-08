@@ -156,12 +156,16 @@ coordinatize <- function(dt, latname = "latdec", lonname = "londec"){
 #'@importFrom grDevices col2rgb 
 #'@param n integer number of breaks
 #'@param maxrange integer maximum range
+#'@param minrange integer minimum range
 #'n <- 9
 #'maxrange <- 20
 #'logramp(n, maxrange)
-logramp <- function(n, maxrange){
-  breaks <- round(exp((seq(from=log(1),to=log(maxrange + 1),length=n)))-1, 2)
-  displaybreaks <- round(exp((seq(from=log(1),to=log(breaks[length(breaks)-1]),length=6)))-1, 2)
+logramp <- function(n, minrange = NULL, maxrange){
+  if(is.null(minrange)){
+    minrange <- 1
+  }
+  breaks <- round(exp((seq(from = log(minrange), to = log(maxrange + 1), length = n))) - 1, 2)
+  displaybreaks <- round(exp((seq(from = log(minrange), to = log(breaks[length(breaks) - 1]), length = 6))) - 1, 2)
   
   #'scales::show_col(viridis::viridis_pal()(9))
   
