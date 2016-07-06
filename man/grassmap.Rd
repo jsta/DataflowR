@@ -14,7 +14,7 @@ grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
 
 \item{rnge}{numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.}
 
-\item{params}{character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, and diffsal}
+\item{params}{character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, phycoc, and diffsal}
 
 \item{mapextent}{numeric vector of length 4}
 
@@ -75,9 +75,14 @@ grassmap(fpath = file.path("/home/jose/Documents/Science",
  "salpre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")
 
 #create a new color ramp by editing DF_Basefile/*.file and update figure makefile
-logramp(n = 9, maxrange = 20) #chlext
+logramp(n = 8, maxrange = 20) #chlext
 scales::show_col(viridis::viridis_pal()(9))
+logramp(n = 8, minrange = 10, maxrange = 65) #phycoc
+
 grassmap(rnge = c(201509, 201512), params = "sal", numrow = 2, numcol = 1)
+
+grassmap(rnge = 201509, params = "phycoc", label_string = "phycoc test")
+
 }
 }
 \author{

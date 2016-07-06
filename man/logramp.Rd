@@ -4,16 +4,18 @@
 \alias{logramp}
 \title{Create a log scaled color ramp for the grassmap function}
 \usage{
-logramp(n, maxrange)
+logramp(n, minrange = NULL, maxrange)
 }
 \arguments{
 \item{n}{integer number of breaks}
 
-\item{maxrange}{integer maximum range
+\item{minrange}{integer minimum range
 n <- 9
 maxrange <- 20
 logramp(n, maxrange)
 scales::show_col(viridis::viridis_pal()(9))}
+
+\item{maxrange}{integer maximum range}
 }
 \description{
 Create a log scaled color ramp for the grassmap function
