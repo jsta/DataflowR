@@ -1,5 +1,5 @@
 #'@name grabget
-#'@title aggregate grab data
+#'@title Retrieve grab data
 #'@description Retrieve discrete grab sample data from data directory
 #'@export
 #'@param rnge list of length two specifying date range in yyyymm format
@@ -9,7 +9,7 @@
 #'grabs<-grabget(rnge=c(201402,201410))
 #'}
 
-grabget<-function(rnge,remove.flags=FALSE,fdir=getOption("fdir")){
+grabget <- function(rnge, remove.flags = FALSE, fdir = getOption("fdir")){
 
   if(length(rnge) == 1){
     rnge <- c(rnge, rnge)

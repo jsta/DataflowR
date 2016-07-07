@@ -77,7 +77,7 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
 }
 
 #'@name avmap
-#'@title create a difference map compared to average
+#'@title Create a difference map compared to average
 #'@param yearmon survey of interest to compare against average
 #'@param params variable name generally choice of "sal" or "chlext"
 #'@param diffpath file.path to write output difference surface
@@ -98,7 +98,7 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
 
 avmap <- function(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 0.6, tolerance = 1, fdir = getOption("fdir")){
 
-#generate-flist=========================================================#
+  #generate-flist=========================================================#
   flist.full <- list.files(file.path(fdir, "DF_Surfaces"), pattern = "*.grd", recursive = T, include.dirs = T, full.names = T)
   flist <- flist.full[basename(flist.full) == paste(toupper(params), ".grd", sep = "") | basename(flist.full) == paste(tolower(params), ".grd", sep = "")]
   

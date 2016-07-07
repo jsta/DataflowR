@@ -491,6 +491,7 @@ streamget <- function(yearmon, qa = TRUE, fdir = getOption("fdir")){
 #'@title Supervised quality control of streaming datasets
 #'@description Supervised quality control of streaming datasets
 #'@param yearmon numeric date in yyyymm format
+#'@param parset character vector of column names to QA
 #'@param setthresh logical set parameter thresholds
 #'@param trimends logical look to trim ends of data stream? NOT IMPLEMENTED YET
 #'@param paired logical examine relationships between paried parameters?
@@ -503,54 +504,50 @@ streamget <- function(yearmon, qa = TRUE, fdir = getOption("fdir")){
 #'dt<-streamqa(yearmon=201410)
 #'}
 
-streamqa <- function(yearmon, setthresh=TRUE,trimends=FALSE,paired=TRUE,fdir=getOption("fdir")){
-  #yearmon=200904
-  dt<-streamget(yearmon)
+streamqa <- function(yearmon, parset = NA, setthresh = TRUE, trimends = FALSE, paired = TRUE, fdir = getOption("fdir")){
   
-  dt<-dt[with(dt,order(date,time)),]
+  dt <- streamget(yearmon)
+  dt <- dt[with(dt, order(date, time)),]
   
-  if(setthresh==TRUE){
-  if(file.exists(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep="")))){
-    dtqa<-read.csv(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa.csv",sep=""))) 
-  }else{  
-    dtqa<-data.frame(matrix(NA,nrow=nrow(dt),ncol=ncol(dt)))
-    names(dtqa)<-names(dt)
-  }
+  if(setthresh == TRUE){
+    if(file.exists(file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = "")))){
+      dtqa <- read.csv(file.path(fdir, "DF_FullDataSets", "QA", paste(yearmon, "qa.csv", sep = ""))) 
+    }else{  
+      dtqa <- data.frame(matrix(NA, nrow = nrow(dt), ncol = ncol(dt)))
+      names(dtqa) <- names(dt)
+    }
   
-  #explore and set parameter threshold limits
-  par(mfrow=c(1,1))
-  parset<-c("chla","temp","cond","sal","trans","cdom","brighteners","phycoe","phycoc","c6chla","c6cdom","c6turbidity","c6temp")
+    #explore and set parameter threshold limits
+    par(mfrow = c(1, 1))
+    if(all(is.na(parset))){
+      parset <- c("chla", "temp", "cond", "sal", "trans", "cdom", "brighteners", "phycoe", "phycoc", "c6chla", "c6cdom", "c6turbidity", "c6temp")
+    }
   
-  parset<-parset[parset %in% names(dt)]
+  parset <- parset[parset %in% names(dt)]
   
   
   for(i in parset){
-    #i<-"sal"
-  
-      if(any(!is.na(dt[,i]))){
-      
-    #i<-"c6chla"
-    plot(dt[,i],ylab=i)
-    
-    threshlog<-"c"
-    thresh<-NA
-    while(threshlog!="q"){
-    threshlog<-readline(message("Set threshold? Enter an upper and lower range as c(lower,upper) or press 'q' to move to next QA step: ",appendLF=FALSE))
-    if(!is.na(threshlog)&threshlog!="q"){
-      thresh<-threshlog
-    plot(dt[,i],ylab=i,ylim=eval(parse(text=threshlog)))
-    }    
-  }
-  if(!is.na(thresh)){
-    thresh<-gsub("c\\(","",thresh)
-    thresh<-gsub(")","",thresh)
-    thresh<-unlist(lapply(strsplit(thresh,","),as.numeric))
-    dtqa[,i][dt[,i]<thresh[1]]<-"r"
-    dt[,i][dt[,i]<thresh[1]]<-NA
-    dtqa[,i][dt[,i]>thresh[2]]<-"r"
-    dt[,i][dt[,i]>thresh[2]]<-NA
-  }
-  }
+    if(any(!is.na(dt[,i]))){
+      plot(dt[,i], ylab = i)
+      threshlog <- "c"
+      thresh <- NA
+      while(threshlog != "q"){
+        threshlog <- readline(message("Set threshold? Enter an upper and lower range as c(lower,upper) or press 'q' to move to next QA step: ", appendLF = FALSE))
+        if(!is.na(threshlog)&threshlog!="q"){
+          thresh <- threshlog
+          plot(dt[,i], ylab = i, ylim = eval(parse(text = threshlog)))
+        }    
+      }
+      if(!is.na(thresh)){
+        thresh<-gsub("c\\(","",thresh)
+        thresh<-gsub(")","",thresh)
+        thresh<-unlist(lapply(strsplit(thresh,","),as.numeric))
+        dtqa[,i][dt[,i]<thresh[1]]<-"r"
+        dt[,i][dt[,i]<thresh[1]]<-NA
+        dtqa[,i][dt[,i]>thresh[2]]<-"r"
+        dt[,i][dt[,i]>thresh[2]]<-NA
+      }
+    }
   }
   }
   

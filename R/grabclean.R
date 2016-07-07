@@ -1,5 +1,5 @@
 #'@name grabclean
-#'@title cleaning grab data
+#'@title Cleaning grab data
 #'@description if column names do not match up make sure there is only one "date" column
 #'@param yearmon numeric survey date in yyyymm format
 #'@param tofile logical save output to file

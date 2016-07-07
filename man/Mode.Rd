@@ -2,7 +2,7 @@
 % Please edit documentation in R/misc.R
 \name{Mode}
 \alias{Mode}
-\title{Mode}
+\title{Mode of a numeric vector}
 \usage{
 Mode(x)
 }

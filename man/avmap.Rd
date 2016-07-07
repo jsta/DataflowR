@@ -2,7 +2,7 @@
 % Please edit documentation in R/surfaceplot.R
 \name{avmap}
 \alias{avmap}
-\title{create a difference map compared to average}
+\title{Create a difference map compared to average}
 \usage{
 avmap(yearmon, params, diffpath = NULL, avpath = NULL, percentcov = 0.6,
   tolerance = 1, fdir = getOption("fdir"))

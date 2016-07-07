@@ -4,11 +4,13 @@
 \alias{streamqa}
 \title{Supervised quality control of streaming datasets}
 \usage{
-streamqa(yearmon, setthresh = TRUE, trimends = FALSE, paired = TRUE,
-  fdir = getOption("fdir"))
+streamqa(yearmon, parset = NA, setthresh = TRUE, trimends = FALSE,
+  paired = TRUE, fdir = getOption("fdir"))
 }
 \arguments{
 \item{yearmon}{numeric date in yyyymm format}
+
+\item{parset}{character vector of column names to QA}
 
 \item{setthresh}{logical set parameter thresholds}
 

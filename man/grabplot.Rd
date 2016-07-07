@@ -2,7 +2,7 @@
 % Please edit documentation in R/grabplot.R
 \name{grabplot}
 \alias{grabplot}
-\title{plotting grab data}
+\title{Plotting grab data}
 \usage{
 grabplot(rnge = c(201407, 201410), params = c("sal", "chla"),
   plottype = "permitbarplot")

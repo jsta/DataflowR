@@ -2,7 +2,7 @@
 % Please edit documentation in R/grabget.R
 \name{grabget}
 \alias{grabget}
-\title{aggregate grab data}
+\title{Retrieve grab data}
 \usage{
 grabget(rnge, remove.flags = FALSE, fdir = getOption("fdir"))
 }

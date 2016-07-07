@@ -7,7 +7,7 @@
 # }
 
 #'@name Mode
-#'@title Mode
+#'@title Mode of a numeric vector
 #'@description Returns the mode of a numeric array
 #'@export
 #'@param x numeric array
@@ -173,7 +173,7 @@ logramp <- function(n, minrange = NULL, maxrange){
 }
 
 #'@name mdy2mmyyyy
-#'@title convert m/d/yy to mm/dd/yyyy
+#'@title Convert m/d/yy to mm/dd/yyyy
 #'@description Pads dates in preparation for POSIX coercion
 #'@param x character date to be formatted
 #'@export

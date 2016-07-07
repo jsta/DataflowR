@@ -2,7 +2,7 @@
 % Please edit documentation in R/grabclean.R
 \name{grabclean}
 \alias{grabclean}
-\title{cleaning grab data}
+\title{Cleaning grab data}
 \usage{
 grabclean(yearmon, tofile = FALSE, fdir = getOption("fdir"))
 }

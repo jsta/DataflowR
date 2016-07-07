@@ -2,7 +2,7 @@
 % Please edit documentation in R/misc.R
 \name{mdy2mmyyyy}
 \alias{mdy2mmyyyy}
-\title{convert m/d/yy to mm/dd/yyyy}
+\title{Convert m/d/yy to mm/dd/yyyy}
 \usage{
 mdy2mmyyyy(x)
 }
