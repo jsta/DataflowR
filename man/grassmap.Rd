@@ -16,7 +16,7 @@ grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
 
 \item{params}{character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, phycoc, and diffsal}
 
-\item{mapextent}{numeric vector of length 4}
+\item{mapextent}{numeric vector of length 4. Format is bottomleft-x, topright-x, bottomleft-y, topright-y.}
 
 \item{numrow}{numeric number of rows in a multipanel}
 

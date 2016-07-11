@@ -205,7 +205,7 @@ create_rlist <- function(rnge, params){
 #'@param labelling logical lablel output with yearmon?
 #'@param numrow numeric number of rows in a multipanel
 #'@param numcol numeric number of columns in a multipanel
-#'@param mapextent numeric vector of length 4
+#'@param mapextent numeric vector of length 4. Format is bottomleft-x, topright-x, bottomleft-y, topright-y.
 #'@param basin character basin name from fathom_basins_proj.shp
 #'@param label_string character label
 #'@param print_track logical print dataflow track?
