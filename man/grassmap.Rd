@@ -40,7 +40,7 @@ grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
 output plots to the QGIS_plotting folder
 }
 \description{
-not finished yet
+Create publication quality maps with GRASS GIS. Only runs on Linux.
 }
 \details{
 Probably need to implement this as a seperate package to improve portability. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff. This function can be called from the commandline using Rscript by loading the methods package and creating/loading a python 2 environment using the commands conda create --name python2 python=2 and source activate python2.

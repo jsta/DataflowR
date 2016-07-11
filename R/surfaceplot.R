@@ -194,7 +194,7 @@ create_rlist <- function(rnge, params){
 
 #'@name grassmap
 #'@title Publication quality maps with GRASS
-#'@description not finished yet
+#'@description Create publication quality maps with GRASS GIS. Only runs on Linux.
 #'@author Joseph Stachelek
 #'@param fpath file.path to geotiff file
 #'@param rnge numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.
