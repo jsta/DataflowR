@@ -2,7 +2,7 @@
 % Please edit documentation in R/chlcoeff.R
 \name{chlcoef}
 \alias{chlcoef}
-\title{calculation of extracted versus fluoresced chlorophyll coefficients}
+\title{Calculation of extracted versus fluoresced chlorophyll coefficients}
 \usage{
 chlcoef(yearmon, remove.flags = TRUE, overwrite = FALSE,
   fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7,
