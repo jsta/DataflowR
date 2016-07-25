@@ -1,5 +1,5 @@
 #'@name chlcoef
-#'@title calculation of extracted versus fluoresced chlorophyll coefficients
+#'@title Calculation of extracted versus fluoresced chlorophyll coefficients
 #'@description Calculate extracted versus fluoresced chlorophyll coefficients
 #'@param yearmon numeric date of survey
 #'@param remove.flags logical trim dataset based on flags?
