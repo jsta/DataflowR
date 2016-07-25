@@ -1,11 +1,11 @@
 Package: DataflowR
-Title: Cleaning and handling of Dataflow output
+Title: Toolbox for Processing and Viewing Underway Dataflow Output
 Description: Functions are provided to clean, aggregate, and plot Dataflow
     output.
-Version: 0.1
-Date: 2016-01-29
-Author: Joseph Stachelek <jstachel@sfwmd.gov>
-Maintainer: Joseph Stachelek <jstachel@sfwmd.gov>
+Version: 0.2
+Date: 2016-07-25
+Author: Joseph Stachelek <stachel2@msu.edu>
+Maintainer: Joseph Stachelek <stachel2@msu.edu>
 Imports: 
     MASS,car,gdata,ipdw,latticeExtra,raster,rasterVis,rgdal,sp,zoo,rgrass7,maptools,rgeos,scales,viridis,dbhydroR,methods
 License: GPL (>= 2)
