@@ -1,12 +1,13 @@
-.onLoad<-function(libname=find.package("DataflowR"),pkgname="DataflowR"){
-  options("fdir"=matrix(utils::read.delim(system.file("localpath",package="DataflowR"),header=FALSE,stringsAsFactors=FALSE))[[1]][1])
+.onLoad <- function(libname = find.package("DataflowR"), pkgname = "DataflowR"){
   
-  #fdir_asgn()
-  #assign("pkg_globals",new.env(),envir=parent.env(environment()))
+  localpath <- system.file("localpath", package = "DataflowR")
+  fdir <- matrix(utils::read.delim(localpath, header = FALSE, stringsAsFactors = FALSE))[[1]][1]
   
+  packageStartupMessage(paste("DataflowR Data Directory:",
+                              fdir, "\n", "To change, modify:", localpath))
+                        
+  options("fdir" = fdir)
   
-#   ldir<<-matrix(utils::read.delim(system.file("localpath",package="DataflowR"),header=FALSE,stringsAsFactors=FALSE))[[1]][1]
-#   dir.create(ldir)
 }
 
 
