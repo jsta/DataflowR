@@ -234,7 +234,7 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
 
         if(cnt == 0){
           nostream[1,] <- grabdata[j,]
-          cnt = 1
+          cnt <- 1
         }else{
           nostream <- rbind(nostream, grabdata[j,])
         }

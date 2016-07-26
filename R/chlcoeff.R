@@ -74,9 +74,9 @@ print(summary(fit))
 
 polyp<-FALSE
 if((summary(fit)$adj.r.squared) < polypcut){#poly fit
-  lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=T)",collapse="+")))
+  lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=TRUE)",collapse="+")))
   fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),c("chla",varlist)])
-  polyp=TRUE
+  polyp <- TRUE
 }
 
 if(summary(fit)$r.squared<0.1){
@@ -92,7 +92,7 @@ rmlist<-gsub("-","",rmlist)
 rmlist<-gsub(" ","",rmlist)
 rmlist<-rmlist[nchar(rmlist)>1]
 rmlist<-gsub("poly\\(","",rmlist)
-rmlist<-gsub(",2,raw=T\\)","",rmlist)
+rmlist<-gsub(",2,raw=TRUE\\)","",rmlist)
 
 varlist<-varlist[is.na(match(varlist,rmlist))]
 }
@@ -109,7 +109,7 @@ varlist<-varlist[is.na(match(varlist,rmlist))]
   
 
 if(polyp==TRUE){
-  lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=T)",collapse="+")))
+  lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=TRUE)",collapse="+")))
   fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),c("chla",varlist)])
 }else{
 lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
@@ -136,7 +136,7 @@ if(polyp==TRUE){
     varlist<-varlist[is.na(match(varlist,rmlist))]
     lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
     if(polyp==TRUE){
-      lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=T)",collapse="+")))
+      lmeq<-as.formula(paste("chla ~ ", paste("poly(",varlist,",2,raw=TRUE)",collapse="+")))
     }
     fit<-lm(lmeq,data=dt[complete.cases(dt[,varlist]),c("chla",varlist)])
     viftest<-car::vif(fit)
@@ -151,7 +151,7 @@ if(summary(fit)$adj.r.squared==1){
   message("Overfit reducing to simple linear eq.")
   lmeq<-as.formula(paste("chla ~ ", paste(varlist,collapse="+")))
   fit<-lm(lmeq,data=dt)  
-  polyp=FALSE
+  polyp <- FALSE
 }
 
 message("Final statistical fit")
@@ -189,7 +189,7 @@ abline(0,1)
 
 #retrieve chla coefficients####
 
-coeflist <- read.csv(file.path(fdir,"DF_GrabSamples","extractChlcoef2.csv"),header=T,na.strings="NA")[,-1]
+coeflist <- read.csv(file.path(fdir, "DF_GrabSamples", "extractChlcoef2.csv"), header = TRUE, na.strings = "NA")[,-1]
 names(coeflist)<-tolower(names(coeflist))
 vartemplate<-c("yearmon","survey","date","cdom","chlaiv","phycoe","c6chl","c6cdom","phycoc","cdom2","chlaiv2","phycoe2","c6chl2","c6cdom2","phycoc2","intercept","rsquared","pvalue","model","notes")
 outtemp<-data.frame(matrix(NA,nrow=1,ncol=length(vartemplate)))
@@ -202,7 +202,7 @@ if(polyp==TRUE){
   cname<-unlist(strsplit(cname,"\\("))
   cname<-unlist(strsplit(cname,"\\)"))
   cname<-cname[-seq(from=1,to=length(cname)-2,3)]
-  cname<-matrix(cname,ncol=2,byrow=T)
+  cname<-matrix(cname,ncol=2,byrow=TRUE)
   vname<-unlist(strsplit(cname[,1],","))
   cname[,1]<-vname[seq(from=1,to=length(vname),3)]
   cname[cname[,2]==1,2]<-""
@@ -217,7 +217,7 @@ outtemp[,"rsquared"]<-summary(fit)$r.squared
 lmp <- function (modelobject) {
   if (class(modelobject) != "lm") stop("Not an object of class 'lm' ")
   f <- summary(modelobject)$fstatistic
-  p <- pf(f[1], f[2], f[3], lower.tail = F)
+  p <- pf(f[1], f[2], f[3], lower.tail = FALSE)
   attributes(p) <- NULL
   return(p)
 }
@@ -226,7 +226,7 @@ outtemp[,"pvalue"]<-lmp(fit)
 
 model<-outtemp[4:16]
 model[1,]<-round(as.numeric(model[1,]),5)
-model<-data.frame(matrix(c(model,names(model)),nrow=2,byrow=T))
+model<-data.frame(matrix(c(model,names(model)),nrow=2,byrow=TRUE))
 model<-model[,!is.na(model[1,])]
 model[1,]<-sapply(model[1,],as.character)
 intercept<-model[1,ncol(model)]
@@ -237,7 +237,7 @@ model<-data.frame(matrix(unlist(model),nrow=2))#new
 
 outtemp[,"model"]<-paste("Chla = ",gsub(" ","+",gsub(",","",toString(apply(model,2,function(x) paste(x[1],x[2],sep="*"))))),"+",intercept,sep="")
 
-if(any(outtemp[,"yearmon"]==coeflist[,"yearmon"],na.rm=T)&overwrite==FALSE){
+if(any(outtemp[,"yearmon"]==coeflist[,"yearmon"],na.rm=TRUE)&overwrite==FALSE){
   warning("Fit already exists for this survey. Specify overwrite =TRUE or open file and delete in order to replace.")
 }else{
   coeflist<-rbind(coeflist,outtemp)
