@@ -354,13 +354,26 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
   }
   check_correct_mmin <- function(dt, target, target_mmin){
     dt_mmin <- detect_mmin(dt)
-    if(dt_mmin != target_mmin){
+    
       #create second-wise zoo object
+      begin_date <- as.POSIXct(as.Date(unique(strftime(min(dt$datetime), format = "%Y-%m-%d"))[1]))
+      end_date <- as.POSIXct(as.Date(unique(strftime(max(dt$datetime), format = "%Y-%m-%d"))[1]) + 1)
+      target_dates <- as.Date(seq(range(target$datetime)[1], range(target$datetime)[2], 86400))
+      
+      if(abs(as.Date(begin_date) - min(target_dates)) > 2){
+        begin_date <- as.POSIXct(as.Date(min(target_dates)) - 2)
+        dt <- dt[dt$datetime > (begin_date - 86400),]
+      }
+      if(abs(as.Date(end_date) - max(target_dates)) > 2){
+        end_date <- as.POSIXct(as.Date(max(target_dates)) + 2)
+        dt <- dt[dt$datetime < (end_date + 86400),]
+      }
+    
       dt_zoo <- zoo::zoo(dt, dt$datetime)
       dt_zoo_full <- data.frame(
         seq(
-          as.POSIXct(as.Date(unique(strftime(min(dt$datetime), format = "%Y-%m-%d"))[1])),
-          as.POSIXct(as.Date(unique(strftime(max(dt$datetime), format = "%Y-%m-%d"))[1]) + 1), 1
+          begin_date,
+          end_date, 1
         )
       )
       names(dt_zoo_full) <- "datetime"
@@ -370,20 +383,18 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
       
       #select columns to interpolate
       is_interp_column <- colSums(!is.na(dt_zoo_full)) < nrow(dt_zoo_full)
-      is_interp_column[c(1:3)] <- FALSE
+      is_interp_column[c(1:2)] <- FALSE
       # is_interp_column[c(1:3, (ncol(dt_zoo_full) - 1), ncol(dt_zoo_full))] <- FALSE #need to make this not dataset-specific
       
       dt_zoo_full <- zoo::na.approx(dt_zoo_full[,is_interp_column])
-      dt <- data.frame(dt_zoo_full, zoo::index(dt_zoo_full), row.names = NULL)
+      dt <- data.frame(dt_zoo_full, zoo::index(dt_zoo_full), row.names = NULL, stringsAsFactors = FALSE)
       names(dt)[ncol(dt)] <- "datetime"
+      dt[,1:(ncol(dt) - 1)] <- apply(dt[,1:(ncol(dt) - 1)], 2, function(x) as.numeric(as.character(x)))
       
       #filter based on target time-stamps
       dt_names <- names(dt)
       dt <- merge(target, dt, by = "datetime", all.x = T)
       dt[, dt_names[dt_names %in% names(dt)]]
-    }else{
-      dt
-    }
   }
   
   #loop through contributing streams
