@@ -71,7 +71,7 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
     
     my.at <- unlist(eval(parse(text = as.character(brks[which(plist[i] == brks[,1]), 2]))))
       
-    print(rasterVis::levelplot(raster::raster(rlist[i]),ylim =yext, xlim = xext,par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn = file.path("/home/jose/Documents/Science/Data/Dataflow", "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE), fill="green",alpha=0.6)))
+    print(rasterVis::levelplot(raster::raster(rlist[i]),ylim =yext, xlim = xext,par.settings=rasterVis::PuOrTheme(),at=my.at,margin=FALSE,auto.key=FALSE,scales=list(draw=FALSE),main=paste(as.character(plist[i]),unlist(strsplit(rlist[i],"/"))[length(unlist(strsplit(rlist[i],"/")))-1]))+latticeExtra::layer({sp::SpatialPolygonsRescale(sp::layout.north.arrow(),offset=c(563000,2775000),scale=4400)})+ latticeExtra::layer(sp::sp.polygons(rgdal::readOGR(dsn = file.path(getOption("fdir"), "DF_Basefile", "FBcoast_big.shp"), layer = "FBcoast_big", verbose = TRUE), fill="green",alpha=0.6)))
     
     }
 }
@@ -391,6 +391,9 @@ diffsal,diffsalrules.file",
     rgrass7::execGRASS("g.region", vector = "fbvec")
     
     if(labelling == TRUE){
+      if(length(label_string) == 0){
+        stop("Must specify a label_string if labelling == TRUE")
+      }
 #     #compose plotting commands here####
     fileConn <- file(file.path(fdir, "QGIS_plotting", "grassplot.file"))
     writeLines(c("raster tempras2",
@@ -550,7 +553,6 @@ diffsal,Salinity minus average", sep = ",", stringsAsFactors = FALSE)
       rmlist <- rmlist[-grep("*.pdf", rmlist)]
       file.remove(rmlist)
     }
-    #browser()
   }
   
   #==================================================================#
