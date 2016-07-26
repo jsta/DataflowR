@@ -563,62 +563,62 @@ streamqa <- function(yearmon, parset = NA, setthresh = TRUE, trimends = FALSE, p
   }
   
   #explore paired parameter relationships
-  if(paired==TRUE){
-  par(mfrow=c(3,1),mar=c(0,4,0,0))
+  # if(paired==TRUE){
+  #   par(mfrow=c(3,1),mar=c(0,4,0,0))
+  # 
+  #   if(any(!is.na(dt[,"temp"]))&any(!is.na(dt[,"c6temp"]))){
+  #     plot(dt[,"temp"],xaxt="n",xlab="")
+  #     plot(dt[,"c6temp"],xaxt="n",xlab="")
+  #     plot(dt[,"temp"],dt[,"c6temp"])
+  #     abline(a=0,b=1,col="red")
+  #     qalogical<-readline(message("Press 'Enter' to continue, '1' to set top panel to NA, '2' to set middle panel to NA: ",appendLF=FALSE))
+  #     if(qalogical==1|qalogical=='1'){
+  #       dt[,"temp"]<-NA
+  #       dtqa[,"temp"]<-"r"
+  #     }
+  #     if(qalogical==2|qalogical=='2'){
+  #       dt[,"c6temp"]<-NA
+  #       dtqa[,"c6temp"]<-"r"
+  #     }
+  #   }
+  # 
+  #   if(any(!is.na(dt[,"chla"]))&any(!is.na(dt[,"c6chla"]))){
+  # plot(dt[,"chla"],xaxt="n",xlab="")
+  # plot(dt[,"c6chla"],xaxt="n",xlab="")
+  # plot(dt[,"chla"],dt[,"c6chla"])
+  # abline(lm(dt[,"c6chla"]~dt[,"chla"]),col="red")
+  # qalogical<-readline(message("Press 'Enter' to continue, '1' to set top panel to NA, '2' to set middle panel to NA: ",appendLF=FALSE))
+  # if(qalogical==1|qalogical=='1'){
+  #   dt[,"chla"]<-NA
+  #   dtqa[,"chla"]<-"r"
+  # }
+  # if(qalogical==2|qalogical=='2'){
+  #   dt[,"c6chla"]<-NA
+  #   dtqa[,"c6chla"]<-"r"
+  # }
+  #   }
+  #   
+  #   if(any(!is.na(dt[,"cdom"]))&any(!is.na(dt[,"c6cdom"]))){
+  # plot(dt[,"cdom"],xaxt="n",xlab="")
+  # plot(dt[,"c6cdom"],xaxt="n",xlab="")
+  # plot(dt[,"cdom"],dt[,"c6cdom"])
+  # abline(lm(dt[,"c6cdom"]~dt[,"cdom"]),col="red")
+  # qalogical<-readline(message("Press 'Enter' to continue, '1' to set top panel to NA, '2' to set middle panel to NA: ",appendLF=FALSE))
+  # if(qalogical==1|qalogical=='1'){
+  #   dt[,"cdom"]<-NA
+  #   dtqa[,"cdom"]<-"r"
+  # }
+  # if(qalogical==2|qalogical=='2'){
+  #   dt[,"c6cdom"]<-NA
+  #   dtqa[,"c6cdom"]<-"r"
+  # }
+  #   }
+  # 
+  # }
   
-    if(any(!is.na(dt[,"temp"]))&any(!is.na(dt[,"c6temp"]))){
-  plot(dt[,"temp"],xaxt="n",xlab="")
-  plot(dt[,"c6temp"],xaxt="n",xlab="")
-  plot(dt[,"temp"],dt[,"c6temp"])
-  abline(a=0,b=1,col="red")
-  qalogical<-readline(message("Press 'Enter' to continue, '1' to set top panel to NA, '2' to set middle panel to NA: ",appendLF=FALSE))
-  if(qalogical==1|qalogical=='1'){
-    dt[,"temp"]<-NA
-    dtqa[,"temp"]<-"r"
-  }
-  if(qalogical==2|qalogical=='2'){
-    dt[,"c6temp"]<-NA
-    dtqa[,"c6temp"]<-"r"
-  }
-    }
-  
-    if(any(!is.na(dt[,"chla"]))&any(!is.na(dt[,"c6chla"]))){
-  plot(dt[,"chla"],xaxt="n",xlab="")
-  plot(dt[,"c6chla"],xaxt="n",xlab="")
-  plot(dt[,"chla"],dt[,"c6chla"])
-  abline(lm(dt[,"c6chla"]~dt[,"chla"]),col="red")
-  qalogical<-readline(message("Press 'Enter' to continue, '1' to set top panel to NA, '2' to set middle panel to NA: ",appendLF=FALSE))
-  if(qalogical==1|qalogical=='1'){
-    dt[,"chla"]<-NA
-    dtqa[,"chla"]<-"r"
-  }
-  if(qalogical==2|qalogical=='2'){
-    dt[,"c6chla"]<-NA
-    dtqa[,"c6chla"]<-"r"
-  }
-    }
-    
-    if(any(!is.na(dt[,"cdom"]))&any(!is.na(dt[,"c6cdom"]))){
-  plot(dt[,"cdom"],xaxt="n",xlab="")
-  plot(dt[,"c6cdom"],xaxt="n",xlab="")
-  plot(dt[,"cdom"],dt[,"c6cdom"])
-  abline(lm(dt[,"c6cdom"]~dt[,"cdom"]),col="red")
-  qalogical<-readline(message("Press 'Enter' to continue, '1' to set top panel to NA, '2' to set middle panel to NA: ",appendLF=FALSE))
-  if(qalogical==1|qalogical=='1'){
-    dt[,"cdom"]<-NA
-    dtqa[,"cdom"]<-"r"
-  }
-  if(qalogical==2|qalogical=='2'){
-    dt[,"c6cdom"]<-NA
-    dtqa[,"c6cdom"]<-"r"
-  }
-    }
-  
-  }
-  
-  if(trimends==TRUE){#NOT IMPLEMENTED YET
-  trim<-function(dt){}
-  }
+  # if(trimends==TRUE){#NOT IMPLEMENTED YET
+  #   trim<-function(dt){}
+  # }
   message("QA finished. Printing to file...")
   message(file.path(fdir,"DF_FullDataSets","QA",paste(yearmon,"qa",".csv",sep="")))
   fdir_fd<-file.path(fdir,"DF_FullDataSets","QA")
