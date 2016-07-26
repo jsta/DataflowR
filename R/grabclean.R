@@ -301,7 +301,7 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
     grabsfull <- rbind(grabsfull, nostream)
   }
   
-  namestemp <- c("date", "time", "location", "salt", "chla", "chla.1", "tss", "tss.1", "n.num", "no3um", "no2um", "nh4um", "tinum", "srpum", "pp", "pp.1", "tp", "tdp", "po4", "toc", "doc", "tkn", "tdkn", "brighteners", "phycoe", "phycoc", "c6chl", "c6cdom", "c6turbidity", "c6temp", "lon_dd", "lat_dd")
+  namestemp <- c("date", "time", "location", "salt", "chla", "chla.1", "tss", "tss.1", "n.num", "no3um", "no2um", "nh4um", "tinum", "srpum", "pp", "pp.1", "tp", "tdp", "po4", "toc", "doc", "tkn", "tdkn", "temp.deg.c", "turb.ntu", "ph.units", "spcond.ms.cm", "chl.ug.l", "salinity.pss", "hdo.mg.l", "hdo..sat", "brighteners", "phycoe", "phycoc", "c6chl", "c6cdom", "c6turbidity", "c6temp", "lon_dd", "lat_dd")
   nseq <- seq(1, length(namestemp), 1)
   
   namesalias <- read.table(text = "chlorophyll.a,c6chl
