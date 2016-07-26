@@ -5,6 +5,7 @@
 #'@param rnge list of length two specifying date range in yyyymm format
 #'@param remove.flags logical trim dataset based on flags?
 #'@param fdir character file path to local data directory
+#'@details Returns a list of data.frames (and a warning) if column names are not consistent among the surveys specified by rnge.
 #'@examples \dontrun{ 
 #'grabs<-grabget(rnge=c(201402,201410))
 #'}
@@ -46,7 +47,11 @@ grabget <- function(rnge, remove.flags = FALSE, fdir = getOption("fdir")){
     #print(paste0(agglist[i],ncol(dt)))#
 }
 
-dtall<-do.call(rbind,dtlist)
-
-dtall
+  if(length(unique(lapply(dtlist, names))) > 1){
+    warning("column names are not identical among specified rnge")
+    dtlist
+  }else{
+    do.call(rbind,dtlist)
+  }  
+    
 }
