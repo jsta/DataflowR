@@ -90,9 +90,9 @@ surfplot <- function(rnge = c(201402, 201404), params = c("c6chl", "sal"), fdir 
 #'@export
 #'@importFrom raster raster stack reclassify calc writeRaster
 #'@examples \dontrun{
-#'avmap(yearmon = 201505, params = "sal", diffpath = file.path(fdir,
-#' "DF_Surfaces", yearmon, paste0("diff", params, ".tif")),
-#'  percentcov = 0.6, tolerance = 1, fdir = fdir)
+#'avmap(yearmon = 201505, params = "sal", diffpath = file.path(getOption("fdir"),
+#' "DF_Surfaces", 201505, paste0("diff", "sal", ".tif")),
+#'  percentcov = 0.6, tolerance = 1)
 #'avmap(yearmon = 201505, params = "sal")
 #'}
 
