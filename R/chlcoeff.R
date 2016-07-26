@@ -2,6 +2,7 @@
 #'@title Calculation of extracted versus fluoresced chlorophyll coefficients
 #'@description Calculate extracted versus fluoresced chlorophyll coefficients
 #'@param yearmon numeric date of survey
+#'@param varlist character vector of variable names to use in model
 #'@param remove.flags logical trim dataset based on flags?
 #'@param overwrite logical overwrite previous coefficients?
 #'@param streamcov numeric percentage of non-missing streaming data used to exclude variables under consideration
@@ -20,9 +21,10 @@
 #'@examples 
 #'\dontrun{
 #'chlcoef(201308)
+#'chlcoef(201606, varlist = c("chl.ug.l", "turb.ntu", "phycoc", "c6cdom", "c6chl", "phycoe"), corcut = 0.75)
 #'}
 
-chlcoef <- function(yearmon, remove.flags = TRUE, overwrite = FALSE, fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7, streamcov = 0.5, checkvif = TRUE, logtransform = FALSE){
+chlcoef <- function(yearmon, varlist = NA, remove.flags = TRUE, overwrite = FALSE, fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7, streamcov = 0.5, checkvif = TRUE, logtransform = FALSE){
 
 dt <- grabget(yearmon, remove.flags = remove.flags)
 
@@ -34,26 +36,27 @@ if(logtransform == TRUE){
 #  dt<-dt[-which(dt$flags=="s"),]
 #}
 
-#remove all or partial incomplete cases?
-#dt2<-dt[complete.cases(dt),]#all incomplete
-#dt2<-dt[!is.na(dt$chla),]#partial incomplete
-
-#choose variables
-varlist <- c("chla", "cdom", "chlaiv", "phycoe", "c6chl", "phycoc", "c6cdom")
-varlist <- varlist[sapply(varlist, function(x) sum(!is.na(dt[,x])) > 1)]
+  #choose variables
+  if(all(is.na(varlist))){
+    varlist <- c("chla", "cdom", "chlaiv", "phycoe", "c6chl", "phycoc", "c6cdom")
+  }else{
+    varlist <- c("chla", varlist)
+  }
+  
+  varlist <- varlist[sapply(varlist, function(x) sum(!is.na(dt[,x])) > 1)]
 
 #exclude variables with streaming data less than streamcov
-streamdata<-streamget(yearmon = yearmon, qa = TRUE)
-streamvarlist<-varlist
-streamvarlist[which(varlist=="chlaiv")]<-"chla"
-streamvarlist[which(streamvarlist=="c6chl")]<-"c6chla"
-streamvarlist<-streamvarlist[-1]
+streamdata <- streamget(yearmon = yearmon, qa = TRUE)
+streamvarlist <- varlist
+streamvarlist[which(varlist == "chlaiv")] <- "chla"
+streamvarlist[which(streamvarlist == "c6chl")] <- "c6chla"
+streamvarlist <- streamvarlist[-1]
 
-streamvarlist<-streamvarlist[sapply(streamvarlist,function(x) sum(!is.na(streamdata[,x]))/nrow(streamdata))>0.74]
+streamvarlist <- streamvarlist[sapply(streamvarlist, function(x) sum(!is.na(streamdata[,x])) / nrow(streamdata)) > 0.74]
 
-if(length(varlist)>2){
-  cormat <- cor(dt[,varlist],use="complete")[-1,1]
-  varlist<-names(cormat[abs(cormat) > corcut])
+if(length(varlist) > 2){
+  cormat <- cor(dt[,varlist], use = "complete")[-1, 1]
+  varlist <- names(cormat[abs(cormat) > corcut])
 }
 
 if(!length(varlist)>0){stop("linear correlations too low")}
@@ -165,7 +168,6 @@ if(logtransform==TRUE){
 abline(0,1)
 
 #message("Accept final fit?")
-#browser()
 
 # #optimize for low values (<1)?####
 # #hist(dt2$CHLa)
@@ -188,31 +190,30 @@ abline(0,1)
 # #####
 
 #retrieve chla coefficients####
-
 coeflist <- read.csv(file.path(fdir, "DF_GrabSamples", "extractChlcoef2.csv"), header = TRUE, na.strings = "NA")[,-1]
-names(coeflist)<-tolower(names(coeflist))
-vartemplate<-c("yearmon","survey","date","cdom","chlaiv","phycoe","c6chl","c6cdom","phycoc","cdom2","chlaiv2","phycoe2","c6chl2","c6cdom2","phycoc2","intercept","rsquared","pvalue","model","notes")
-outtemp<-data.frame(matrix(NA,nrow=1,ncol=length(vartemplate)))
-names(outtemp)<-vartemplate
+names(coeflist) <- tolower(names(coeflist))
+vartemplate <- c("yearmon", "survey", "date", "cdom", "chl.ug.l", "chlaiv", "phycoe", "c6chl", "c6cdom", "phycoc", "cdom2", "chlaiv2", "phycoe2", "c6chl2", "c6cdom2", "phycoc2", "intercept", "rsquared", "pvalue", "model", "notes")
+outtemp <- data.frame(matrix(NA, nrow = 1, ncol = length(vartemplate)))
+names(outtemp) <- vartemplate
 
-outcoef<-fit$coefficients
-names(outcoef)[1]<-"intercept"
-if(polyp==TRUE){
-  cname<-names(outcoef)[2:length(outcoef)]
-  cname<-unlist(strsplit(cname,"\\("))
-  cname<-unlist(strsplit(cname,"\\)"))
-  cname<-cname[-seq(from=1,to=length(cname)-2,3)]
-  cname<-matrix(cname,ncol=2,byrow=TRUE)
-  vname<-unlist(strsplit(cname[,1],","))
-  cname[,1]<-vname[seq(from=1,to=length(vname),3)]
-  cname[cname[,2]==1,2]<-""
+outcoef <- fit$coefficients
+names(outcoef)[1] <- "intercept"
+if(polyp == TRUE){
+  cname <- names(outcoef)[2:length(outcoef)]
+  cname <- unlist(strsplit(cname,"\\("))
+  cname <- unlist(strsplit(cname,"\\)"))
+  cname <- cname[-seq(from=1,to=length(cname)-2,3)]
+  cname <- matrix(cname,ncol=2,byrow=TRUE)
+  vname <- unlist(strsplit(cname[,1],","))
+  cname[,1] <- vname[seq(from=1,to=length(vname),3)]
+  cname[cname[,2] == 1,2] <- ""
   names(outcoef)[2:length(outcoef)]<-paste(cname[,1],cname[,2],sep="")
 }
 
-outtemp[match(names(outcoef),names(outtemp))]<-outcoef
-outtemp[,"yearmon"]<-yearmon
-outtemp[,"date"]<-Mode(dt[,"date"])
-outtemp[,"rsquared"]<-summary(fit)$r.squared
+outtemp[match(names(outcoef), names(outtemp))] <- outcoef
+outtemp[,"yearmon"] <- yearmon
+outtemp[,"date"] <- Mode(dt[,"date"])
+outtemp[,"rsquared"] <- summary(fit)$r.squared
 
 lmp <- function (modelobject) {
   if (class(modelobject) != "lm") stop("Not an object of class 'lm' ")
@@ -222,9 +223,9 @@ lmp <- function (modelobject) {
   return(p)
 }
 
-outtemp[,"pvalue"]<-lmp(fit)
+outtemp[,"pvalue"] <- lmp(fit)
 
-model<-outtemp[4:16]
+model <- outtemp[4:16]
 model[1,]<-round(as.numeric(model[1,]),5)
 model<-data.frame(matrix(c(model,names(model)),nrow=2,byrow=TRUE))
 model<-model[,!is.na(model[1,])]
