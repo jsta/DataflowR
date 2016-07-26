@@ -116,7 +116,7 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   }
   
   cleangrabdata <- function(sumpath, nsmfull, datacol){
-    grabdata <- read.csv(sumpath, sep = ",", skip = 5, header = F, stringsAsFactors = F, na.strings = "", strip.white = T)
+    grabdata <- read.csv(sumpath, sep = ",", skip = 5, header = FALSE, stringsAsFactors = FALSE, na.strings = "", strip.white = TRUE)
     
     grabdata <- grabdata[!is.na(grabdata[,5]) | !is.na(grabdata[,4]),]#remove trailing blank rows
 
@@ -168,7 +168,7 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   
   dlen <- mean(nchar(stations$date))
   if(dlen != 6){
-  stations$date <- sixchardate(stations$date)
+    stations$date <- sixchardate(stations$date)
   }
   
 #   dlen<-mean(nchar(as.character(streamingdata$date)))
@@ -188,16 +188,15 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
 #   }
   
   #clear any streaming data already entered
-  if(any(names(grabdata) == "chlaiv")){
-    grabdata <- grabdata[,1:(which(names(grabdata) == "chlaiv") - 1)]
-  }
+    if(any(names(grabdata) == "chlaiv")){
+      grabdata <- grabdata[,1:(which(names(grabdata) == "chlaiv") - 1)]
+    }
   
-  list(grabdata = grabdata, stations = stations)
+    list(grabdata = grabdata, stations = stations)
   }
   
   #CALCULATE STREAMING AVERAGES CORRESPONDING TO GRABS
   mergegrabstreaming <- function(streamingdata, grabdata, stations){
-    
     names(streamingdata)[names(streamingdata) == "chla"] <- "chlaiv"
   
     stream <- merge(stations, streamingdata)#cuts dt down to match "stations"
@@ -215,6 +214,11 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
         substring(strftime(streamingdata$datetime, format = "%Y"), 3, 4)
         ))
       
+      stream <- merge(stations,streamingdata)
+    }
+    
+    if(nrow(stream) == 0){ #streaming data has 8 character times
+      streamingdata[,"time"] <- as.numeric(gsub(":", "", substr(streamingdata[,"time"], 1, 5)))
       stream <- merge(stations,streamingdata)
     }
     
@@ -239,18 +243,13 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
     }
     
     #check if streaming data exists for the minute previous to nostream
-    #k<-1
-    
-#     savegrabdata<-grabdata
-#     savenostream<-nostream
-#     savermlist<-rmlist
-#     
-#     rmlist<-savermlist
-#     nostream<-savenostream
-#     rmlist<-savermlist
-    
     for(k in 1:nrow(nostream)){
-      nostreamprevious <- streamingdata[paste(streamingdata[,"date"],streamingdata[,"time"]) == paste(nostream[k, "date"], (nostream[k,"time"] - 1)),]
+      nostreamprevious <- streamingdata[
+        paste(streamingdata[,"date"],streamingdata[,"time"]) 
+      ==
+        paste(nostream[k, "date"], (nostream[k,"time"] - 1))
+      ,]
+      
       nostreamprevious[,"time"] <- nostreamprevious[,"time"] + 1
         if(nrow(nostreamprevious) > 0){
           stream <- rbind(stream, nostreamprevious)
@@ -272,9 +271,6 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
 
   stream2 <- data.frame(matrix(NA, nrow = nrow(stations), ncol = ncol(stream)))
   for(m in 1:ncol(stream)){
-    #m=1
-    #length(unique(paste(stream$date,stream$time)))
-    #length(round(aggregate(stream[,m],by=list(stream$date,stream$time),mean)[,3],2))
     if(class(stream[,m]) == "numeric"){
       stream2[,m] <- round(aggregate(stream[,m], by = list(stream$date, stream$time), mean)[,3], 5)
     }else{
@@ -285,9 +281,9 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
   names(stream2) <- names(stream)
   
   stream3 <- stream2[order(stream2$date, stream2$time),]
-  sname <- which(names(stream3) == "chlaiv")
-  ename <- which(names(stream3) == "lat_dd")
-  stream4 <- cbind(stations, stream3[,c(sname:ename)])
+  # sname <- which(names(stream3) == "chlaiv")
+  # ename <- which(names(stream3) == "lat_dd")
+  stream4 <- cbind(stations, stream3)
   grabsfull <- cbind(grabdata, stream4)
   
   #add back in grabs with missing streaming data
@@ -296,8 +292,8 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
     if((ncol(grabsfull) - ncol(nostream)) != 0){
       padna <- data.frame(matrix(NA, nrow = nrow(nostream), ncol = (ncol(grabsfull) - ncol(nostream))))
       #if(any(match(names(nostream),names(grabsfull))[1:ncol(nostream)]!=1:ncol(nostream))){
-    # stop("problem with column names")
-    #}
+      # stop("problem with column names")
+      #}
       nostream <- cbind(nostream, padna)
     }
     names(nostream) <- names(grabsfull)
@@ -305,7 +301,7 @@ grabclean <- function(yearmon, tofile = FALSE, fdir = getOption("fdir")){
     grabsfull <- rbind(grabsfull, nostream)
   }
   
-  namestemp <- c("date", "time", "location", "salt", "chla", "chla.1", "tss", "tss.1", "n.num", "no3um", "no2um", "nh4um", "tinum", "srpum", "pp", "pp.1", "tp", "tdp", "po4", "toc", "doc", "tkn", "tdkn", "chlaiv", "temp", "cond", "sal", "trans", "cdom", "brighteners", "phycoe", "phycoc", "c6chl", "c6cdom", "c6turbidity", "c6temp", "lon_dd", "lat_dd")
+  namestemp <- c("date", "time", "location", "salt", "chla", "chla.1", "tss", "tss.1", "n.num", "no3um", "no2um", "nh4um", "tinum", "srpum", "pp", "pp.1", "tp", "tdp", "po4", "toc", "doc", "tkn", "tdkn", "brighteners", "phycoe", "phycoc", "c6chl", "c6cdom", "c6turbidity", "c6temp", "lon_dd", "lat_dd")
   nseq <- seq(1, length(namestemp), 1)
   
   namesalias <- read.table(text = "chlorophyll.a,c6chl
@@ -314,12 +310,6 @@ spcondms,spcond
 turbidity,c6turbidity
 n+num,n.num", sep = ",")
   namesalias <- apply(namesalias, 2, function(x) as.character(x))
-  
-  # cbind(data.frame(names(grabsfull)), data.frame(make.names(names(grabsfull))))
-  
-  #names(grabsfull) <- make.names(grabsfull)
-  
-  
   
   #match dt names to a template that includes all possible columns####
   for(n in 1:ncol(grabsfull)){
@@ -347,7 +337,7 @@ n+num,n.num", sep = ",")
   }
   
    consistentlocations <- function(dt){
-    #dt <- grabsfull
+
      fathombasins <- rgdal::readOGR(file.path(fdir, "DF_Basefile/fbzonesmerge.shp"), layer = "fbzonesmerge", verbose = FALSE)
      #slot(fathombasins, "data")
     
@@ -365,11 +355,6 @@ n+num,n.num", sep = ",")
   
   
   #EXECUTION BLOCK####
-  
-    #TEST INPUTS
-    #yearmon<-201402
-    #fdir<-getOption("fdir")
-  
     #load files####
     fdir_fd <- file.path(fdir,"DF_FullDataSets")
     flist <- list.files(fdir_fd, include.dirs = T, full.names = T)
@@ -387,7 +372,6 @@ n+num,n.num", sep = ",")
     
     grabdata <- cleangrabdata(sumpath, nmsfull, datacol)$grabdata
     stations <- cleangrabdata(sumpath, nmsfull, datacol)$stations
-    
     grabsfull <- mergegrabstreaming(streamingdata, grabdata, stations)
     
     grabsfull$location <- consistentlocations(grabsfull) 
@@ -398,14 +382,3 @@ n+num,n.num", sep = ",")
     
     return(grabsfull)
 }
-
-#combine all grabsamples####unfinished because of inconsistent column naming
-# grablist<-list.files(path = file.path(paste(getwd(),"/DF_GrabSamples",sep="")), pattern = "*.csv", full.names = T)
-# #grablist<-grablist[c(9,27,18,6)]#subset
-# nms<-list()
-# grabs<-cleangrab(grablist[[1]])
-# nms[[1]]<-names(grabs)
-# for(i in 2:length(grablist)){
-# grabs<-rbind(grabs,cleangrab(grablist[[i]]))
-# nms[[i]]<-names(cleangrab(grablist[[i]]))
-# }
