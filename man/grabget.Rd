@@ -16,6 +16,9 @@ grabget(rnge, remove.flags = FALSE, fdir = getOption("fdir"))
 \description{
 Retrieve discrete grab sample data from data directory
 }
+\details{
+Returns a list of data.frames (and a warning) if column names are not consistent among the surveys specified by rnge.
+}
 \examples{
 \dontrun{ 
 grabs<-grabget(rnge=c(201402,201410))

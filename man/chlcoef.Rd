@@ -4,12 +4,14 @@
 \alias{chlcoef}
 \title{Calculation of extracted versus fluoresced chlorophyll coefficients}
 \usage{
-chlcoef(yearmon, remove.flags = TRUE, overwrite = FALSE,
+chlcoef(yearmon, varlist = NA, remove.flags = TRUE, overwrite = FALSE,
   fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7,
   streamcov = 0.5, checkvif = TRUE, logtransform = FALSE)
 }
 \arguments{
 \item{yearmon}{numeric date of survey}
+
+\item{varlist}{character vector of variable names to use in model}
 
 \item{remove.flags}{logical trim dataset based on flags?}
 
@@ -36,6 +38,7 @@ this function should be interactive
 \examples{
 \dontrun{
 chlcoef(201308)
+chlcoef(201606, varlist = c("chl.ug.l", "turb.ntu", "phycoc", "c6cdom", "c6chl", "phycoe"), corcut = 0.75)
 }
 }
 

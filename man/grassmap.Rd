@@ -70,9 +70,7 @@ grassmap(rnge = c(201512), params = c("sal"), basin = "Manatee Bay")
 grassmap(fpath = file.path(getOption("fdir"), "DF_Surfaces", "200904", "sal.tif"), params = "sal")
 
 #specify label string
-grassmap(fpath = file.path("/home/jose/Documents/Science",
-"sfwmd_desktop/Presentations/2016-02-04_C-111_interagency-monitoring",
- "salpre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")
+grassmap(fpath = file.path("salpre.proj_mean.tif"), params = "sal", label_string = "Pre C-111")
 
 #create a new color ramp by editing DF_Basefile/*.file and update figure makefile
 logramp(n = 8, maxrange = 20) #chlext
