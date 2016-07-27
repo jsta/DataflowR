@@ -26,6 +26,4 @@ see either:
 
 * vignettes/DataflowR.pdf
 
-* inst/doc/DataflowR.pdf
-
 * `??DataflowR`
