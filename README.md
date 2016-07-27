@@ -6,7 +6,6 @@ The DataflowR package is used interally at SFWMD to handle streaming output and 
 
 ## Prereqs
 
-* dbhydroR
 * R
 * RStudio
 * RTools (Windows only)

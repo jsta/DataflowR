@@ -7,7 +7,7 @@ Date: 2016-07-25
 Author: Joseph Stachelek <stachel2@msu.edu>
 Maintainer: Joseph Stachelek <stachel2@msu.edu>
 Imports: 
-    MASS,car,gdata,ipdw,latticeExtra,raster,rasterVis,rgdal,sp,zoo,rgrass7,maptools,rgeos,scales,viridis,dbhydroR,methods
+    MASS,car,gdata,ipdw,latticeExtra,raster,rasterVis,rgdal,sp,zoo,rgrass7,maptools,rgeos,scales,viridis,methods
 License: GPL (>= 2)
 LazyData: true
 KeepSource: true
