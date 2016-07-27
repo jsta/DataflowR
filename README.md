@@ -7,21 +7,19 @@ The DataflowR package is used interally at SFWMD to handle streaming output and 
 ## Prereqs
 
 * dbhydroR
-* git
 * R
 * RStudio
 * RTools (Windows only)
 
 ## Commands
 
-git clone git@gitlab.com:jsta/DataflowR.git
-
-cd DataflowR
-
 `install.packages(c("rasterVis", "raster", "maptools", "rgeos", "rgrass7",`
 `"scales", "viridis", "MASS", "car", "gdata", "ipdw", "latticeExtra", "rgdal", "sp", "zoo"))`
 
-Ctrl + Shift + B
+`install.packages(c("devtools", "getPass"))`
+
+`devtools::install_git("http://gitlab.com/jsta/DataflowR.git",`
+`  credentials = git2r::cred_user_pass("<username>",`             `  getPass::getPass()))`
 
 # Function Documentation and Examples
 
