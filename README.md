@@ -24,6 +24,6 @@ The DataflowR package is used interally at SFWMD to handle streaming output and 
 
 see either:
 
-* vignettes/DataflowR.pdf
+* doc/DataflowR.pdf
 
 * `??DataflowR`
