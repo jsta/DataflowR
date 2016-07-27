@@ -1,10 +1,4 @@
 
-#BASEDIR=/home/jose/Documents/Science/Data/Dataflow
-SURFACES=$(wildcard $(BASEDIR)/DF_Surfaces/*)
-#COEF_FILE=$(BASEDIR)/DF_GrabSamples/extractChlcoef2.csv
-#CSV_FILES=$(wildcard $(BASEDIR)/DF_FullDataSets/*.csv)
-#LOG_FILES=$(wildcard logs/*.log)
-#SURVEY_FILE=yearmonfits.csv
 GRASSTEST=$(BASEDIR)/QGIS_plotting/$(YEARMON).pdf
 LEGEND_FILE=$(BASEDIR)/QGIS_plotting/legend/legend.pdf
 
@@ -42,7 +36,7 @@ legend5.png: $(LEGEND_FILE)
 #find grassmap plots
 testpanel.png: $(GRASSTEST) legend5.png
 	convert $(GRASSTEST) -trim -geometry +6+6 -bordercolor black -border 5x5 tile.png
-	convert /home/jose/Documents/Science/Data/Dataflow/DF_Basefile/sfwmd_bar8half_wordorexcel.png -resize 534x sfwmdbar.png
+	convert $(BASEDIR)/DF_Basefile/sfwmd_bar8half_wordorexcel.png -resize 534x sfwmdbar.png
 	montage sfwmdbar.png tile.png legend5.png -tile x3 -geometry +1+1 -bordercolor white -border 1x1 $(YEARMON).png
 
 .PHONY: clean

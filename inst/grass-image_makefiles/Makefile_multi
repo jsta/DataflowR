@@ -1,6 +1,5 @@
 #generate extracted chlorophyll mosaic from existing chlext.tif(s)
 
-#BASEDIR=/home/jose/Documents/Science/Data/Dataflow
 #SURFACES=$(wildcard $(BASEDIR)/DF_Surfaces/*)
 #COEF_FILE=$(BASEDIR)/DF_GrabSamples/extractChlcoef2.csv
 #CSV_FILES=$(wildcard $(BASEDIR)/DF_FullDataSets/*.csv)
@@ -35,7 +34,7 @@ legend5.png: $(LEGEND_FILE)
 
 multipanel.png: $(GRASSMAPS) legend5.png
 	montage $(GRASSMAPS) -trim -geometry +6+6 -bordercolor black -border 5x5 -tile $(NCOL)x$(NROW) tile.png
-	convert /home/jose/Documents/Science/Data/Dataflow/DF_Basefile/sfwmd_bar8half_wordorexcel.png -resize $(PLOT_XLIM)x sfwmdbar.png
+	convert $(BASEDIR)/DF_Basefile/sfwmd_bar8half_wordorexcel.png -resize $(PLOT_XLIM)x sfwmdbar.png
 	montage sfwmdbar.png tile.png legend5.png -tile 1x3 -geometry +1+1 -bordercolor white -border 1x1 multipanel.png
 
 .PHONY: clean
