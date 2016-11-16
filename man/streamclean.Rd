@@ -35,7 +35,7 @@ Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 
 \examples{
 \dontrun{
 #old
-dt <- streamclean(yearmon = 201505, dfmmin = 7, c6mmin = 10,
+dt <- streamclean(yearmon = 201505, gps = "df", dfmmin = 7, c6mmin = 10,
 tofile = FALSE)
 dt <- streamclean(yearmon = 201513, dfmmin = 7, c6mmin = 12,
 tofile = FALSE, exommin = 60, eummin = 12)

@@ -17,7 +17,7 @@
 #'@details Dataflow cleaning drops all minutes that have less measurements than "mmin". C6 data is interpolated to match Dataflow.  Automatically compares salinity against conducitivty/temperature recalculated salinity and replaces if slope of fit is not close to 1. Bad DO columns must sometimes be removed manually. TODO - Add check the make sure that the year of the data (not just the filename) matches the year of yearmon
 #'@examples \dontrun{
 #'#old
-#'dt <- streamclean(yearmon = 201505, dfmmin = 7, c6mmin = 10,
+#'dt <- streamclean(yearmon = 201505, gps = "df", dfmmin = 7, c6mmin = 10,
 #' tofile = FALSE)
 #'dt <- streamclean(yearmon = 201513, dfmmin = 7, c6mmin = 12,
 #' tofile = FALSE, exommin = 60, eummin = 12)
@@ -140,7 +140,7 @@ streamclean <- function(yearmon, gps, dfmmin = NA, c6mmin = NA, eummin = NA, exo
     }
     
     #fix lon lat formatting
-    if(mean(nchar(as.character(round(dt[,"lat_dd"])))) != 2){
+    if(mean(nchar(as.character(round(dt[,"lat_dd"]))), na.rm = TRUE) != 2){
       lat <- dt[,"lat_dd"]
       latdeg <- as.numeric(substr(lat, 0, 2))
       latmin <- as.numeric(substr(lat, 3, 8))
