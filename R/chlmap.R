@@ -103,8 +103,9 @@ chlmap <- function(yearmon, remove.flags = TRUE, stream.qa = TRUE, fdir = getOpt
 #   }
 #   chlext <- chlext + coeflist[length(coeflist)]
   
-  chlext[chlext < 0] <- 0
-  chlext_low[chlext_low < 0] <- 0
+  # chlext[chlext < 0] <- 0
+  # chlext_low[chlext_low < 0] <- 0
+  # chlext_hi[chlext_hi < 0] <- 0
   
   bad_chl <- chlext > range(grabget(yearmon, remove.flags = remove.flags)$chla, na.rm = TRUE)[2]
   chlext[bad_chl] <- NA
@@ -130,7 +131,7 @@ chlmap <- function(yearmon, remove.flags = TRUE, stream.qa = TRUE, fdir = getOpt
     file.remove(file.path(fdir,paste0("/DF_Validation/chlext",yearmon,".csv"),fsep=""))
   }
   
-  streaminterp(dt, paramlist = c("chlext", "chlext_low", "chlext_hi"), yearmon = yearmon, tname = file.path(fdir, paste0("/DF_Subsets/chlext", yearmon, ".csv"), fsep = "") ,vname = file.path(fdir, paste0("/DF_Validation/chlext", yearmon, ".csv"), fsep = ""), missprop = (1/3))
+  streaminterp(dt, paramlist = c("chlext", "chlext_low", "chlext_hi"), yearmon = yearmon, tname = file.path(fdir, paste0("/DF_Subsets/chlext", yearmon, ".csv"), fsep = "") ,vname = file.path(fdir, paste0("/DF_Validation/chlext", yearmon, ".csv"), fsep = ""), missprop = (1/3), trim_negative = TRUE)
   
 }  
   #####old code from when raster algebra was used#####

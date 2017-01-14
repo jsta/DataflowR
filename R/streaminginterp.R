@@ -5,6 +5,7 @@
 #'@param paramlist list of parameters (dt column names) to interpolate
 #'@param yearmon a file path used to extract basename
 #'@param trim_rstack logical trim the raster stack by the convex hull of training points?
+#'@param trim_negative logical set negative values to zero?
 #'@param tname file.path location to save training dataset
 #'@param vname file.path location to save validation dataset
 #'@param missprop numeric proportion of missing data allowed. Variables with a greater proportion of missing data will be dropped.
@@ -21,7 +22,7 @@
 #'streaminterp(dt, paramlist = c("sal"), yearmon = 201513)
 #'}
 
-streaminterp <- function(dt, paramlist, yearmon, trim_rstack = TRUE, costrasname = "barrier60large2e2.tif", tname = NA, vname = NA, missprop = 0.16, fdir = getOption("fdir")){
+streaminterp <- function(dt, paramlist, yearmon, trim_rstack = TRUE, trim_negative = TRUE, costrasname = "barrier60large2e2.tif", tname = NA, vname = NA, missprop = 0.16, fdir = getOption("fdir")){
     
   #define projections
   projstr <- "+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
@@ -99,6 +100,11 @@ streaminterp <- function(dt, paramlist, yearmon, trim_rstack = TRUE, costrasname
   
   for(j in 1:length(paramlist)){
     finalras <- ipdw::ipdwInterp(training, rstack, paramlist[j], overlapped = TRUE, yearmon = yearmon)
+    
+    if(trim_negative){
+      finalras[finalras < 0] <- 0  
+    }
+    
     rf <- raster::writeRaster(finalras, filename = file.path(fdir, "DF_Surfaces", yearmon, paste(paramlist[j], ".grd", sep = "")), overwrite = T)
     rf <- raster::writeRaster(finalras, filename = file.path(fdir, "DF_Surfaces", yearmon, paste(paramlist[j], ".tif", sep = "")), overwrite = T, format = "GTiff")
   }

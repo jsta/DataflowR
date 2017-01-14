@@ -5,8 +5,8 @@
 \title{Interpolation of streaming data}
 \usage{
 streaminterp(dt, paramlist, yearmon, trim_rstack = TRUE,
-  costrasname = "barrier60large2e2.tif", tname = NA, vname = NA,
-  missprop = 0.16, fdir = getOption("fdir"))
+  trim_negative = TRUE, costrasname = "barrier60large2e2.tif", tname = NA,
+  vname = NA, missprop = 0.16, fdir = getOption("fdir"))
 }
 \arguments{
 \item{dt}{input data frame}
@@ -16,6 +16,8 @@ streaminterp(dt, paramlist, yearmon, trim_rstack = TRUE,
 \item{yearmon}{a file path used to extract basename}
 
 \item{trim_rstack}{logical trim the raster stack by the convex hull of training points?}
+
+\item{trim_negative}{logical set negative values to zero?}
 
 \item{costrasname}{character file.path to cost raster}
 
