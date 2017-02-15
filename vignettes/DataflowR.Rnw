@@ -75,8 +75,7 @@ The \texttt{DataflowR} package can also be built directly from source code if no
 
 <<eval=FALSE>>=
 install.packages("devtools")
-devtools::install_git("http://gitlab.com/jsta/DataflowR.git",
-  credentials = git2r::cred_user_pass("<username>", getPass::getPass()))
+devtools::install_github("jsta/DataflowR")
 @
 
 where \texttt{<username>} and \texttt{<password>} are replaced with your GitLab username and password. On Windows machines, the \texttt{RTools} program is required for source installation.
@@ -225,7 +224,8 @@ grassmap(rnge = 201505, params = c("sal"))
 The \texttt{basin} parameter of the \texttt{grassmap} function allows the user to limit (zoom-in) to a specific FATHOM basin. A listing of FATHOM basins can be found by inspecting \verb|DF_Basefile/fathom_basins_proj.shp| or by referencing \citet{cosby2005fathom}. The following command will create a series of zoomed-in salinity maps of Manatee Bay for each survey date between June 2006 and May 2015.   
 
 <<eval=FALSE>>=
-grassmap(rnge = c(201205, 201305), params = c("sal"), basin = "Manatee Bay", numcol = 3, numrow = 3)
+grassmap(rnge = c(201205, 201305), params = c("sal"),
+         basin = "Manatee Bay", numcol = 3, numrow = 3)
 @
 
 

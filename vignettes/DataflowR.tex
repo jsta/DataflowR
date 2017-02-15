@@ -78,8 +78,7 @@ The \texttt{DataflowR} package can also be built directly from source code if no
 \begin{Schunk}
 \begin{Sinput}
 > install.packages("devtools")
-> devtools::install_git("https://gitlab.com/jsta/DataflowR.git",
-+   credentials = git2r::cred_user_pass("<username>", getPass::getPass()))
+> devtools::install_github("jsta/DataflowR")
 \end{Sinput}
 \end{Schunk}
 
@@ -196,7 +195,7 @@ The \texttt{streamget} function will retrieve previously cleaned data. The funct
 
 \subsection{Interpolating cleaned data files}
 
-The \texttt{streaminterp} function will interpolate a dataset that has been loaded into memory from the \texttt{streamclean} or \texttt{streamget} functions. Interpolations are performed using functions in the \texttt{ipdw} \texttt{R} package \citep{ipdw}. Variables to be interpolated must be specified as inputs to the \texttt{paramlist} paramter. If you have loaded your dataset to memory under the name \texttt{dt}, use \texttt{names(dt)} to see the available parameters. Enter one or more parameters as arguments to a character vector. For example, to interpolate salinity only (as below) use \texttt{c("sal")}. Additional parameters can be appended. For example, to interpolate salinity and temperature use \texttt{c("sal","temp")}. Interpolation should take about 20 minutes plus about 2 minutes for each entry in \texttt{paramlist}. Raster surface output will be written to a subfolder of \verb|DF_Surfaces| named for the appropriate year and month of the survey.\\
+The \texttt{streaminterp} function will interpolate a dataset that has been loaded into memory from the \texttt{streamclean} or \texttt{streamget} functions. Interpolations are performed using functions in the \texttt{ipdw} \texttt{R} package \citep{ipdw}. Variables to be interpolated must be specified as inputs to the \texttt{paramlist} paramter. If you have loaded your dataset to memory under the name \texttt{dt}, use \texttt{names(dt)} to see the available parameters. Enter one or more parameters as arguments to a character vector. For example, to interpolate salinity only (as below) use \texttt{c("salinity.pss")}. Additional parameters can be appended. For example, to interpolate salinity and temperature use \texttt{c("salinity.pss","temp.deg.c")}. Interpolation should take about 20 minutes plus about 2 minutes for each entry in \texttt{paramlist}. Raster surface output will be written to a subfolder of \verb|DF_Surfaces| named for the appropriate year and month of the survey.\\
 
 \texttt{streaminterp} will first attempt to split the full data set into training and validation datasets. If these already exist in the \verb|DF_Subsets| and \verb|DF_Validation| folders, a warning will be printed and the pre-existing datsets will be used. Next, \texttt{streaminterp} will attempt to create a dedicated folder under \verb|DF_Surfaces| to hold all the interpolated surfaces for the given survey. If this folder already exists, \texttt{streaminterp} will print a warning but the function should proceed as normal (the warning can be disregarded).\\
 
@@ -213,7 +212,7 @@ More details regarding the interpolation procedure can be found in \cite{stachel
 
 \subsubsection{Quick plot with R graphics}
 
-A quick visual inspection of interpolated outputs can be accomplished using the \nohyphens{\texttt{surfplot}} function. The \texttt{rnge} parameter takes either a single survey date or a list of two survey dates to specify a date range for plotting. More detailed publication quality maps should be produced using a dedicated GIS program such as ArcGIS,QGIS, or GRASS GIS.
+A quick visual inspection of interpolated outputs can be accomplished using the \nohyphens{\texttt{surfplot}} function. The \texttt{rnge} parameter takes either a single survey date or a list of two survey dates to specify a date range for plotting. More detailed publication quality maps should be produced using a dedicated GIS program such as ArcGIS, QGIS, or GRASS GIS.
 
 \begin{Schunk}
 \begin{Sinput}
@@ -232,7 +231,7 @@ A quick visual inspection of interpolated outputs can be accomplished using the 
 
 \subsubsection{Detailed plotting with GRASS GIS}
 
-The \texttt{grassmap} function creates detailed publication quality maps using GRASS GIS. Maps are output to the \verb|QGIS_plotting| folder. The following command creates a Bay-wide salinity map for May 2015.
+The \texttt{grassmap} function creates detailed publication quality maps using GRASS GIS. Individual map components (panels, legends, etc) are output to the \verb|QGIS_plotting| folder. Final map outputs are written to the working directory. The following command creates a Bay-wide salinity map for May 2015.
 
 \begin{Schunk}
 \begin{Sinput}
@@ -246,20 +245,23 @@ The \texttt{basin} parameter of the \texttt{grassmap} function allows the user t
 
 \begin{Schunk}
 \begin{Sinput}
-> grassmap(rnge = c(200605, 201505), params = c("sal"), basin = "Manatee Bay")
+> grassmap(rnge = c(201205, 201305), params = c("sal"),
++          basin = "Manatee Bay", numcol = 3, numrow = 3)
 \end{Sinput}
 \end{Schunk}
 
 
 \section{Handling discrete grab sample data}
 \subsection{Cleaning grab sample records}
-Incoming grab sample \texttt{.csv} data files should be placed in the \verb|DF_GrabSamples/Raw| folder and their file names should have the survey date in yyyymm format preappended. These files can be cleaned using the \texttt{grabclean} function. The \texttt{grabclean} function formats column names, removes columns/rows of missing data, and calculates minute averages of the streaming data that correspond to the grab sample date/times. Output is saved to the \verb|DF_GrabSamples| folder when \texttt{tofile} is set to \texttt{TRUE}. Suspect data records should be identified manually in the \texttt{flags} column. This becomes important in Section 6.2 because suspect data records can create problems converting between extracted and fluoresced chlorophyll.
+Incoming grab sample \texttt{.csv} data files should be placed in the \verb|DF_GrabSamples/Raw| folder and their file names should have the survey date in yyyymm format preappended. These files can be cleaned using the \texttt{grabclean} function. The \texttt{grabclean} function formats column names, removes columns/rows of missing data, and calculates minute averages of the streaming data that correspond to the grab sample date/times. Output is saved to the \verb|DF_GrabSamples| folder when \texttt{tofile} is set to \texttt{TRUE}.
 
 \begin{Schunk}
 \begin{Sinput}
 > grabclean(yearmon = 201410, tofile = FALSE)
 \end{Sinput}
 \end{Schunk}
+
+Suspect data records should be identified manually in the \texttt{flags} column. This becomes important in Section 6.2 because suspect data records can create problems converting between extracted and fluoresced chlorophyll.
 
 \subsection{Loading previously cleaned grab data}
 
@@ -293,7 +295,7 @@ The \texttt{avmap} function takes a survey date as input and searches the \verb|
 \subsection{Fit grab sample and streaming averages}
 \subsubsection{Calculate coefficients}
 
-In order to generate maps of chlorophyll concentration, streaming fluorescence values (chlorophyll, algal pigments, cdom) must be statistically "fit" (regressed) against lab-derived extracted chlorophyll values. The \texttt{chlcoef} function searches the \verb|DF_GrabSamples| folder for a cleaned grab dataset that matches the specified \texttt{yearmon} parameter value. First, the function generates a correlation matrix and identifies streaming variables that have at least a 0.4 correlation with extracted chlorophyll. The resulting variables are entered into a linear regression. If the R\textsuperscript{2} value of the regression is less than 0.7, the variables are entered into a second degree polynomial regression. The regression (either the linear or the second degree polynomial) is subjected to a backward stepwise AIC model selection \citep{mass}. The output of this step is usually a regression with a reduced number of parameters. The final regression is checked for multicolinearity by calculating variance inflation factors (vif) and excluding parameters until all vif values are less than 10 \citep{hh2002}. The previous steps, which include summaries of all intermediate model fits, are printed to the R console for inspection. 
+In order to generate maps of chlorophyll concentration, streaming fluorescence values (chlorophyll, algal pigments, cdom) must be statistically "fit" (regressed) against lab-derived extracted chlorophyll values. The \texttt{chlcoef} function searches the \verb|DF_GrabSamples| folder for a cleaned grab dataset that matches the specified \texttt{yearmon} parameter value. First, the function generates a correlation matrix and removes streaming variables that have a correlation coefficient with extracted chlorophyll less than the value passed to the \texttt{corcut} argument. The resulting variables are entered into a multiple linear regression. The resulting "full" model is subjected to a backward stepwise AIC model selection \citep{mass}. The output of this step is usually a regression with a reduced number of parameters. The final regression is checked for multicolinearity by calculating variance inflation factors (vif) and excluding parameters until all vif values are less than 10 \citep{hh2002}. The previous steps, which include summaries of all intermediate model fits, are printed to the R console for manual inspection. 
 
 The final set of variable coefficients, the R\textsuperscript{2} value, the p-value, and the formula for the final fitted equation are printed (appended) to the \texttt{extractChlcoef.csv} file in the \verb|DF_GrabSamples| folder.
 
