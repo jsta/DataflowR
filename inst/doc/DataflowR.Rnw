@@ -39,7 +39,7 @@
 %\VignetteIndexEntry{Dataflow Output Standard Operating Procedure(SOP)}
 
 \begin{document}
-\input{DataflowR-concordance}
+\SweaveOpts{concordance=TRUE}
 \maketitle
 \tableofcontents
  
@@ -62,12 +62,10 @@ The \texttt{DataflowR} package is an integrated set of processing functions to p
 \subsubsection{Pre-built Installation}
 The \texttt{R} package \texttt{DataflowR} is distributed via a \texttt{.tar.gz} (analagous to \texttt{.zip}) package archive file. This package contains the source code for package functions as well as the archived datasets for the SFWMD Florida Bay Dataflow Monitoring Program. In RStudio, it can be installed by navigating to \texttt{Tools} -> \texttt{Install Packages...} -> \texttt{Install from:} -> \texttt{Package Archive File}. Computers running the Windows operating system can only install binary \texttt{.zip} package archive files unless they have additional compiler software installed (RTools). The \texttt{DataflowR} binary package can be installed by running the following command from the \texttt{R} console:
 
-\begin{Schunk}
-\begin{Sinput}
-> install.packages(path.to.zip, type = "win.binary", repos = NULL,
-+                  dependencies = TRUE)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+install.packages(path.to.zip, type = "win.binary", repos = NULL,
+                 dependencies = TRUE)
+@
 
 where \texttt{path.to.zip} is replaced by the file path of the \texttt{.zip} file.
 
@@ -75,12 +73,10 @@ where \texttt{path.to.zip} is replaced by the file path of the \texttt{.zip} fil
 
 The \texttt{DataflowR} package can also be built directly from source code if no pre-built \texttt{.tar.gz} (\texttt{.zip}) package is available. This can be accomplished by installing the \texttt{devtools} package and running the following set of commands:
 
-\begin{Schunk}
-\begin{Sinput}
-> install.packages("devtools")
-> devtools::install_github("jsta/DataflowR")
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+install.packages("devtools")
+devtools::install_github("jsta/DataflowR")
+@
 
 where \texttt{<username>} and \texttt{<password>} are replaced with your GitLab username and password. On Windows machines, the \texttt{RTools} program is required for source installation.
 
@@ -104,11 +100,9 @@ For example, the structure of \verb|C:\Documents\Data\Dataflow| would look like:
 
 Next, load the \texttt{DataflowR} package to discover the location of the \texttt{localpath} file. Alternatively, you can discover the path to the file by running the following command:
 
-\begin{Schunk}
-\begin{Sinput}
-> system.file("localpath", package = "DataflowR")
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+system.file("localpath", package = "DataflowR")
+@
 
 
 Update the first line of the \texttt{localpath} file to point to the location of your local copy of the Data Archive folder. End the file with a blank line. Note that if you are on a Windows machine you need to have double slashes in the text of the path: \\  
@@ -153,20 +147,16 @@ Cleaning is accomplished via the \nohyphens{\texttt{streamclean}} function. The 
 
 The \texttt{streamclean} function will gather all the records associated with the remaining streams, merge them with the \texttt{gps} target, remove leading and trailing records of all zeros, format GPS coordinates, check that conductivity to salinity calculations are correct (recalculate if neccesary), and classify records based on fathom and CERP basin designations. Variable names and column ordering are formatted consistently and a machine readable (POSIX) date-time stamp is created.   
 
-\begin{Schunk}
-\begin{Sinput}
-> dt <- streamclean(yearmon = 201606, gps = "eu", eummin = 12, c6mmin = 12,
-+       tofile = FALSE)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+dt <- streamclean(yearmon = 201606, gps = "eu", eummin = 12, c6mmin = 12,
+      tofile = FALSE)
+@
 
 Some older Dataflow surveys have undergone a "hand-cleaning" and are missing the raw inputs neccessary to run \texttt{streamclean}. In these instances, the \texttt{streamparse} function can be used to align the formatting of these files to resemble the output of \texttt{streamclean}. Specifically, the function creates a POSIX compliant date field, and reproduces the column names and ordering of a \texttt{streamclean} output. 
 
-\begin{Schunk}
-\begin{Sinput}
-> dt <- streamparse(yearmon = 201007, tofile = FALSE)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+dt <- streamparse(yearmon = 201007, tofile = FALSE)
+@
 
 
 \subsection{QA cleaned streaming data}
@@ -175,11 +165,9 @@ The \texttt{streamclean} function does not perform detailed QA of individual par
 
 Cleaned data files are not modified directly. Instead, \texttt{streamqa} creates a matrix of the same size as the original data file and populates this matrix with flags. \texttt{streamqa} writes the "qafile" output to the \verb|DF_FullDataSets/QA| directory and names it as the date appended by "qa". Subsequent analyses can filter the full dataset based on these QA flags.
 
-\begin{Schunk}
-\begin{Sinput}
-> streamqa(yearmon = 201606, parset = names(streamget(201606))[c(4:12, 16:22)])
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+streamqa(yearmon = 201606, parset = names(streamget(201606))[c(4:12, 16:22)])
+@
 
 \texttt{streamqa} can be run more than once. On the first run, a new "qafile" will be produced. Subsequent runs will pull the data (filtered by the previous qa) and edit the existing qafile.
 
@@ -187,11 +175,9 @@ Cleaned data files are not modified directly. Instead, \texttt{streamqa} creates
 
 The \texttt{streamget} function will retrieve previously cleaned data. The function looks for full data sets in the \verb|DF_FullDataSets| folder that match the specified \texttt{yearmon} survey date. The optional parameter \texttt{qa} is set to TRUE by default in order for \texttt{streamget} to filter the dataset by corresponding \texttt{streamqa} output. An example for the February 2015 survey is shown below.
 
-\begin{Schunk}
-\begin{Sinput}
-> dt <- streamget(yearmon = 201606, qa = TRUE)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+dt <- streamget(yearmon = 201606, qa = TRUE)
+@
 
 \subsection{Interpolating cleaned data files}
 
@@ -201,12 +187,10 @@ The \texttt{streaminterp} function will interpolate a dataset that has been load
 
 More details regarding the interpolation procedure can be found in \cite{stachelek2015application}.
 
-\begin{Schunk}
-\begin{Sinput}
-> streaminterp(streamget(yearmon = 201606, qa = TRUE),
-+   paramlist = c("salinity.pss"), 201606)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+streaminterp(streamget(yearmon = 201606, qa = TRUE),
+  paramlist = c("salinity.pss"), 201606)
+@
 
 \subsection{\label{sec:plottingsurf}Plotting interpolated surfaces}
 
@@ -214,11 +198,9 @@ More details regarding the interpolation procedure can be found in \cite{stachel
 
 A quick visual inspection of interpolated outputs can be accomplished using the \nohyphens{\texttt{surfplot}} function. The \texttt{rnge} parameter takes either a single survey date or a list of two survey dates to specify a date range for plotting. More detailed publication quality maps should be produced using a dedicated GIS program such as ArcGIS, QGIS, or GRASS GIS.
 
-\begin{Schunk}
-\begin{Sinput}
-> surfplot(rnge = c(201502), params = c("sal"))
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+surfplot(rnge = c(201502), params = c("sal"))
+@
 
 
 % \begin{figure}[h!]
@@ -233,33 +215,27 @@ A quick visual inspection of interpolated outputs can be accomplished using the 
 
 The \texttt{grassmap} function creates detailed publication quality maps using GRASS GIS. Individual map components (panels, legends, etc) are output to the \verb|QGIS_plotting| folder. Final map outputs are written to the working directory. The following command creates a Bay-wide salinity map for May 2015.
 
-\begin{Schunk}
-\begin{Sinput}
-> grassmap(rnge = 201505, params = c("sal"))
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+grassmap(rnge = 201505, params = c("sal"))
+@
 
 \subsubsection{Producing timeseries for specific basins}
 
 The \texttt{basin} parameter of the \texttt{grassmap} function allows the user to limit (zoom-in) to a specific FATHOM basin. A listing of FATHOM basins can be found by inspecting \verb|DF_Basefile/fathom_basins_proj.shp| or by referencing \citet{cosby2005fathom}. The following command will create a series of zoomed-in salinity maps of Manatee Bay for each survey date between June 2006 and May 2015.   
 
-\begin{Schunk}
-\begin{Sinput}
-> grassmap(rnge = c(201205, 201305), params = c("sal"),
-+          basin = "Manatee Bay", numcol = 3, numrow = 3)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+grassmap(rnge = c(201205, 201305), params = c("sal"),
+         basin = "Manatee Bay", numcol = 3, numrow = 3)
+@
 
 
 \section{Handling discrete grab sample data}
 \subsection{Cleaning grab sample records}
 Incoming grab sample \texttt{.csv} data files should be placed in the \verb|DF_GrabSamples/Raw| folder and their file names should have the survey date in yyyymm format preappended. These files can be cleaned using the \texttt{grabclean} function. The \texttt{grabclean} function formats column names, removes columns/rows of missing data, and calculates minute averages of the streaming data that correspond to the grab sample date/times. Output is saved to the \verb|DF_GrabSamples| folder when \texttt{tofile} is set to \texttt{TRUE}.
 
-\begin{Schunk}
-\begin{Sinput}
-> grabclean(yearmon = 201410, tofile = FALSE)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+grabclean(yearmon = 201410, tofile = FALSE)
+@
 
 Suspect data records should be identified manually in the \texttt{flags} column. This becomes important in Section 6.2 because suspect data records can create problems converting between extracted and fluoresced chlorophyll.
 
@@ -267,22 +243,18 @@ Suspect data records should be identified manually in the \texttt{flags} column.
 
 The \texttt{rnge} paramter takes either a single survey date or a list of two survey dates to specify a date range for retrieving cleaned grab data.
 
-\begin{Schunk}
-\begin{Sinput}
-> grabs <- grabget(rnge = c(201402, 201410))
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+grabs <- grabget(rnge = c(201402, 201410))
+@
 
 \section{Data Analysis}
 \subsection{Calculating a difference-from-average surface}
 The \texttt{avmap} function takes a survey date as input and searches the \verb|DF_Surfaces| folder for interpolated surfaces of the same parameter within a specified number of months for each year. The number of months on either side of the input month is set using the \texttt{tolerance} parameter. The found surfaces often have different extents. The \texttt{percentcov} parameter controls the percent of all identified surveys required before a pixel is included in difference-from-average computations. Output surfaces are written to the current working directory unless the \texttt{tofile} parameter is set to \texttt{FALSE}.
 
-\begin{Schunk}
-\begin{Sinput}
-> avmap(yearmon = 201502, params = "sal", tofile = TRUE, percentcov = 0.6,
-+       tolerance = 1)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+avmap(yearmon = 201502, params = "sal", tofile = TRUE, percentcov = 0.6,
+      tolerance = 1)
+@
 
 \begin{figure}[H]
 \begin{center}
@@ -299,21 +271,17 @@ In order to generate maps of chlorophyll concentration, streaming fluorescence v
 
 The final set of variable coefficients, the R\textsuperscript{2} value, the p-value, and the formula for the final fitted equation are printed (appended) to the \texttt{extractChlcoef.csv} file in the \verb|DF_GrabSamples| folder.
 
-\begin{Schunk}
-\begin{Sinput}
-> chlcoef(yearmon = 201502, remove.flags = TRUE)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+chlcoef(yearmon = 201502, remove.flags = TRUE)
+@
 
 \subsubsection{Generate extracted chlorophyll surfaces}
 
 The coefficients calculated as a result of the \texttt{chlcoef} function can be used to create an interpolated map of chlorophyll concentration. The \texttt{chlmap} function takes these coefficients and the associated fulldataset and calculates an extracted chlorophyll value for each measurement point ("extchl"). These values are interpolated using the \texttt{streaminterp} function. The output surface is stored in the \verb|DF_Surfaces| folder under the appropriate survey date folder.  
 
-\begin{Schunk}
-\begin{Sinput}
-> chlmap(yearmon = 201502)
-\end{Sinput}
-\end{Schunk}
+<<eval=FALSE>>=
+chlmap(yearmon = 201502)
+@
 
 
 \medskip
