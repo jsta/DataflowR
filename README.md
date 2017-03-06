@@ -22,7 +22,7 @@ Function Documentation and Examples
 
 see either:
 
--   the vignette at `doc/DataflowR.pdf`
+-   the vignette at `inst/doc/DataflowR.pdf`
 
 -   `??DataflowR` from the `R` console
 
