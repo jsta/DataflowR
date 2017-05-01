@@ -17,6 +17,13 @@ You can install DataflowR from github with:
 devtools::install_github("jsta/DataflowR")
 ```
 
+Data
+----
+
+You can find input and output data on KNB at:
+
+**Christopher J. Madden, Joseph Stachelek, Stephen Kelly, Michelle Blaha (2017)** Florida Bay water quality estimated by underway flow-through measurement. *KNB Data Repository*. <http://dx.doi.org/10.5063/F11R6NGR>
+
 Function Documentation and Examples
 -----------------------------------
 
