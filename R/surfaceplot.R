@@ -346,7 +346,7 @@ diffsal,diffsalrules.file",
     outlines <- sp::SpatialLinesDataFrame(outlines, data = as.data.frame(1))
     
     #GRASS block===============================================================#
-    loc <- rgrass7::initGRASS("/usr/lib/grass70", home = file.path(fdir, "QGIS_plotting"), override = TRUE)
+    loc <- rgrass7::initGRASS("/usr/lib/grass72", home = file.path(fdir, "QGIS_plotting"), override = TRUE)
     
     #raster
     firstras   <- as(firstras, "SpatialGridDataFrame")
