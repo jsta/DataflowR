@@ -77,9 +77,12 @@ logramp(n = 8, maxrange = 20) #chlext
 scales::show_col(viridis::viridis_pal()(9))
 logramp(n = 8, minrange = 10, maxrange = 65) #phycoc
 
-grassmap(rnge = c(201509, 201512), params = "sal", numrow = 2, numcol = 1)
+grassmap(rnge = c(201509, 201512), params = "sal", numrow = 2, numcol = 1, labelling = FALSE)
 
 grassmap(rnge = 201509, params = "phycoc", label_string = "phycoc test")
+
+grassmap(rnge = c(200808, 200910), params = 'chlext', numrow = 2, numcol = 1,
+labelling = TRUE, label_string = c("Aug 2008", "Oct 2009"))
 
 }
 }

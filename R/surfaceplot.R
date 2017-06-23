@@ -247,9 +247,12 @@ create_rlist <- function(rnge, params){
 #'scales::show_col(viridis::viridis_pal()(9))
 #'logramp(n = 8, minrange = 10, maxrange = 65) #phycoc
 #'
-#'grassmap(rnge = c(201509, 201512), params = "sal", numrow = 2, numcol = 1)
+#'grassmap(rnge = c(201509, 201512), params = "sal", numrow = 2, numcol = 1, labelling = FALSE)
 #'
 #'grassmap(rnge = 201509, params = "phycoc", label_string = "phycoc test")
+#'
+#'grassmap(rnge = c(200808, 200910), params = 'chlext', numrow = 2, numcol = 1,
+#' labelling = TRUE, label_string = c("Aug 2008", "Oct 2009"))
 #'
 #'}
 
@@ -318,14 +321,16 @@ diffsal,diffsalrules.file",
     if(length(fpath) == 0){
     #no fpath but label_string
       if(length(label_string) == 0){
-        label_string <- rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
+        label_string_single <- rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
       }else{
+        label_string_single <- label_string[i]
         rasname <- paste(substring(dirname(rlist[i]), nchar(dirname(rlist[i])) - 5, nchar(dirname(rlist[i]))))
       }
       raspath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, ".tif", sep = ""))
       outpath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, "poly.shp" ,sep = ""))
     }else{
       #fpath & label_string
+      label_string_single <- label_string[i]
       rasname <- paste0(strsplit(basename(fpath), "\\.")[[1]][-(length(strsplit(basename(fpath), "\\.")[[1]]))], collapse = "")
       raspath <- file.path(paste0(fdir, "/QGIS_plotting", sep = ""), basename(fpath))
       outpath <- file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, "poly.shp" ,sep = ""))
@@ -389,10 +394,11 @@ diffsal,diffsalrules.file",
     rgrass7::execGRASS("g.region", vector = "fbvec")
     
     if(labelling == TRUE){
-      if(length(label_string) == 0){
+      if(length(label_string) == 0 & length(label_string_single) == 0){
         stop("Must specify a label_string if labelling == TRUE")
       }
 #     #compose plotting commands here####
+      
     fileConn <- file(file.path(fdir, "QGIS_plotting", "grassplot.file"))
     writeLines(c("raster tempras2",
                  "vlines outvec",
@@ -402,7 +408,7 @@ diffsal,diffsalrules.file",
                  "vareas fbvec",
                  "        masked y",
                  "        end",
-                 paste("text 20% 87% ", label_string, sep = ""),
+                 paste("text 20% 87% ", label_string_single, sep = ""),
                  "        fontsize 21",
                  "        background white",
                  "        border black",
@@ -447,7 +453,7 @@ diffsal,diffsalrules.file",
       close(fileConn)
     }
     
-    label_string <- NULL
+    # label_string <- NULL
     
     rgrass7::execGRASS("ps.map", input = file.path(paste(fdir, "/QGIS_plotting", sep=""), "grassplot.file"), output = file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, ".pdf", sep = "")), flags = "overwrite")
 
