@@ -21,7 +21,8 @@
 #'@examples 
 #'\dontrun{
 #'chlcoef(201308)
-#'chlcoef(201606, varlist = c("chl.ug.l", "turb.ntu", "phycoc", "c6cdom", "c6chl", "phycoe"), corcut = 0.75)
+#'chlcoef(201606, varlist = c("chl.ug.l", "turb.ntu", "phycoc", 
+#'"c6cdom", "c6chl", "phycoe"), corcut = 0.75)
 #'}
 
 chlcoef <- function(yearmon, varlist = NA, remove.flags = TRUE, overwrite = FALSE, fdir = getOption("fdir"), polypcut = 0.6, corcut = 0.7, streamcov = 0.5, checkvif = TRUE, logtransform = FALSE){
