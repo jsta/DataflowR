@@ -21,4 +21,3 @@ Convert georeferenced data.frames into projected SpatialPointsDataFrames
 dt<-coordinatize(streamget(201002), latname = "lat_dd", lonname = "lon_dd")
 }
 }
-

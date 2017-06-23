@@ -38,4 +38,3 @@ dt <- streamget(yearmon = 201513, qa = TRUE)
 streaminterp(dt, paramlist = c("sal"), yearmon = 201513)
 }
 }
-

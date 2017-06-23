@@ -33,4 +33,3 @@ res <- chlmap(yearmon = 201502)
 \author{
 Joseph Stachelek
 }
-

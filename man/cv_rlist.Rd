@@ -20,4 +20,3 @@ rlist <- create_rlist(good_years$x, "chlext")
 cv_rlist(rlist$rlist, 0.8)
 }
 }
-

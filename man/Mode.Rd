@@ -12,4 +12,3 @@ Mode(x)
 \description{
 Returns the mode of a numeric array
 }
-

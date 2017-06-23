@@ -41,4 +41,3 @@ chlcoef(201308)
 chlcoef(201606, varlist = c("chl.ug.l", "turb.ntu", "phycoc", "c6cdom", "c6chl", "phycoe"), corcut = 0.75)
 }
 }
-

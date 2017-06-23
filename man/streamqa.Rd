@@ -34,4 +34,3 @@ loop through parameters giving the opportunity to trim measurement ends, set ent
 dt<-streamqa(yearmon=201410)
 }
 }
-

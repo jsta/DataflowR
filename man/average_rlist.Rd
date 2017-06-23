@@ -14,4 +14,3 @@ average_rlist(flist, percentcov)
 \description{
 Create an average raster from a raster list
 }
-

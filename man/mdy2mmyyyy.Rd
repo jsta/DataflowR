@@ -16,4 +16,3 @@ Pads dates in preparation for POSIX coercion
 x <- "5/5/15"
 mdy2mmyyyy(x)
 }
-

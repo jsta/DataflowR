@@ -22,4 +22,3 @@ yearmon <- 201212
 dt <- streamget(yearmon)
 }
 }
-

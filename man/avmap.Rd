@@ -36,4 +36,3 @@ avmap(yearmon = 201505, params = "sal", diffpath = file.path(getOption("fdir"),
 avmap(yearmon = 201505, params = "sal")
 }
 }
-

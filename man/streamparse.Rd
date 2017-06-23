@@ -19,4 +19,3 @@ Includes checks to ensure that data columns are of type numeric. TODO: check tha
 \examples{
 \dontrun{dt<-streamparse(yearmon=201002)}
 }
-

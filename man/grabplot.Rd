@@ -22,4 +22,3 @@ Plot discrete grab data
 grabplot(rnge=201410,params=c("sal","chla"),plottype="permitbarplot")
 }
 }
-

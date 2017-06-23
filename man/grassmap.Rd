@@ -86,4 +86,3 @@ grassmap(rnge = 201509, params = "phycoc", label_string = "phycoc test")
 \author{
 Joseph Stachelek
 }
-

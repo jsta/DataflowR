@@ -46,4 +46,3 @@ dt <- streamclean(yearmon = 201601, gps = "eu", eummin = 12)
 dt <- streamclean(yearmon = 201603, gps = "exo", exommin = 40, c6mmin = 12)
 }
 }
-
