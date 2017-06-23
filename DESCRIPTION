@@ -28,3 +28,4 @@ LazyData: true
 KeepSource: true
 RoxygenNote: 6.0.1
 Suggests: testthat
+SystemRequirements: GRASS (>= 7)
