@@ -207,7 +207,8 @@ create_rlist <- function(rnge, params){
 #'@param numcol numeric number of columns in a multipanel
 #'@param mapextent numeric vector of length 4. Format is bottomleft-x, topright-x, bottomleft-y, topright-y.
 #'@param basin character basin name from fathom_basins_proj.shp
-#'@param label_string character label
+#'@param label_string character label text
+#'@param label_size int label size
 #'@param print_track logical print dataflow track?
 #'@return output plots to the QGIS_plotting folder
 #'@details Probably need to implement this as a seperate package to improve portability. Set param to "diffsal" to plot outpot of avmap function. Will output an imagemagick plot to the working directory and a pdf plot to the file.path(getOption("fdir"), "QGIS_Plotting") folder. The optional fpath argument only supports pointing to a single geotiff. This function can be called from the commandline using Rscript by loading the methods package and creating/loading a python 2 environment using the commands conda create --name python2 python=2 and source activate python2.
@@ -254,9 +255,11 @@ create_rlist <- function(rnge, params){
 #'grassmap(rnge = c(200808, 200910), params = 'chlext', numrow = 2, numcol = 1,
 #' labelling = TRUE, label_string = c("Aug 2008", "Oct 2009"))
 #'
+#'
+# grassmap(rnge = 201509, params = 'chlext', labelling = TRUE, label_size = 35, label_string = "Sep 2015")
 #'}
 
-grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, numrow = NULL, numcol = NULL, fdir = getOption("fdir"), basin = "full", label_string = NULL, labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
+grassmap <- function(fpath = NULL, rnge = NULL , params, mapextent = NA, numrow = NULL, numcol = NULL, fdir = getOption("fdir"), basin = "full", label_string = NULL, label_size = 21, labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE){
 
   if(as.character(Sys.info()["sysname"]) != "Linux"){
     stop("This function only works with Linux!")
@@ -409,7 +412,7 @@ diffsal,diffsalrules.file",
                  "        masked y",
                  "        end",
                  paste("text 20% 87% ", label_string_single, sep = ""),
-                 "        fontsize 21",
+                 paste0("fontsize ", label_size),
                  "        background white",
                  "        border black",
                  "        end",
@@ -431,7 +434,7 @@ diffsal,diffsalrules.file",
                    "vareas fbvec",
                    "        masked y",
                    "        end",
-                   paste("text 17% 85% ", label_string, sep = ""),
+                   paste("text 17% 85% ", label_string_single, sep = ""),
                    "        fontsize 35",
                    "        background white",
                    "        border black",
@@ -454,6 +457,9 @@ diffsal,diffsalrules.file",
     }
     
     # label_string <- NULL
+    # browser()
+    
+    # system("iconv -f UTF-8 -t ISO_8859-1 grassplot.file > grassplot.file")
     
     rgrass7::execGRASS("ps.map", input = file.path(paste(fdir, "/QGIS_plotting", sep=""), "grassplot.file"), output = file.path(paste(fdir, "/QGIS_plotting", sep = ""), paste(rasname, ".pdf", sep = "")), flags = "overwrite")
 

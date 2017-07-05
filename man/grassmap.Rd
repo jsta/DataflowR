@@ -6,8 +6,8 @@
 \usage{
 grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
   numrow = NULL, numcol = NULL, fdir = getOption("fdir"),
-  basin = "full", label_string = NULL, labelling = TRUE,
-  print_track = FALSE, cleanup = TRUE, rotated = TRUE)
+  basin = "full", label_string = NULL, label_size = 21,
+  labelling = TRUE, print_track = FALSE, cleanup = TRUE, rotated = TRUE)
 }
 \arguments{
 \item{fpath}{file.path to geotiff file}
@@ -26,7 +26,9 @@ grassmap(fpath = NULL, rnge = NULL, params, mapextent = NA,
 
 \item{basin}{character basin name from fathom_basins_proj.shp}
 
-\item{label_string}{character label}
+\item{label_string}{character label text}
+
+\item{label_size}{int label size}
 
 \item{labelling}{logical lablel output with yearmon?}
 
@@ -83,6 +85,7 @@ grassmap(rnge = 201509, params = "phycoc", label_string = "phycoc test")
 
 grassmap(rnge = c(200808, 200910), params = 'chlext', numrow = 2, numcol = 1,
 labelling = TRUE, label_string = c("Aug 2008", "Oct 2009"))
+
 
 }
 }
