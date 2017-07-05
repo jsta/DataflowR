@@ -25,5 +25,5 @@ plot(csal, dt$sal)
 abline(a=0,b=1,col="red",lwd=2)}
 }
 \seealso{
-\code{\link[wq]{ec2pss}}
+\code{\link[wql]{ec2pss}}
 }

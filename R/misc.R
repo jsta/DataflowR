@@ -27,7 +27,7 @@ Mode <- function(x){
 #'plot(csal, dt$sal)
 #'abline(a=0,b=1,col="red",lwd=2)}
 #'@details algorithm based off an excel implementation by N. Iricanin
-#'@seealso \code{\link[wq]{ec2pss}}
+#'@seealso \code{\link[wql]{ec2pss}}
 
 cond2sal<-function (c, t = 25, P = 0) 
 {
