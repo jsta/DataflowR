@@ -248,32 +248,3 @@ if(any(outtemp[,"yearmon"]==coeflist[,"yearmon"],na.rm=TRUE)&overwrite==FALSE){
 fit
 }
       
-
-
-
-#output extracted chl raster
-#list.files(paste("DF_Surfaces/",yearmon,"/",sep=""))
-# test<-raster(paste("DF_Surfaces/",yearmon,"/","c6chla",".tif",sep=""))
-# test2<-raster(paste("DF_Surfaces/",yearmon,"/","c6cdom",".tif",sep=""))
-# test<-reclassify(test,c(-Inf,0,NA))
-# test2<-reclassify(test2,c(-Inf,0,NA))
-# plot(test2)
-# 
-# testfinal<-test2*(-0.004969)+test*(0.041821)-0.37868
-# testfinal<-reclassify(testfinal,c(-Inf,0,0))
-# writeRaster(testfinal,filename=paste("DF_Surfaces/",yearmon,"/",yearmon,"chlext",".tif",sep=""),overwrite=T,format="GTiff")
-# 
-# 
-# #calculate extracted chlorophyll####
-# # chldt<-merge(fulldataset.over,coeflist,by="SURVEY")
-# # chldt$one<-chldt$CDOM_RFU.y*chldt$CDOM_RFU.x
-# # chldt$two<-chldt$FLUOR_CHLA_RFU.y*chldt$FLUOR_CHLA_RFU.x
-# # chldt$three<-chldt$PHYCOE_RFU.y*chldt$PHYCOE_RFU.x
-# # chldt$four<-chldt$C6CHLA_RFU.y*chldt$C6CHLA_RFU.x
-# # chldt$five<-chldt$C6CDOM_RFU.y*chldt$C6CDOM_RFU.x
-# # chldt$six<-chldt$CDOM_RFU2*chldt$CDOM_RFU.x*chldt$CDOM_RFU.x
-# # chldt$seven<-chldt$FLUOR_CHLA_RFU2*chldt$FLUOR_CHLA_RFU.x*chldt$FLUOR_CHLA_RFU.x
-# # chldt$eight<-chldt$PHYCOE_RFU2*chldt$PHYCOE_RFU.x*chldt$PHYCOE_RFU.x
-# # chldt$nine<-chldt$C6CHLA_RFU2*chldt$C6CHLA_RFU.x*chldt$C6CHLA_RFU.x
-# # chldt$ten<-chldt$C6CDOM_RFU2*chldt$C6CDOM_RFU.x*chldt$C6CDOM_RFU.x
-# }
