@@ -1,4 +1,4 @@
-.onLoad <- function(libname = find.package("DataflowR"), pkgname = "DataflowR"){
+.onAttach <- function(libname = find.package("DataflowR"), pkgname = "DataflowR"){
   
   localpath <- system.file("localpath", package = "DataflowR")
   fdir <- matrix(utils::read.delim(localpath, header = FALSE, 
