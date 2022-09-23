@@ -1,7 +1,7 @@
 #'@name surfplot
 #'@title Plotting Interpolated Surfaces
 #'@description accounts for corner case parameter spellings, variable specific contour breaks are (need to be) defined
-#'@author Joseph Stachelek
+#'@author Jemma Stachelek
 #'@param rnge numeric string of no more than two dates in yyyymm format
 #'@param params character. string of parameter fields to plot
 #'@param fdir character file path to local data directory
@@ -195,7 +195,7 @@ create_rlist <- function(rnge, params){
 #'@name grassmap
 #'@title Publication quality maps with GRASS
 #'@description Create publication quality maps with GRASS GIS. Only runs on Linux.
-#'@author Joseph Stachelek
+#'@author Jemma Stachelek
 #'@param fpath file.path to geotiff file
 #'@param rnge numeric string of 1, 2, or more dates dates in yyyymm format. A length 1 rnge will produce a single plot, a length 2 rnge will produce a series of plots bookended by the two dates, a rnge object with more than 2 dates will produce a series of plots exactly corresponding to the dates provided.
 #'@param params character vector of parameter fields to plot legends and color ramps are defined for sal, chlext, phycoc, and diffsal

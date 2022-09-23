@@ -33,7 +33,7 @@
 
 \fancypagestyle{plain}{\fancyhf{}\fancyhead[R]{\includegraphics[width=6.0in,keepaspectratio=true]{sfwmd_bar8half_wordorexcel.png}}}
 
-\author{Joseph Stachelek}
+\author{Jemma Stachelek}
 \title{The DataflowR Package for Processing Underway Water Quality Surveys}
 
 %\VignetteIndexEntry{Dataflow Output Standard Operating Procedure(SOP)}

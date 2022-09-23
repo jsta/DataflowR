@@ -4,8 +4,8 @@ Description: Functions are provided to clean, aggregate, and plot Dataflow
     output.
 Version: 0.2
 Date: 2016-07-25
-Author: Joseph Stachelek <stachel2@msu.edu>
-Maintainer: Joseph Stachelek <stachel2@msu.edu>
+Author: Jemma Stachelek <stachel2@msu.edu>
+Maintainer: Jemma Stachelek <stachel2@msu.edu>
 Imports: 
     MASS,
     car,

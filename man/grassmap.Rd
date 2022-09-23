@@ -90,5 +90,5 @@ labelling = TRUE, label_string = c("Aug 2008", "Oct 2009"))
 }
 }
 \author{
-Joseph Stachelek
+Jemma Stachelek
 }

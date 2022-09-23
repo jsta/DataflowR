@@ -9,7 +9,7 @@
 #'@param fdir file.path to data folder
 #'@import stats
 #'@return An extracted chlorophyll surface and an updated FullDataSet file
-#'@author Joseph Stachelek
+#'@author Jemma Stachelek
 #'@importFrom utils read.table
 #'@export
 #'@examples 

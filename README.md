@@ -22,7 +22,7 @@ Data
 
 You can find input and output data on KNB at:
 
-**Christopher J. Madden, Joseph Stachelek, Stephen Kelly, Michelle Blaha (2017)** Florida Bay water quality estimated by underway flow-through measurement. *KNB Data Repository*. <http://dx.doi.org/10.5063/F11R6NGR>
+**Christopher J. Madden, Jemma Stachelek, Stephen Kelly, Michelle Blaha (2017)** Florida Bay water quality estimated by underway flow-through measurement. *KNB Data Repository*. <http://dx.doi.org/10.5063/F11R6NGR>
 
 Function Documentation and Examples
 -----------------------------------
@@ -36,6 +36,6 @@ see either:
 References
 ----------
 
-**Joseph Stachelek and Christopher J. Madden (2015)**. Application of Inverse Path Distance weighting for high density spatial mapping of coastal water quality patterns. *International Journal of Geographical Information Science* [preprint](http://jsta.github.io/public/stachmadden2015am.pdf) | [journal](http://dx.doi.org/10.1080/13658816.2015.1018833)
+**Jemma Stachelek and Christopher J. Madden (2015)**. Application of Inverse Path Distance weighting for high density spatial mapping of coastal water quality patterns. *International Journal of Geographical Information Science* [preprint](http://jsta.github.io/public/stachmadden2015am.pdf) | [journal](http://dx.doi.org/10.1080/13658816.2015.1018833)
 
-**Joseph Stachelek, Christopher J. Madden, Stephen Kelly, Michelle Blaha (submitted)**. Fine-scale relationships between phytoplankton abundance and environmental drivers in Florida Bay, USA.
+**Jemma Stachelek, Christopher J. Madden, Stephen Kelly, Michelle Blaha (submitted)**. Fine-scale relationships between phytoplankton abundance and environmental drivers in Florida Bay, USA.
